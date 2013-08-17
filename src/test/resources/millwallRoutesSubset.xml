@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Council>
+  <Wards>
+    <Ward>
+      <Id>E05000583</Id>
+      <Routes>
+          <Route>
+              <Name>Telegraph Place</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 9XA</Postcode>
+                      <Name>TELEGRAPH PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UY</Postcode>
+                      <Name>WHEAT SHEAF CLOSE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UZ</Postcode>
+                      <Name>WHEAT SHEAF CLOSE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9XD</Postcode>
+                      <Name>TELEGRAPH PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UU</Postcode>
+                      <Name>WHEAT SHEAF CLOSE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9XE</Postcode>
+                      <Name>TELEGRAPH PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9XB</Postcode>
+                      <Name>TELEGRAPH PLACE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Route 9</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3QB</Postcode>
+                      <Name>NAPIER AVENUE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QQ</Postcode>
+                      <Name>DA GAMA PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QH</Postcode>
+                      <Name>HUDSON COURT AT 3, MARITIME QUAY, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QF</Postcode>
+                      <Name>SHACKLETON COURT AT 2, MARITIME QUAY, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QG</Postcode>
+                      <Name>BERING SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QN</Postcode>
+                      <Name>TORRES SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QD</Postcode>
+                      <Name>MERCATOR PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QB</Postcode>
+                      <Name>AMUNDSEN COURT AT 17, NAPIER AVENUE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QE</Postcode>
+                      <Name>PERRY COURT 1, MARITIME QUAY, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QW</Postcode>
+                      <Name>MAGELLAN PLACE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Route 8</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3TL</Postcode>
+                      <Name>THE PORT HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TN</Postcode>
+                      <Name>WHEEL HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TG</Postcode>
+                      <Name>TAFFRAIL HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TN</Postcode>
+                      <Name>THE CHART HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TH</Postcode>
+                      <Name>THE PLATE HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TD</Postcode>
+                      <Name>SLIPWAY HOUSE, BURRELLS WHARF SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TJ</Postcode>
+                      <Name>BEACON HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TP</Postcode>
+                      <Name>CORSAIR HOUSE 1, SCOTT RUSSELL PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TN</Postcode>
+                      <Name>THE PLATE HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TW</Postcode>
+                      <Name>THE CHART HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TD</Postcode>
+                      <Name>SLIPWAY HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TA</Postcode>
+                      <Name>WHEEL HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TR</Postcode>
+                      <Name>BRUNEL HOUSE, SHIP YARD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3TB</Postcode>
+                      <Name>WHEEL HOUSE, BURRELLS WHARF, WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Transom Square</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3TQ</Postcode>
+                      <Name>TYNDALE COURT, TRANSOM SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AQ</Postcode>
+                      <Name>TRANSOM SQUARE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Undine Road</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 9UL</Postcode>
+                      <Name>SPINDRIFT AVENUE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UW</Postcode>
+                      <Name>UNDINE ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UP</Postcode>
+                      <Name>FALCON WAY, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UW</Postcode>
+                      <Name>CUTTY SARK HOUSE, UNDINE ROAD, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Route 3</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3AS</Postcode>
+                      <Name>INFINITY APARTMENTS 1A, CHAPEL HOUSE STREET, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AX</Postcode>
+                      <Name>THERMOPYLAE GATE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AS</Postcode>
+                      <Name>CHAPEL HOUSE STREET, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AT</Postcode>
+                      <Name>JULIAN PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AU</Postcode>
+                      <Name>MACQUARIE WAY, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9US</Postcode>
+                      <Name>SPINDRIFT AVENUE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Route 4</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3WW</Postcode>
+                      <Name>LANGBOURNE PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WN</Postcode>
+                      <Name>LANGBOURNE PLACE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Harbinger Road</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3AA</Postcode>
+                      <Name>HARBINGER ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3QR</Postcode>
+                      <Name>CAHIR STREET, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AD</Postcode>
+                      <Name>HESPERUS CRESCENT, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AB</Postcode>
+                      <Name>HESPERUS CRESCENT, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UX</Postcode>
+                      <Name>AMBASSADOR SQUARE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>The Forge</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3AE</Postcode>
+                      <Name>WESTFERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3GU</Postcode>
+                      <Name>FORGE SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AE</Postcode>
+                      <Name>WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3GY</Postcode>
+                      <Name>FORGE SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3GX</Postcode>
+                      <Name>FORGE SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3GW</Postcode>
+                      <Name>FORGE SQUARE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Taeping Street</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 9UT</Postcode>
+                      <Name>TAEPING STREET, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UR</Postcode>
+                      <Name>WHITEADDER WAY, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 9UN</Postcode>
+                      <Name>TAEPING STREET, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Route 1</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3WH</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WG</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WJ</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WA</Postcode>
+                      <Name>CONSORT HOUSE, ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WE</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WF</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WD</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WQ</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WA</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3WB</Postcode>
+                      <Name>ST DAVIDS SQUARE, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+          <Route>
+              <Name>Lockesfield Place</Name>
+              <DwellingGroups>
+                  <DwellingGroup>
+                      <Postcode>E14 3GS</Postcode>
+                      <Name>BARTLETT MEWS, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AJ</Postcode>
+                      <Name>LOCKESFIELD PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3GT</Postcode>
+                      <Name>PENGELLY APARTMENTS 9, BARTLETT MEWS, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AN</Postcode>
+                      <Name>OLD FIRE STATION HOUSE 461, WESTFERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AH</Postcode>
+                      <Name>LOCKESFIELD PLACE, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AN</Postcode>
+                      <Name>WEST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+                  <DwellingGroup>
+                      <Postcode>E14 3AY</Postcode>
+                      <Name>EAST FERRY ROAD, LONDON</Name>
+                  </DwellingGroup>
+              </DwellingGroups>
+          </Route>
+      </Routes>
+    </Ward>
+  </Wards>
+</Council>

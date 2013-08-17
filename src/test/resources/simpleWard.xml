@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Ward>
+  <Id>E05000583</Id>
+  <Routes>
+    <Route>
+      <Name>Route 2</Name>
+      <DwellingGroups>
+        <DwellingGroup>
+          <Postcode>E14 3AX</Postcode>
+          <Name>THERMOPYLAE GATE, LONDON</Name>
+        </DwellingGroup>
+        <DwellingGroup>
+          <Postcode>E14 3AS</Postcode>
+          <Name>CHAPEL HOUSE STREET, LONDON</Name>
+        </DwellingGroup>
+        <DwellingGroup>
+          <Postcode>E14 3AU</Postcode>
+          <Name>MACQUARIE WAY, LONDON</Name>
+        </DwellingGroup>
+      </DwellingGroups>
+    </Route>
+  </Routes>
+</Ward>
+
