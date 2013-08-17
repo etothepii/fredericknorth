@@ -5,11 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
-import java.awt.Color;
-import java.awt.Point;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
@@ -54,7 +50,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private MapViewGeneratorImpl(MapImage mapImage, OSMapLoader osMapLoader, OSMapLocator osMapLocator,
                                  LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
         mapCache = mapImage == null ?
-                new MapImageImpl(new BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB), new Point(0, 0)) : mapImage;
+                new MapImageImpl(getNullImage(), new Point(0, 0)) : mapImage;
         this.osMapLoader = osMapLoader;
         this.osMapLocator = osMapLocator;
         this.locationFactory = locationFactory;
@@ -63,6 +59,14 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 mapCache.getGeoTopLeft().x + mapCache.getSize().width / 2,
                 mapCache.getGeoTopLeft().y - mapCache.getSize().height / 2));
         setViewPortSize(DEFAULT_SIZE);
+    }
+
+    private BufferedImage getNullImage() {
+        BufferedImage nullImage = new BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB);
+        Graphics g = nullImage.getGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, 1, 1);
+        return nullImage;
     }
 
     private MapImage getMapImage() {
@@ -204,35 +208,40 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         if (mapImage == null) return null;
         BufferedImage bufferedImage = new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)bufferedImage.getGraphics();
-        g.setTransform(AffineTransform.getScaleInstance(scale, scale));
+        AffineTransform scaleTransform = AffineTransform.getScaleInstance(scale, scale);
+        g.setTransform(scaleTransform);
         MapView mapView = new MapViewImpl(bufferedImage, geoCenter, viewPortSize, scale, locationFactory, mapLabelFactory);
         Point drawFromUnscaled = mapView.getImageLocation(mapImage.getGeoTopLeft());
         Point drawFrom = new Point((int)(drawFromUnscaled.x / scale), (int)(drawFromUnscaled.y / scale));
+        Rectangle fillAround = scaleTransform.createTransformedShape(
+                new Rectangle(drawFrom.x, drawFrom.y, mapImage.getMap().getWidth(), mapImage.getMap().getHeight())).getBounds();
         g.drawImage(mapImage.getMap(), drawFrom.x, drawFrom.y, null);
         g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
         g.setColor(Color.WHITE);
-        Dimension sizeInImage = new Dimension((int)(mapImage.getSize().width * scale), (int)(mapImage.getSize().height * scale));
-        for (Rectangle r : getRectanglesToClear(new Rectangle(viewPortSize), new Rectangle(drawFromUnscaled, sizeInImage))) {
+        for (Rectangle r : getRectanglesToClear(new Rectangle(viewPortSize), fillAround)) {
+            LOG.debug("Filling White Rectangle: {}", r);
             g.fill(r);
         }
         return mapView;
     }
 
-    static List<Rectangle> getRectanglesToClear(Rectangle base, Rectangle filledIn) {
+    static List<Rectangle> getRectanglesToClear(Rectangle base, Rectangle fillAround) {
+        LOG.debug("base: {}", base);
+        LOG.debug("fillAround: {}", fillAround);
         List<Rectangle> rectangles = new ArrayList<Rectangle>(4);
-        if (filledIn.x > base.x) {
-            rectangles.add(new Rectangle(base.x, base.y, filledIn.x - base.x, base.height));
+        if (fillAround.x > base.x) {
+            rectangles.add(new Rectangle(base.x, base.y, fillAround.x - base.x, base.height));
         }
-        if (filledIn.y > base.y) {
-            rectangles.add(new Rectangle(base.x, base.y, base.width, filledIn.y - base.y));
+        if (fillAround.y > base.y) {
+            rectangles.add(new Rectangle(base.x, base.y, base.width, fillAround.y - base.y));
         }
-        if (base.width + base.x > filledIn.width + filledIn.x) {
-            rectangles.add(new Rectangle(filledIn.x + filledIn.width, base.y,
-                    base.width + base.x - filledIn.width - filledIn.x, base.height));
+        if (base.width + base.x > fillAround.width + fillAround.x) {
+            rectangles.add(new Rectangle(fillAround.x + fillAround.width, base.y,
+                    base.width + base.x - fillAround.width - fillAround.x, base.height));
         }
-        if (base.height + base.y > filledIn.height + filledIn.y) {
-            rectangles.add(new Rectangle(base.x, filledIn.y + filledIn.height, base.width,
-                    base.height + base.y - filledIn.height - filledIn.y));
+        if (base.height + base.y > fillAround.height + fillAround.y) {
+            rectangles.add(new Rectangle(base.x, fillAround.y + fillAround.height, base.width,
+                    base.height + base.y - fillAround.height - fillAround.y));
         }
         return rectangles;
     }
