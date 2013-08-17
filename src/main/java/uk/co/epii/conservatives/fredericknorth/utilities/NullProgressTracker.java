@@ -6,6 +6,9 @@ package uk.co.epii.conservatives.fredericknorth.utilities;
  * Time: 23:34
  */
 public class NullProgressTracker implements ProgressTracker {
+
+    private final Object sync = new Object();
+
     @Override
     public void setSteps(int n) {}
 
@@ -32,6 +35,9 @@ public class NullProgressTracker implements ProgressTracker {
 
     @Override
     public Object getSync() {
-        return new Object();
+        return sync;
     }
+
+    @Override
+    public void finish() {}
 }

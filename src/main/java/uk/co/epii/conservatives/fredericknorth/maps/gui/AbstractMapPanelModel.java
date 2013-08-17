@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
@@ -17,7 +18,7 @@ import java.util.List;
  */
 public abstract class AbstractMapPanelModel implements MapPanelModel {
 
-    private static final Logger LOG = Logger.getLogger(AbstractMapPanelModel.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractMapPanelModel.class);
 
     private final SortedSet<OverlayItem> overlays;
     private final Set<MapPanelDataListener> mapPanelDataListeners;
@@ -146,6 +147,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     protected void fireUniverseChanged() {
         MapPanelDataEvent e = new MapPanelDataEvent(this);
         synchronized (mapPanelDataListeners) {
+            LOG.debug("Informing {} Listeners that universe has changed", mapPanelDataListeners.size());
             for (MapPanelDataListener l : mapPanelDataListeners) {
                 l.universeChanged(e);
             }
@@ -320,6 +322,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void setUniverse(Rectangle rectangle, ProgressTracker progressTracker) {
         mapViewGenerator.loadUniverse(rectangle, progressTracker);
+        LOG.debug("Universe loading complete");
         fireUniverseChanged();
     }
 
@@ -373,8 +376,8 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     public void zoomToFitUniverse(Dimension size) {
         Rectangle universe = getUniverse();
         double scale = Math.min(size.getWidth() / universe.getWidth(), size.getHeight() / universe.getHeight());
-        mapViewGenerator.setGeoCenter(new Point(universe.x + universe.width / 2, universe.y + universe.height / 2));
-        mapViewGenerator.setScale(scale);
+        setGeoCenter(new Point(universe.x + universe.width / 2, universe.y + universe.height / 2));
+        setScale(scale);
     }
 
     @Override

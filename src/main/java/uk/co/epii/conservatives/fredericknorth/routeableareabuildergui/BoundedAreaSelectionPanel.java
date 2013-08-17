@@ -7,6 +7,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -40,6 +46,20 @@ public class BoundedAreaSelectionPanel extends JPanel {
             }
         });
         masterBoundedAreaSelectionTypes.get(model.getMasterSelectedType()).setSelected(true);
+        addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+                if (propertyChangeEvent.getPropertyName().equals("enabled")) {
+                    boolean enabled = (Boolean)propertyChangeEvent.getNewValue();
+                    for (JCheckBox checkBox : masterBoundedAreaSelectionTypes.values()) {
+                        checkBox.setEnabled(enabled);
+                    }
+                    for (JComboBox comboBox : boundedAreaSelectionComboBoxes.values()) {
+                        comboBox.setEnabled(enabled);
+                    }
+                }
+            }
+        });
     }
 
     private void addCheckboxes() {
@@ -119,7 +139,14 @@ public class BoundedAreaSelectionPanel extends JPanel {
     private Map<BoundedAreaType, JCheckBox> getMasterBoundedAreaSelectionTypes() {
         EnumMap<BoundedAreaType, JCheckBox> checkboxes = new EnumMap<BoundedAreaType, JCheckBox>(BoundedAreaType.class);
         ButtonGroup buttonGroup = new ButtonGroup();
-        for (BoundedAreaType boundedAreaType : model.getRootSelectionTypes()) {
+        BoundedAreaType[] boundedAreaTypes = model.getRootSelectionTypes();
+        Arrays.sort(boundedAreaTypes, new Comparator<BoundedAreaType>() {
+            @Override
+            public int compare(BoundedAreaType a, BoundedAreaType b) {
+                return a.getName().compareTo(b.getName());
+            }
+        });
+        for (BoundedAreaType boundedAreaType : boundedAreaTypes) {
             JCheckBox button = new JCheckBox(boundedAreaType.getName());
             checkboxes.put(boundedAreaType, button);
             buttonGroup.add(button);

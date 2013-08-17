@@ -88,4 +88,9 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
     public Object getSync() {
         return progressBar.getSync();
     }
+
+    @Override
+    public void finish() {
+        progressBar.finish();
+    }
 }

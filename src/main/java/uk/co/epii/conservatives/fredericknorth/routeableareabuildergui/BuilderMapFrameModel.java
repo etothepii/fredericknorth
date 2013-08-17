@@ -11,6 +11,8 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilder;
 import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.ConstructorOverlay;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
+import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
+import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.imageio.ImageIO;
@@ -22,6 +24,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * User: James Robinson
@@ -37,10 +41,16 @@ public class BuilderMapFrameModel {
     private final ApplicationContext applicationContext;
     private final DwellingCountReportBuilder dwellingCountReportBuilder;
     private ProgressTracker progressTracker;
+    private Executor executor;
+    private final Object enabledSync = new Object();
+    private boolean enabled = true;
+    private final List<EnabledStateChangedListener<BuilderMapFrameModel>> enabledStateChangedListeners;
 
     public BuilderMapFrameModel(ApplicationContext applicationContext, BoundedAreaType masterAreaType, List<BoundedArea> masterAreas) {
         this.mapPanelModel = new BuilderMapPanelModel(
                 applicationContext.getDefaultInstance(MapViewGenerator.class), this, constructorOverlay);
+        enabledStateChangedListeners = new ArrayList<EnabledStateChangedListener<BuilderMapFrameModel>>();
+        executor = Executors.newSingleThreadExecutor();
         this.applicationContext = applicationContext;
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
         priorities = createPriorities();
@@ -53,14 +63,16 @@ public class BuilderMapFrameModel {
                 if (e.getSelected() != null &&
                         e.getSelected().getBoundedAreaType() == boundedAreaSelectionModel.getMasterSelectedType()) {
                     final Rectangle bounds = e.getSelected().getArea().getBounds();
-                    Thread loadThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                    bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
-                        }
-                    });
-                    loadThread.start();
+                    synchronized (enabledSync) {
+                        disable();
+                        executor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
+                                        bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
+                            }
+                        });
+                    }
                 }
                 List<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
                 for (BoundedAreaType boundedAreaType : boundedAreaSelectionModel.getSelectionTypes()) {
@@ -76,6 +88,52 @@ public class BuilderMapFrameModel {
                 mapPanelModel.setOverlays(overlayItems);
             }
         });
+    }
+
+    public void disable() {
+        synchronized (enabledSync) {
+            if (enabled) {
+                enabled = false;
+                fireEnabledStateChanged();
+            }
+        }
+    }
+
+    public void enable() {
+        synchronized (enabledSync) {
+            if (enabled) {
+                enabled = false;
+                fireEnabledStateChanged();
+            }
+        }
+    }
+
+    private void fireEnabledStateChanged() {
+        synchronized (enabledStateChangedListeners) {
+            EnabledStateChangedEvent<BuilderMapFrameModel> e =
+                    new EnabledStateChangedEvent<BuilderMapFrameModel>(this, isEnabled());
+            for (EnabledStateChangedListener l : enabledStateChangedListeners) {
+                l.enabledStateChanged(e);
+            }
+        }
+    }
+
+    public void addEnableStateChangedListener(EnabledStateChangedListener<BuilderMapFrameModel> l) {
+        synchronized (enabledStateChangedListeners) {
+            enabledStateChangedListeners.add(l);
+        }
+    }
+
+    public void removeEnableStateChangedListener(EnabledStateChangedListener<BuilderMapFrameModel> l) {
+        synchronized (enabledStateChangedListeners) {
+            enabledStateChangedListeners.remove(l);
+        }
+    }
+
+    public boolean isEnabled() {
+        synchronized (enabledSync) {
+            return enabled;
+        }
     }
 
     public ConstructorOverlay getConstructorOverlay() {
@@ -165,5 +223,14 @@ public class BuilderMapFrameModel {
             throw new RuntimeException(e);
         }
         return true;
+    }
+
+    public void setEnabled(boolean enabled) {
+        if (enabled) {
+            enable();
+        }
+        else {
+            disable();
+        }
     }
 }

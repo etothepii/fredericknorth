@@ -7,6 +7,8 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaConstructor;
+import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
+import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
 import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerJProgressBar;
 
 import javax.swing.*;
@@ -14,7 +16,10 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * User: James Robinson
@@ -73,8 +78,36 @@ public class BuilderMapFrame extends JFrame {
                     @Override
                     public void run() {
                         builderMapFrameModel.getMapPanelModel().zoomToFitUniverse(mapPanel.getSize());
+                        mapPanel.repaint();
+                        progressTracker.finish();
+                        setEnabled(true);
                     }
                 });
+            }
+        });
+        builderMapFrameModel.addEnableStateChangedListener(new EnabledStateChangedListener<BuilderMapFrameModel>() {
+            @Override
+            public void enabledStateChanged(final EnabledStateChangedEvent<BuilderMapFrameModel> e) {
+                if (isEnabled() == e.isEnabled()) return;
+                if (SwingUtilities.isEventDispatchThread()) {
+                    setEnabled(e.isEnabled());
+                }
+                else {
+                    try {
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                setEnabled(e.isEnabled());
+                            }
+                        });
+                    }
+                    catch (InterruptedException ie) {
+                        throw new RuntimeException(ie);
+                    }
+                    catch (InvocationTargetException ite) {
+                        throw new RuntimeException(ite);
+                    }
+                }
             }
         });
         saveButton = new JButton("Save");
@@ -86,6 +119,20 @@ public class BuilderMapFrame extends JFrame {
         initateLayout();
         setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
         addListeners(this);
+        addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+                if (propertyChangeEvent.getPropertyName().equals("enabled")) {
+                    boolean enabled = (Boolean)propertyChangeEvent.getNewValue();
+                    mapPanel.setEnabled(enabled);
+                    boundedAreaSelectionPanel.setEnabled(enabled);
+                    saveButton.setEnabled(enabled);
+                    loadButton.setEnabled(enabled);
+                    report.setEnabled(enabled);
+                    builderMapFrameModel.setEnabled(enabled);
+                }
+            }
+        });
     }
 
     private void addListeners(final BuilderMapFrame builderMapFrame) {

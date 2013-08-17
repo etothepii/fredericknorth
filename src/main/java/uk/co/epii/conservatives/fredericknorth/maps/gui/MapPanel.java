@@ -70,6 +70,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
 
     @Override
     public void mouseDragged(MouseEvent e) {
+        if (!isEnabled()) return;
         if (e.getButton() == MouseEvent.BUTTON1) {
             synchronized (this) {
                 mapPanelModel.moveDraggedFrom(e.getPoint());
@@ -80,12 +81,14 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        if (!isEnabled()) return;
         mapPanelModel.mouseMovedTo(e.getPoint());
         repaint();
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
+        if (!isEnabled()) return;
         synchronized (this) {
             mapPanelModel.zoomIn(e.getPoint(), Math.pow(zoomRate, e.getUnitsToScroll()));
         }
@@ -94,6 +97,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if (!isEnabled()) return;
         if (e.getButton() == MouseEvent.BUTTON1) {
             synchronized (this) {
                 switch (e.getClickCount()) {
@@ -111,6 +115,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if (!isEnabled()) return;
         requestFocus();
         if (e.getButton() == MouseEvent.BUTTON1) {
             synchronized (this) {
@@ -122,23 +127,34 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (!isEnabled()) return;
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             mapPanelModel.cancel();
         }
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+        if (!isEnabled()) return;
+    }
 
     @Override
-    public void mouseEntered(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {
+        if (!isEnabled()) return;
+    }
 
     @Override
-    public void mouseExited(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {
+        if (!isEnabled()) return;
+    }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+        if (!isEnabled()) return;
+    }
 
     @Override
-    public void keyReleased(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {
+        if (!isEnabled()) return;
+    }
 }

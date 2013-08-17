@@ -71,6 +71,9 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
             if (!subsectionSizes.isEmpty() && subsectionCount >= subsectionSizes.get(0)) {
                 subsectionEnded();
             }
+            if (progressBar.getValue() == progressBar.getMaximum()) {
+                progressBar.setIndeterminate(true);
+            }
         }
         progressBar.repaint();
     }
@@ -112,6 +115,14 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     @Override
     public Object getSync() {
         return sync;
+    }
+
+    @Override
+    public void finish() {
+        subsectionSizes.clear();
+        progressBar.setMaximum(1);
+        progressBar.setValue(0);
+        progressBar.setIndeterminate(false);
     }
 
     public void paint(Graphics g) {
