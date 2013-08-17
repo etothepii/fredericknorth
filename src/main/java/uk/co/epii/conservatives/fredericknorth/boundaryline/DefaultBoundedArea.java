@@ -23,7 +23,7 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
         super(boundedArea.getBoundedAreaType(), boundedArea.getName());
         Polygon polygon = boundedArea.getArea();
         for (int i = 0; i < polygon.npoints; i++)  {
-            points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
+            getPoints().add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
         }
         for (BoundedArea child : boundedArea.getChildren()) {
             addChild(child);
@@ -33,7 +33,7 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
             for (int i = 0; i < enclave.npoints; i++) {
                 enclavePoints.add(new Point(enclave.xpoints[i], enclave.ypoints[i]));
             }
-            enclaves.add(enclavePoints);
+            getEnclavePoints().add(enclavePoints);
         }
     }
 
@@ -46,13 +46,13 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
         DefaultBoundedArea defaultBoundedArea = new DefaultBoundedArea(boundedAreaType, name);
         Element areaElt = (Element)boundedArea.getElementsByTagName("Area").item(0);
         Element pointsElt = (Element)areaElt.getElementsByTagName("Points").item(0);
-        defaultBoundedArea.points.addAll(getPointsFromNode(pointsElt));
+        defaultBoundedArea.getPoints().addAll(getPointsFromNode(pointsElt));
         Element enclavesElt = (Element)areaElt.getElementsByTagName("Enclaves").item(0);
         if (enclavesElt != null) {
             NodeList enclavesList = enclavesElt.getElementsByTagName("Enclave");
             for (int i = 0; i < enclavesList.getLength(); i++) {
                 Element enclave = (Element)enclavesList.item(i);
-                defaultBoundedArea.enclaves.add(getPointsFromNode(enclave));
+                defaultBoundedArea.getEnclavePoints().add(getPointsFromNode(enclave));
             }
         }
         Element children = (Element)boundedArea.getElementsByTagName("Children").item(0);
@@ -63,7 +63,7 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
                 if (child.getParentNode() == children) {
                     DefaultBoundedArea loaded = load(child);
                     if (loaded.getBoundedAreaType() == boundedAreaType.getChildType()) {
-                        defaultBoundedArea.children.add(loaded);
+                        defaultBoundedArea.getChildrenList().add(loaded);
                     }
                 }
             }

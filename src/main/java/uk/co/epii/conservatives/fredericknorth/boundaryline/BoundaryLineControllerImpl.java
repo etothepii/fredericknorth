@@ -4,12 +4,13 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.EnumMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User: James Robinson
@@ -18,12 +19,16 @@ import java.util.Map;
  */
 public class BoundaryLineControllerImpl implements BoundaryLineController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(BoundaryLineControllerImpl.class);
+
     private final Map<BoundedAreaType, DataSet> dataSets;
     private final Map<BoundedAreaType, SimpleFeatureCollection> simpleFeatureCollections;
+    private final Map<BoundedAreaType, List<LazyLoadingBoundaryLineFeature>> lazyBoundaryLineFeatureLists;
 
     public BoundaryLineControllerImpl(Map<BoundedAreaType, DataSet> dataSets) {
         this.dataSets = dataSets;
         simpleFeatureCollections = new EnumMap<BoundedAreaType, SimpleFeatureCollection>(BoundedAreaType.class);
+        lazyBoundaryLineFeatureLists = new EnumMap<BoundedAreaType, List<LazyLoadingBoundaryLineFeature>>(BoundedAreaType.class);
     }
 
     @Override
@@ -34,38 +39,105 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
         }
         SimpleFeatureCollection simpleFeatureCollection = simpleFeatureCollections.get(type);
         if (simpleFeatureCollection == null) {
+            simpleFeatureCollection = loadSimpleFeatureCollection(type, dataSet);
+        }
+        return simpleFeatureCollection;
+    }
+
+    private SimpleFeatureCollection loadSimpleFeatureCollection(BoundedAreaType type, DataSet dataSet) {
+        synchronized (simpleFeatureCollections) {
+            SimpleFeatureCollection simpleFeatureCollection = simpleFeatureCollections.get(type);
+            if (simpleFeatureCollection != null) return simpleFeatureCollection;
             try {
                 simpleFeatureCollection = dataSet.getFeatureSource().getFeatures();
                 simpleFeatureCollections.put(type, simpleFeatureCollection);
+                return simpleFeatureCollection;
             }
             catch (IOException ioe) {
                 throw new RuntimeException(ioe);
             }
         }
-        return simpleFeatureCollection;
     }
 
     @Override
-    public List<BoundedArea> getKnownChildren(BoundedArea parent, BoundedAreaType type) {
-        throw new UnsupportedOperationException("This feature is not currently supported");
+    public List<? extends BoundedArea> getAllOSKnownLazyBoundaryLineFeatures(BoundedAreaType type) {
+        List<LazyLoadingBoundaryLineFeature> lazyBoundaryLineFeatureList = lazyBoundaryLineFeatureLists.get(type);
+        if (lazyBoundaryLineFeatureList == null) {
+            lazyBoundaryLineFeatureList = loadLazyBoundaryLineFeatureList(type);
+        }
+        return lazyBoundaryLineFeatureList;
+    }
+
+    private List<LazyLoadingBoundaryLineFeature> loadLazyBoundaryLineFeatureList(BoundedAreaType type) {
+        synchronized (lazyBoundaryLineFeatureLists) {
+            List<LazyLoadingBoundaryLineFeature> lazyBoundaryLineFeatureList = lazyBoundaryLineFeatureLists.get(type);
+            if (lazyBoundaryLineFeatureList != null) {
+                return lazyBoundaryLineFeatureList;
+            }
+            SimpleFeatureCollection allOSKnownBoundedAreas = getAllOSKnownBoundedAreas(type);
+            lazyBoundaryLineFeatureList = new ArrayList<LazyLoadingBoundaryLineFeature>(allOSKnownBoundedAreas.size());
+            SimpleFeatureIterator simpleFeatureIterator = allOSKnownBoundedAreas.features();
+            while (simpleFeatureIterator.hasNext()) {
+                lazyBoundaryLineFeatureList.add(new LazyLoadingBoundaryLineFeature(this, simpleFeatureIterator.next(), type));
+            }
+            lazyBoundaryLineFeatureLists.put(type, lazyBoundaryLineFeatureList);
+            return lazyBoundaryLineFeatureList;
+        }
+    }
+
+    @Override
+    public List<BoundedArea> getKnownDescendents(BoundedArea parent, BoundedAreaType childType) {
+        if (!Arrays.asList(parent.getBoundedAreaType().getAllPossibleDecendentTypes()).contains(childType)) {
+            return new ArrayList<BoundedArea>();
+        }
+        return getFeaturesContainedWithin(childType, parent.getArea());
     }
 
     @Override
     public BoundedArea getContainingFeature(BoundedAreaType type, double x, double y) {
-        SimpleFeatureIterator constituencies =
-                getAllOSKnownBoundedAreas(BoundedAreaType.PARLIAMENTARY_CONSTITUENCY).features();
-        while (constituencies.hasNext()) {
-            SimpleFeature constituency = constituencies.next();
-            BoundingBox boundingBox = constituency.getBounds();
+        SimpleFeatureIterator simpleFeatures =
+                getAllOSKnownBoundedAreas(type).features();
+        while (simpleFeatures.hasNext()) {
+            SimpleFeature simpleFeature = simpleFeatures.next();
+            BoundingBox boundingBox = simpleFeature.getBounds();
             if (boundingBox.contains(x, y)) {
                 BoundaryLineFeature boundaryLineFeature =
-                        new BoundaryLineFeature(constituency, BoundedAreaType.PARLIAMENTARY_CONSTITUENCY);
+                        new BoundaryLineFeature(simpleFeature, type);
                 if (boundaryLineFeature.getArea().contains(x, y)) {
                     return boundaryLineFeature;
                 }
             }
         }
         return null;
+    }
+
+    @Override
+    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Shape s) {
+        ArrayList<BoundedArea> boundedAreas = new ArrayList<BoundedArea>();
+        SimpleFeatureCollection simpleFeaturesCollection =
+                getAllOSKnownBoundedAreas(type);
+        if (simpleFeaturesCollection == null) {
+            LOG.debug("No SimpleFeaturesCollection found for: {}", type);
+            return new ArrayList<BoundedArea>();
+        }
+        SimpleFeatureIterator simpleFeatures = simpleFeaturesCollection.features();
+        Rectangle shapeBounds = s.getBounds();
+        simpleFeatures: while (simpleFeatures.hasNext()) {
+            SimpleFeature simpleFeature = simpleFeatures.next();
+            BoundingBox boundingBox = simpleFeature.getBounds();
+            if (shapeBounds.contains(boundingBox.getMinX(), boundingBox.getMinY()) &&
+                    shapeBounds.contains(boundingBox.getMaxX(), boundingBox.getMaxY())) {
+                LazyLoadingBoundaryLineFeature lazyLoadingBoundaryLineFeature =
+                        new LazyLoadingBoundaryLineFeature(this, simpleFeature, type);
+                for (Point point : lazyLoadingBoundaryLineFeature.getPoints()) {
+                    if (!s.contains(point.x, point.y)) {
+                        continue simpleFeatures;
+                    }
+                }
+                boundedAreas.add(lazyLoadingBoundaryLineFeature);
+            }
+        }
+        return boundedAreas;
     }
 
     @Override

@@ -33,6 +33,7 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
 
     @Override
     public void add(Point p, BoundedArea[] neighbours) {
+        List<Point> points = getPoints();
         Point previous = points.isEmpty() ? null : points.get(points.size() - 1);
         if (previousNeighbours != null && !previousNeighbours.isEmpty()) {
             for (BoundedArea neighbour : neighbours) {
@@ -78,6 +79,7 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
             }
         }
         List<Point> pointsToAdd = PolygonExtensions.getShortestPathConnecting(polygon, pathsIndexes, previous, toAdd);
+        List<Point> points = getPoints();
         for (Point p : pointsToAdd) {
             LOG.debug("{}: {}", new Object[] {points.size(), p});
             points.add(p);

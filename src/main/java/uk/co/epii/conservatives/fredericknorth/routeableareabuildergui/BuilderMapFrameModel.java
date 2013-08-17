@@ -46,7 +46,7 @@ public class BuilderMapFrameModel {
     private boolean enabled = true;
     private final List<EnabledStateChangedListener<BuilderMapFrameModel>> enabledStateChangedListeners;
 
-    public BuilderMapFrameModel(ApplicationContext applicationContext, BoundedAreaType masterAreaType, List<BoundedArea> masterAreas) {
+    public BuilderMapFrameModel(ApplicationContext applicationContext) {
         this.mapPanelModel = new BuilderMapPanelModel(
                 applicationContext.getDefaultInstance(MapViewGenerator.class), this, constructorOverlay);
         enabledStateChangedListeners = new ArrayList<EnabledStateChangedListener<BuilderMapFrameModel>>();
@@ -54,9 +54,7 @@ public class BuilderMapFrameModel {
         this.applicationContext = applicationContext;
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
         priorities = createPriorities();
-        boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(
-                masterAreaType, masterAreas,
-                applicationContext.getDefaultInstance(XMLSerializer.class));
+        boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
         boundedAreaSelectionModel.addBoundedAreaSelectionListener(new BoundedAreaSelectionAdapter() {
             @Override
             public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
@@ -146,10 +144,11 @@ public class BuilderMapFrameModel {
 
     private Map<BoundedAreaType, Integer> createPriorities() {
         EnumMap<BoundedAreaType, Integer> priorities = new EnumMap<BoundedAreaType, Integer>(BoundedAreaType.class);
-        priorities.put(BoundedAreaType.NEIGHBOURHOOD, 40);
-        priorities.put(BoundedAreaType.POLLING_DISTRICT, 30);
-        priorities.put(BoundedAreaType.UNITARY_DISTRICT, 10);
-        priorities.put(BoundedAreaType.UNITARY_DISTRICT_WARD, 20);
+        for (BoundedAreaType boundedAreaType : BoundedAreaType.values()) {
+            if (!priorities.containsKey(boundedAreaType)) {
+                priorities.put(boundedAreaType, boundedAreaType.getPriority());
+            }
+        }
         return priorities;
     }
 
