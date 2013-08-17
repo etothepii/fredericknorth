@@ -6,8 +6,10 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.extensions.PolygonExtensions;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -122,22 +124,38 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
         }
         SimpleFeatureIterator simpleFeatures = simpleFeaturesCollection.features();
         Rectangle shapeBounds = s.getBounds();
-        simpleFeatures: while (simpleFeatures.hasNext()) {
+        while (simpleFeatures.hasNext()) {
             SimpleFeature simpleFeature = simpleFeatures.next();
             BoundingBox boundingBox = simpleFeature.getBounds();
-            if (shapeBounds.contains(boundingBox.getMinX(), boundingBox.getMinY()) &&
-                    shapeBounds.contains(boundingBox.getMaxX(), boundingBox.getMaxY())) {
+            Rectangle slightlyShrunkBounds = slightlyShrink(boundingBox);
+            if (shapeBounds.contains(slightlyShrunkBounds)) {
                 LazyLoadingBoundaryLineFeature lazyLoadingBoundaryLineFeature =
                         new LazyLoadingBoundaryLineFeature(this, simpleFeature, type);
-                for (Point point : lazyLoadingBoundaryLineFeature.getPoints()) {
-                    if (!s.contains(point.x, point.y)) {
-                        continue simpleFeatures;
+                Point2D.Float centreOfGravity =
+                        PolygonExtensions.getCentreOfGravity(lazyLoadingBoundaryLineFeature.getArea());
+                if (lazyLoadingBoundaryLineFeature.getArea().contains(centreOfGravity)) {
+                    if (s.contains(centreOfGravity)) {
+                        boundedAreas.add(lazyLoadingBoundaryLineFeature);
                     }
                 }
-                boundedAreas.add(lazyLoadingBoundaryLineFeature);
+                else {
+                    LOG.warn("This {}, {}, has a centre of gravity outside itself",
+                            new Object[] {type, lazyLoadingBoundaryLineFeature.getName()});
+                    if (s.contains(centreOfGravity)) {
+                        boundedAreas.add(lazyLoadingBoundaryLineFeature);
+                    }
+                }
             }
         }
         return boundedAreas;
+    }
+
+    private Rectangle slightlyShrink(BoundingBox boundingBox) {
+        double x = boundingBox.getMinX();
+        double y = boundingBox.getMinY();
+        double w = boundingBox.getMaxX() - x;
+        double h = boundingBox.getMaxY() - y;
+        return new Rectangle((int)(x + w/10), (int)(y + h/10), (int)(w * 4 / 5), (int)(h * 4 / 5));
     }
 
     @Override
