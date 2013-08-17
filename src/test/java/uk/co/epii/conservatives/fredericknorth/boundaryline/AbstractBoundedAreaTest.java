@@ -19,6 +19,11 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.Keys;
+import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+
+import java.io.File;
 
 /**
  * User: James Robinson
@@ -29,12 +34,16 @@ public class AbstractBoundedAreaTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBoundedAreaTest.class);
 
+    private static ApplicationContext applicationContext;
     private static final String fileToLoad = "district_borough_unitary_region";
     private static DataSet dataSet;
 
     @BeforeClass
     public static void createFile() {
-        dataSet = DataSet.createFromResource(AbstractBoundedAreaTest.class.getResource("/" + fileToLoad + ".shp"));
+        applicationContext = new TestApplicationContext();
+        String pathToFile = applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString() +
+                File.separator + applicationContext.getProperty("BoundaryLineDataDirectory");
+        dataSet = DataSet.createFromFile(new File(pathToFile + fileToLoad + ".shp"));
     }
 
     @Ignore

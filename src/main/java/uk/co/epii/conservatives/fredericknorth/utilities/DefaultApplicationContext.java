@@ -93,7 +93,7 @@ public final class DefaultApplicationContext implements ApplicationContext {
         if (!namedInstances.containsKey(clazz) || !namedInstances.get(clazz).containsKey(name)) {
             throw new IllegalArgumentException(String.format("No item has been registered of class: %s and name %s", clazz.toString(), name));
         }
-        return (T)namedInstances. get(clazz).get(name);
+        return (T)namedInstances.get(clazz).get(name);
     }
 
     @Override

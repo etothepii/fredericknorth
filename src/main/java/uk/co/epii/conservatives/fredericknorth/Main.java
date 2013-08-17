@@ -99,7 +99,7 @@ public class Main
         progressTracker.dispose();
     }
 
-    private static File findDataFolder() {
+    static File findDataFolder() {
         File file = new File(System.getProperty("user.home") + "/frederickNorth/Data");
         if (file.exists()) return file;
         throw new RuntimeException("Can not find data folder");

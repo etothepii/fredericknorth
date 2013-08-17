@@ -16,8 +16,9 @@ public class OSMapLoaderRegistrar {
     private static final String MAP_IMAGE_EXTENTION_KEY = "MapImageExtention";
 
     public static void registerToContext(ApplicationContext applicationContext) {
+        String dataFolder = applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString();
         applicationContext.registerDefaultInstance(OSMapLoader.class,
-                new OSMapLoaderImpl(applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString() + File.separator +
+                new OSMapLoaderImpl(dataFolder + File.separator +
                         applicationContext.getProperty(MAP_IMAGE_DIRECTORY_KEY),
                         applicationContext.getProperty(MAP_IMAGE_EXTENTION_KEY)));
     }

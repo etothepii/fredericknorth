@@ -9,6 +9,9 @@ import org.xBaseJ.fields.CharField;
 import org.xBaseJ.fields.Field;
 import org.xBaseJ.fields.NumField;
 import org.xBaseJ.xBaseJException;
+import uk.co.epii.conservatives.fredericknorth.Keys;
+import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,10 +28,15 @@ public class DataSetTest {
     private static final Logger LOG = LoggerFactory.getLogger(DataSetTest.class);
     private DataSet dataSet;
 
+    private String fileToLoad = "district_borough_unitary_region";
+    private ApplicationContext applicationContext = new TestApplicationContext();
+
     @Before
     public void setUp() {
-        dataSet = DataSet.createFromResource(
-                DataSetTest.class.getResource("/district_borough_unitary_region.shp"));
+        applicationContext = new TestApplicationContext();
+        String pathToFile = applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString() +
+                File.separator + applicationContext.getProperty("BoundaryLineDataDirectory");
+        dataSet = DataSet.createFromFile(new File(pathToFile + fileToLoad + ".shp"));
     }
 
     @Test

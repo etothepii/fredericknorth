@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth;
 import org.apache.log4j.Logger;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ public class TestApplicationContext implements ApplicationContext {
 
     public TestApplicationContext() {
         this(DEFAULT_CONFIG_LOCATION);
+        registerNamedInstance(File.class, Keys.DATA_FOLDER, Main.findDataFolder());
     }
 
     public TestApplicationContext(String propertiesResourceLocation) {
