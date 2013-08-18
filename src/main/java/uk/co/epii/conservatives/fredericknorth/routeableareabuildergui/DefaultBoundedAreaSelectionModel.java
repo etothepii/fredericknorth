@@ -81,9 +81,7 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
 
     private void loadOSKnownInstances(BoundedAreaType boundedAreaType) {
         BoundedAreaComboBoxModel boundedAreaComboBoxModel = comboBoxModels.get(boundedAreaType);
-        for (BoundedArea boundedArea : boundaryLineController.getAllOSKnownLazyBoundaryLineFeatures(boundedAreaType)) {
-            boundedAreaComboBoxModel.add(boundedArea);
-        }
+            boundedAreaComboBoxModel.addAll(boundaryLineController.getAllOSKnownLazyBoundaryLineFeatures(boundedAreaType));
     }
 
     private BoundedAreaType[] calculateSelectionTypes(BoundedAreaType masterBoundedAreaType) {

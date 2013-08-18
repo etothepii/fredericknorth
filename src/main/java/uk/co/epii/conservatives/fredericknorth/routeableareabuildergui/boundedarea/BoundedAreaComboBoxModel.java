@@ -22,4 +22,5 @@ public interface BoundedAreaComboBoxModel extends ComboBoxModel {
     public void refresh();
     public BoundedArea getElementAt(int index);
     public void add(BoundedArea boundedArea);
+    public void addAll(Collection<? extends BoundedArea> boundedAreas);
 }
