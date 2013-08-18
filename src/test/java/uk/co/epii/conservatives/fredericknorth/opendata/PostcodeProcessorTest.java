@@ -5,6 +5,7 @@ import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMap;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapLocatorRegistrar;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 
 import java.awt.*;
@@ -65,16 +66,21 @@ public class PostcodeProcessorTest {
 
     @Test
     public void getContaingMapTest() {
-        OSMap result = postcodeProcessor.getContainingMap("E14 0DG");
-        String expected = "tq38se";
+        OSMap result = postcodeProcessor.getContainingMap(OSMapType.RASTER, "E14 0DG");
+        String expected = "tq38";
         assertEquals(expected, result.getMapName());
     }
 
     @Test
     public void getContainingMapsTest() {
-        Set<OSMap> results = postcodeProcessor.getContainingMaps(dwellingProcessor.getDwellingGroups());
+        Set<OSMap> results = postcodeProcessor.getContainingMaps(OSMapType.VECTOR_MAP, dwellingProcessor.getDwellingGroups());
         Set<String> expected = new HashSet<String>();
-        expected.add("tq38se");
+        expected.add("tq3850");
+        expected.add("tq3860");
+        expected.add("tq3870");
+        expected.add("tq3851");
+        expected.add("tq3861");
+        expected.add("tq3871");
         for (OSMap result : results) {
             assertTrue(result.getMapName(), expected.contains(result.getMapName()));
         }

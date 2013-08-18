@@ -31,4 +31,18 @@ public class PointExtensions {
         }
     }
 
+    public static Rectangle getBounds(Collection<? extends Point> points) {
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (Point point : points) {
+            minX = Math.min(minX, point.x);
+            minY = Math.min(minY, point.y);
+            maxX = Math.max(maxX, point.x);
+            maxY = Math.max(maxY, point.y);
+        }
+        return new Rectangle(minX, minY, maxX - minX, maxY - minY);
+    }
+
 }

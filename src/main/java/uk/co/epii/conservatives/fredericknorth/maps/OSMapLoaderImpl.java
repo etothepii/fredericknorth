@@ -3,12 +3,15 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.util.LocaleServiceProviderPool;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * User: James Robinson
@@ -19,12 +22,13 @@ public class OSMapLoaderImpl implements OSMapLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(OSMapLoaderImpl.class);
 
-    private String mapImagesRoot;
-    private String mapImagesExtention;
+    private final Map<OSMapType, String> mapLocationFormatStrings;
 
-    public OSMapLoaderImpl(String mapImagesRoot, String mapImagesExtention) {
+    private String mapImagesRoot;
+
+    public OSMapLoaderImpl(String mapImagesRoot, Map<OSMapType, String> mapLocationFormatStrings) {
         this.mapImagesRoot = mapImagesRoot;
-        this.mapImagesExtention = mapImagesExtention;
+        this.mapLocationFormatStrings = mapLocationFormatStrings;
     }
 
     @Override
@@ -42,16 +46,14 @@ public class OSMapLoaderImpl implements OSMapLoader {
     private File getMapFile(OSMap map) {
         StringBuilder stringBuilder = new StringBuilder(255);
         stringBuilder.append(mapImagesRoot);
-        stringBuilder.append("OS Street View ");
-        stringBuilder.append(map.getLargeSquare().toUpperCase());
-        stringBuilder.append(File.separator);
-        stringBuilder.append("data");
-        stringBuilder.append(File.separator);
-        stringBuilder.append(map.getLargeSquare());
-        stringBuilder.append(File.separator);
-        stringBuilder.append(map.getMapName());
-        stringBuilder.append(".");
-        stringBuilder.append(mapImagesExtention);
+        stringBuilder.append(getPostRootLocation(map));
         return new File(stringBuilder.toString());
+    }
+
+    String getPostRootLocation(OSMap map) {
+        return String.format(mapLocationFormatStrings.get(map.getOSMapType()),
+                map.getLargeSquare() == null ? null : map.getLargeSquare().toLowerCase(), map.getSquare(),
+                map.getQuadrant() == null ? null : map.getQuadrant().toLowerCase(),
+                map.getSquareHundredth(), map.getQuadrantHundredth());
     }
 }

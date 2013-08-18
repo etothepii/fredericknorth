@@ -77,7 +77,9 @@ public class MapViewGeneratorTest {
         MapImage mapImage = new MapImageImpl(
                 new BufferedImage(100, 150, BufferedImage.TYPE_INT_ARGB),
                 new Point(20, 30));
-        MapViewGenerator mapViewGenerator = new MapViewGeneratorImpl(mapImage, null, null);
+        EnumMap<OSMapType, MapImage> mapCache = new EnumMap<OSMapType, MapImage>(OSMapType.class);
+        mapCache.put(OSMapType.MINI, mapImage);
+        MapViewGenerator mapViewGenerator = new MapViewGeneratorImpl(mapCache, null, null);
         mapViewGenerator.setViewPortSize(new Dimension(20, 30));
         mapViewGenerator.scaleToFitRectangle(new Rectangle(40, -100, 30, 20));
         assertEquals("Scale", mapViewGenerator.getScale(), 0.6666666666666, 0.000001);

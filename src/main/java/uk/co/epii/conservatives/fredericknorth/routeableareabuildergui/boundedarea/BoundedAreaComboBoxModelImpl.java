@@ -53,7 +53,7 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
         setSelectedItem(null);
         int oldSize = getSize();
         this.children.clear();
-        addAll(children);
+        addAllInternal(children);
         Collections.sort(this.children, alphabeticalComparator);
         int size = getSize();
         if (size > 1) {
@@ -154,6 +154,10 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
         if (parent != null) {
             throw new UnsupportedOperationException("You can only add a BoundedArea if the parent is null");
         }
+        addAllInternal(boundedAreas);
+    }
+
+    private void addAllInternal(Collection<? extends BoundedArea> boundedAreas) {
         for (BoundedArea boundedArea : boundedAreas) {
             if (boundedArea.getBoundedAreaType() != childType) {
                 throw new IllegalArgumentException("You can only add a BoundedArea if it is of the type expected of the ComboBoxModel");

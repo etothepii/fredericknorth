@@ -1,7 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import uk.co.epii.conservatives.fredericknorth.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMap;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapLocator;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
 
 import java.awt.*;
 import java.util.*;
@@ -62,21 +64,19 @@ class PostcodeProcessorImpl implements PostcodeProcessor {
     }
 
     @Override
-    public OSMap getContainingMap(String postcode) {
+    public OSMap getContainingMap(OSMapType osMapType, String postcode) {
         Point location = getLocation(postcode);
         if (location == null) return null;
-        return osMapLocator.getMap(location);
+        return osMapLocator.getMap(osMapType, location);
     }
 
     @Override
-    public Set<OSMap> getContainingMaps(Collection<String> postcodes) {
-        HashSet<OSMap> containingMaps = new HashSet<OSMap>();
+    public Set<OSMap> getContainingMaps(OSMapType osMapType, Collection<String> postcodes) {
+        HashSet<Point> postcodePoints = new HashSet<Point>();
         for (String postcode : postcodes) {
-            OSMap containingMap = getContainingMap(postcode);
-            if (containingMap != null)
-            containingMaps.add(containingMap);
+            postcodePoints.add(getLocation(postcode));
         }
-        return containingMaps;
+        return osMapLocator.getMaps(osMapType, PointExtensions.getBounds(postcodePoints));
     }
 
     @Override
