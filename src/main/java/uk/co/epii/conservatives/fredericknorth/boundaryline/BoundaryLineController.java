@@ -14,8 +14,9 @@ import java.util.List;
 public interface BoundaryLineController {
 
     public SimpleFeatureCollection getAllOSKnownBoundedAreas(BoundedAreaType type);
-    public List<BoundedArea> getKnownChildren(BoundedArea parent, BoundedAreaType type);
+    public List<? extends BoundedArea> getAllOSKnownLazyBoundaryLineFeatures(BoundedAreaType type);
+    public List<BoundedArea> getKnownDescendents(BoundedArea parent, BoundedAreaType type);
     public BoundedArea getContainingFeature(BoundedAreaType type, double x, double y);
     public BoundedArea getContainingFeature(BoundedAreaType type, Point p);
-
+    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Shape s);
 }

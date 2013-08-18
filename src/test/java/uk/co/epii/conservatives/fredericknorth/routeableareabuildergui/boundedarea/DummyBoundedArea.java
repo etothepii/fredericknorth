@@ -11,6 +11,7 @@ import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.*;
 
 /**
  * User: James Robinson
@@ -21,6 +22,7 @@ public class DummyBoundedArea extends AbstractBoundedArea {
 
     public DummyBoundedArea(String name, Polygon polygon) {
         super(null, name);
+        java.util.List<Point> points = getPoints();
         for (int i = 0; i < polygon.npoints; i++) {
             points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
         }

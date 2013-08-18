@@ -11,7 +11,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Point2D;
@@ -81,7 +80,7 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
             }
             polygons.add(imagePolygon);
         }
-        BoundedAreaType[] boundedAreaTypes = masterArea.getBoundedAreaType().getChildTypes();
+        BoundedAreaType[] boundedAreaTypes = masterArea.getBoundedAreaType().getAllPossibleDecendentTypes();
         reverse(boundedAreaTypes);
         for (BoundedAreaType boundedAreaType : boundedAreaTypes) {
             LOG.debug("{}", boundedAreaType);

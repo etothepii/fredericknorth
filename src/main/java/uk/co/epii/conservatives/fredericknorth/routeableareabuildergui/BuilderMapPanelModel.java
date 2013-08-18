@@ -16,6 +16,7 @@ import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedar
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,11 +41,12 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
     }
 
     private void enableOverlayRenderers() {
-        HashMap<BoundedAreaType, Color> colorMap = new HashMap<BoundedAreaType, Color>();
-        colorMap.put(BoundedAreaType.UNITARY_DISTRICT, Color.RED);
-        colorMap.put(BoundedAreaType.UNITARY_DISTRICT_WARD, Color.BLUE);
-        colorMap.put(BoundedAreaType.POLLING_DISTRICT, Color.GREEN);
-        colorMap.put(BoundedAreaType.NEIGHBOURHOOD, Color.YELLOW);
+        Map<BoundedAreaType, Color> colorMap = new EnumMap<BoundedAreaType, Color>(BoundedAreaType.class);
+        for (BoundedAreaType boundedAreaType : BoundedAreaType.values()) {
+            if (!colorMap.containsKey(boundedAreaType)) {
+                colorMap.put(boundedAreaType, boundedAreaType.getDefaultColour());
+            }
+        }
         setOverlayRenderer(BoundedArea.class, BoundedAreaExtensions.getOverlayRenderer(colorMap));
         setOverlayRenderer(BoundedAreaConstructor.class, BoundedAreaExtensions.getConstructorOverlayRenderer(colorMap));
     }

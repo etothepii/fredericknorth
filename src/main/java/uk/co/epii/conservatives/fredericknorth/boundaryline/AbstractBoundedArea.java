@@ -27,17 +27,19 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     private String name;
     private final BoundedAreaType type;
-    protected final List<Point> points;
-    protected final List<List<Point>> enclaves;
-    protected final List<BoundedArea> children;
+    protected final List<Point> _points;
+    protected final List<List<Point>> _enclavePoints;
+    protected final List<BoundedArea> _childrenList;
 
     protected AbstractBoundedArea(BoundedAreaType type, String name) {
         this.type = type;
         this.name = name;
-        points = new ArrayList<Point>();
-        enclaves = new ArrayList<List<Point>>();
-        children = new ArrayList<BoundedArea>();
+        _points = new ArrayList<Point>();
+        _enclavePoints = new ArrayList<List<Point>>();
+        _childrenList = new ArrayList<BoundedArea>();
     }
+
+
 
     public String getName() {
         return name;
@@ -49,6 +51,7 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     @Override
     public BoundedArea[] getChildren() {
+        List<BoundedArea> children = getChildrenList();
         return children.toArray(new BoundedArea[children.size()]);
     }
 
@@ -59,14 +62,15 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     @Override
     public Polygon getArea() {
-        return getPolygon(points);
+        return getPolygon(getPoints());
     }
 
     @Override
     public Polygon[] getEnclaves() {
-        Polygon[] enclaves = new Polygon[this.enclaves.size()];
+        List<List<Point>> enclavePoints = getEnclavePoints();
+        Polygon[] enclaves = new Polygon[enclavePoints.size()];
         for (int i = 0; i < enclaves.length; i++) {
-            enclaves[i] = getPolygon(this.enclaves.get(i));
+            enclaves[i] = getPolygon(enclavePoints.get(i));
         }
         return enclaves;
     }
@@ -94,7 +98,7 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
         boundedAreaElt.appendChild(areaElt);
         Element pointsElt = document.createElement("Points");
         areaElt.appendChild(pointsElt);
-        for (Point point : points) {
+        for (Point point : getPoints()) {
             Element pointElt = document.createElement("Point");
             pointsElt.appendChild(pointElt);
             Element xElt = document.createElement("X");
@@ -106,7 +110,7 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
         }
         Element enclavesElt = document.createElement("Enclaves");
         boundedAreaElt.appendChild(enclavesElt);
-        for (List<Point> enclave : enclaves) {
+        for (List<Point> enclave : getEnclavePoints()) {
             Element enclaveElt = document.createElement("Enclave");
             enclaveElt.appendChild(enclaveElt);
             for (Point point : enclave) {
@@ -122,7 +126,7 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
         }
         Element childrenElt = document.createElement("Children");
         boundedAreaElt.appendChild(childrenElt);
-        for (BoundedArea child : children) {
+        for (BoundedArea child : getChildrenList()) {
             childrenElt.appendChild(child.toXml(document));
         }
         return boundedAreaElt;
@@ -130,12 +134,12 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     @Override
     public Iterator<BoundedArea> iterator() {
-        return children.iterator();
+        return getChildrenList().iterator();
     }
 
     @Override
     public void addChild(BoundedArea boundedAreas) {
-        children.add(boundedAreas);
+        getChildrenList().add(boundedAreas);
     }
 
     @Override
@@ -163,5 +167,17 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
     @Override
     public NearestPoint getNearestGeoPoint(Point2D.Float point) {
         return PolygonExtensions.getNearestPoint(getArea(), point);
+    }
+
+    protected List<Point> getPoints() {
+        return _points;
+    }
+
+    protected List<BoundedArea> getChildrenList() {
+        return _childrenList;
+    }
+
+    protected List<List<Point>> getEnclavePoints() {
+        return _enclavePoints;
     }
 }

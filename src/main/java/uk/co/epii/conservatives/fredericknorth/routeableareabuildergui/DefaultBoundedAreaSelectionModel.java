@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundaryLineController;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaFactory;
@@ -16,6 +17,7 @@ import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,19 +33,24 @@ import java.util.List;
 public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelectionModel {
 
     private final EnumMap<BoundedAreaType, BoundedAreaComboBoxModel> comboBoxModels;
-    private final BoundedAreaType[] selectionTypes;
+    private final BoundaryLineController boundaryLineController;
+    private BoundedAreaType[] masterBoundedAreaTypes;
     private BoundedAreaType masterBoundedAreaType;
     private XMLSerializer xmlSerializer;
 
-    public DefaultBoundedAreaSelectionModel(BoundedAreaType masterBoundedAreaType, List<BoundedArea> masterAreas, XMLSerializer xmlSerializer) {
-        this.xmlSerializer = xmlSerializer;
-        this.masterBoundedAreaType = masterBoundedAreaType;
-        for (BoundedArea masterArea : masterAreas) {
-            if (masterArea.getBoundedAreaType() != masterBoundedAreaType) {
-                throw new IllegalArgumentException("All masterAreas must be of the same type");
-            }
-        }
-        selectionTypes = calculateSelectionTypes(masterBoundedAreaType);
+    public DefaultBoundedAreaSelectionModel(ApplicationContext applicationContext) {
+        this(applicationContext, null, null);
+    }
+
+    public DefaultBoundedAreaSelectionModel(ApplicationContext applicationContext,
+                                            BoundedAreaType[] masterBoundedAreaTypes,
+                                            BoundedAreaType selectedMasterBoundedAreaType) {
+        this.xmlSerializer = applicationContext.getDefaultInstance(XMLSerializer.class);
+        this.boundaryLineController = applicationContext.getDefaultInstance(BoundaryLineController.class);
+        this.masterBoundedAreaTypes =
+                masterBoundedAreaTypes == null ? getDefaultRootSelectionTypes() : masterBoundedAreaTypes;
+        masterBoundedAreaType = selectedMasterBoundedAreaType == null ?
+                getRootSelectionTypes()[0] : selectedMasterBoundedAreaType;
         comboBoxModels = new EnumMap<BoundedAreaType, BoundedAreaComboBoxModel>(BoundedAreaType.class);
         for (BoundedAreaType boundedAreaType : getSelectionTypes()) {
             comboBoxModels.put(boundedAreaType, BoundedAreaExtensions.getComboBoxModel(boundedAreaType, null));
@@ -67,7 +74,16 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
                 }
             );
         }
-        comboBoxModels.get(masterBoundedAreaType).setParentlessBoundedArea(masterAreas);
+        for (BoundedAreaType boundedAreaType : getRootSelectionTypes()) {
+            loadOSKnownInstances(boundedAreaType);
+        }
+    }
+
+    private void loadOSKnownInstances(BoundedAreaType boundedAreaType) {
+        BoundedAreaComboBoxModel boundedAreaComboBoxModel = comboBoxModels.get(boundedAreaType);
+        for (BoundedArea boundedArea : boundaryLineController.getAllOSKnownLazyBoundaryLineFeatures(boundedAreaType)) {
+            boundedAreaComboBoxModel.add(boundedArea);
+        }
     }
 
     private BoundedAreaType[] calculateSelectionTypes(BoundedAreaType masterBoundedAreaType) {
@@ -85,9 +101,16 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
         return BoundedAreaType.values();
     }
 
+    private BoundedAreaType[] getDefaultRootSelectionTypes() {
+        return BoundedAreaType.orphans;
+    }
+
     @Override
     public BoundedAreaType[] getRootSelectionTypes() {
-        return BoundedAreaType.orphans;
+        if (masterBoundedAreaType == null) {
+            return getDefaultRootSelectionTypes();
+        }
+        return masterBoundedAreaTypes;
     }
 
     @Override

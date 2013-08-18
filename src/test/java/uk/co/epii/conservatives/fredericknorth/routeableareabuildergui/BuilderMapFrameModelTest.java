@@ -56,7 +56,7 @@ public class BuilderMapFrameModelTest {
         BoundedAreaFactory boundedAreaFactory = applicationContext.getDefaultInstance(BoundedAreaFactory.class);
         BoundedArea masterArea = boundedAreaFactory.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
         BuilderMapFrameModel builderMapFrameModel =
-                new BuilderMapFrameModel(applicationContext, masterArea.getBoundedAreaType(), Arrays.asList(masterArea));
+                new BuilderMapFrameModel(applicationContext);
         assertEquals(2, builderMapFrameModel.getBoundedAreaSelectionModel()
                 .getComboBoxModel(BoundedAreaType.UNITARY_DISTRICT).getSize());
         builderMapFrameModel.getBoundedAreaSelectionModel().getComboBoxModel(

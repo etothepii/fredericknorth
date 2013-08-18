@@ -140,12 +140,6 @@ public class BoundedAreaSelectionPanel extends JPanel {
         EnumMap<BoundedAreaType, JCheckBox> checkboxes = new EnumMap<BoundedAreaType, JCheckBox>(BoundedAreaType.class);
         ButtonGroup buttonGroup = new ButtonGroup();
         BoundedAreaType[] boundedAreaTypes = model.getRootSelectionTypes();
-        Arrays.sort(boundedAreaTypes, new Comparator<BoundedAreaType>() {
-            @Override
-            public int compare(BoundedAreaType a, BoundedAreaType b) {
-                return a.getName().compareTo(b.getName());
-            }
-        });
         for (BoundedAreaType boundedAreaType : boundedAreaTypes) {
             JCheckBox button = new JCheckBox(boundedAreaType.getName());
             checkboxes.put(boundedAreaType, button);

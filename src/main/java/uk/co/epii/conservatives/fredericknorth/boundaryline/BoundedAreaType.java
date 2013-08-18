@@ -1,6 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -8,14 +10,13 @@ import java.util.*;
  * Time: 16:21
  */
 public enum BoundedAreaType {
-
-    NEIGHBOURHOOD("Neighbourhood", null, null),
-    POLLING_DISTRICT("Polling District", NEIGHBOURHOOD, null),
-    UNITARY_DISTRICT_WARD("Unitary District Ward", POLLING_DISTRICT, "district_borough_unitary_ward_region.shp"),
-    PARLIAMENTARY_CONSTITUENCY("Parliamentary Constituency", POLLING_DISTRICT, "westminster_const_region.shp"),
-    UNITARY_DISTRICT("Unitary District", UNITARY_DISTRICT_WARD, "district_borough_unitary_region.shp"),
-    COUNTY_WARD("County Ward", POLLING_DISTRICT, "county_electoral_division_region.shp"),
-    COUNTY("County", COUNTY_WARD, "county_region.shp");
+    NEIGHBOURHOOD("Neighbourhood", null, null, 40, Color.YELLOW),
+    POLLING_DISTRICT("Polling District", NEIGHBOURHOOD, null, 30, Color.GREEN),
+    UNITARY_DISTRICT_WARD("Unitary District Ward", POLLING_DISTRICT, "district_borough_unitary_ward_region.shp", 20, Color.BLUE),
+    PARLIAMENTARY_CONSTITUENCY("Parliamentary Constituency", POLLING_DISTRICT, "westminster_const_region.shp", 10, Color.RED),
+    UNITARY_DISTRICT("Unitary District", UNITARY_DISTRICT_WARD, "district_borough_unitary_region.shp", 10, Color.RED),
+    COUNTY_WARD("County Ward", POLLING_DISTRICT, "county_electoral_division_region.shp", 20, Color.BLUE),
+    COUNTY("County", COUNTY_WARD, "county_region.shp", 10, Color.RED);
 
     public static final BoundedAreaType[] orphans;
 
@@ -27,16 +28,26 @@ public enum BoundedAreaType {
                 all.remove(child);
         }
         orphans = all.toArray(new BoundedAreaType[all.size()]);
+        Arrays.sort(orphans, new Comparator<BoundedAreaType>() {
+            @Override
+            public int compare(BoundedAreaType a, BoundedAreaType b) {
+                return a.getName().compareTo(b.getName());
+            }
+        });
     }
 
     private final String name;
     private final BoundedAreaType childType;
     private final String fileName;
+    private final int priority;
+    private final Color defaultColour;
 
-    private BoundedAreaType(String name, BoundedAreaType childType, String fileName) {
+    private BoundedAreaType(String name, BoundedAreaType childType, String fileName, int prioirty, Color defaultColour) {
         this.name = name;
         this.childType = childType;
         this.fileName = fileName;
+        this.priority = prioirty;
+        this.defaultColour = defaultColour;
     }
 
     public String getFileName() {
@@ -58,11 +69,15 @@ public enum BoundedAreaType {
         return childType.getMaximumGenerations() + 1;
     }
 
-    public int getPriority() {
-        return 0;
+    public Color getDefaultColour() {
+        return defaultColour;
     }
 
-    public BoundedAreaType[] getChildTypes() {
+    public int getPriority() {
+        return priority;
+    }
+
+    public BoundedAreaType[] getAllPossibleDecendentTypes() {
         List<BoundedAreaType> boundedAreaTypes = new ArrayList<BoundedAreaType>();
         BoundedAreaType type = this;
         do {
