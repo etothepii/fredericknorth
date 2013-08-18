@@ -1,9 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
 
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
 /**
  * User: James Robinson
@@ -11,8 +11,9 @@ import java.util.List;
  * Time: 17:54
  */
 public interface OSMapLocator {
-    public OSMap getMap(Point p);
-    public List<OSMap> getMaps(Rectangle r);
+    public OSMap getMap(OSMapType mapType, Point p);
+    public Set<OSMap> getMaps(OSMapType osMapType, Rectangle r);
     public Point getBottomLeftMapCoordinate(OSMap map);
-    public OSMap create(String largeSquare, int square, String quadrant);
+    public Dimension getImageSize(OSMapType osMapType);
+    public Dimension getRepresentedSize(OSMapType osMapType);
 }

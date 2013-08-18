@@ -4,13 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
-import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaFactory;
-import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaFactoryRegistrar;
-import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
 
@@ -34,29 +31,28 @@ public class BuilderMapFrameModelTest {
 
     @Before
     public void setUp() {
-    LOG.info("Loading Config");
-    applicationContext =
-            new TestApplicationContext();
-    LOG.info("Loading OS Map Locator");
-    OSMapLocatorRegistrar.registerToContext(applicationContext);
-    LOG.info("Loading XML Serializer");
-    XMLSerializerRegistrar.registerToContext(applicationContext);
-    applicationContext.registerNamedInstance(Rectangle.class, Keys.UNIVERSE, tinyRectangle);
-    LOG.info("Loading OS Map Loader");
-    OSMapLoaderRegistrar.registerToContext(applicationContext);
-    LOG.info("Loading Map View Generators");
-    MapViewGeneratorRegistrar.registerToContext(applicationContext);
-    LOG.info("Loading Bounded Area Factory");
-    BoundedAreaFactoryRegistrar.registerToContext(applicationContext);
-    LOG.info("Setup Complete");
+        LOG.info("Loading Config");
+        applicationContext =
+                new TestApplicationContext();
+        LOG.info("Loading OS Map Locator");
+        OSMapLocatorRegistrar.registerToContext(applicationContext);
+        LOG.info("Loading XML Serializer");
+        XMLSerializerRegistrar.registerToContext(applicationContext);
+        applicationContext.registerNamedInstance(Rectangle.class, Keys.UNIVERSE, tinyRectangle);
+        LOG.info("Loading OS Map Loader");
+        OSMapLoaderRegistrar.registerToContext(applicationContext);
+        LOG.info("Loading Map View Generators");
+        MapViewGeneratorRegistrar.registerToContext(applicationContext);
+        LOG.info("Loading Bounded Area Factory");
+        BoundedAreaFactoryRegistrar.registerToContext(applicationContext);
+        LOG.info("Setup Complete");
     }
 
     @Test
     public void loadDataIntoComboBoxesTest() {
-        BoundedAreaFactory boundedAreaFactory = applicationContext.getDefaultInstance(BoundedAreaFactory.class);
-        BoundedArea masterArea = boundedAreaFactory.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
         BuilderMapFrameModel builderMapFrameModel =
-                new BuilderMapFrameModel(applicationContext);
+                new BuilderMapFrameModel(applicationContext, false);
+        builderMapFrameModel.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
         assertEquals(2, builderMapFrameModel.getBoundedAreaSelectionModel()
                 .getComboBoxModel(BoundedAreaType.UNITARY_DISTRICT).getSize());
         builderMapFrameModel.getBoundedAreaSelectionModel().getComboBoxModel(

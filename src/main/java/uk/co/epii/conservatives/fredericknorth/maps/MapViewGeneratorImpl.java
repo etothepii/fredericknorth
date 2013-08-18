@@ -7,10 +7,10 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  * It is important to remember that the co-ordinates in an Image start at increase as one descends down the page
@@ -26,39 +26,50 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     private static Dimension DEFAULT_SIZE = new Dimension(640,480);
 
-    private final Object mapCacheSync = new Object();
     private final LocationFactory locationFactory;
     private final MapLabelFactory mapLabelFactory;
     private final OSMapLoader osMapLoader;
     private final OSMapLocator osMapLocator;
-    private MapImage mapCache;
     private Point geoCenter;
+    private OSMapType activeType;
     private Dimension viewPortSize;
     private double scale;
-    private Rectangle universe;
-    private Rectangle loaded;
+    private final Map<OSMapType, Rectangle> loaded;
+    private final Map<OSMapType, Rectangle> universe;
+    private final Map<OSMapType, MapImage> mapCache;
 
-    MapViewGeneratorImpl(MapImage mapImage, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
-        this(mapImage, null, null, locationFactory, mapLabelFactory);
+    MapViewGeneratorImpl(Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
+        this(mapCache, null, null, locationFactory, mapLabelFactory, OSMapType.MINI);
     }
 
     public MapViewGeneratorImpl(OSMapLoader osMapLoader, OSMapLocator osMapLocator, LocationFactory locationFactory,
                                 MapLabelFactory mapLabelFactory) {
-        this(null, osMapLoader, osMapLocator, locationFactory, mapLabelFactory);
+        this(null, osMapLoader, osMapLocator, locationFactory, mapLabelFactory, OSMapType.MINI);
     }
 
-    private MapViewGeneratorImpl(MapImage mapImage, OSMapLoader osMapLoader, OSMapLocator osMapLocator,
-                                 LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
-        mapCache = mapImage == null ?
-                new MapImageImpl(getNullImage(), new Point(0, 0)) : mapImage;
+    private MapViewGeneratorImpl(Map<OSMapType, MapImage> mapCache, OSMapLoader osMapLoader, OSMapLocator osMapLocator,
+                                 LocationFactory locationFactory, MapLabelFactory mapLabelFactory, OSMapType activeType) {
+        this.mapCache = mapCache == null ?
+                createMapCache() : mapCache;
+        this.activeType = activeType;
         this.osMapLoader = osMapLoader;
         this.osMapLocator = osMapLocator;
         this.locationFactory = locationFactory;
         this.mapLabelFactory = mapLabelFactory;
+        loaded = new EnumMap<OSMapType, Rectangle>(OSMapType.class);
+        universe = new EnumMap<OSMapType, Rectangle>(OSMapType.class);
         setGeoCenter(new Point(
-                mapCache.getGeoTopLeft().x + mapCache.getSize().width / 2,
-                mapCache.getGeoTopLeft().y - mapCache.getSize().height / 2));
+                this.mapCache.get(activeType).getGeoTopLeft().x + this.mapCache.get(activeType).getSize().width / 2,
+                this.mapCache.get(activeType).getGeoTopLeft().y - this.mapCache.get(activeType).getSize().height / 2));
         setViewPortSize(DEFAULT_SIZE);
+    }
+
+    private Map<OSMapType, MapImage> createMapCache() {
+        Map<OSMapType, MapImage> empty = new EnumMap<OSMapType, MapImage>(OSMapType.class);
+        for (OSMapType osMapType : OSMapType.values()) {
+            empty.put(osMapType, new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), new Point(-1, -1)));
+        }
+        return empty;
     }
 
     private BufferedImage getNullImage() {
@@ -70,8 +81,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     }
 
     private MapImage getMapImage() {
-        synchronized (mapCacheSync) {
-            return mapCache;
+        synchronized (mapCache) {
+            return mapCache.get(getActiveType());
         }
     }
 
@@ -124,17 +135,20 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     @Override
     public void loadUniverse(Rectangle universe, ProgressTracker progressTracker) {
-        synchronized (mapCacheSync) {
-            this.universe = universe;
-            if (this.loaded != null && this.loaded.contains(universe)) {
+        synchronized (mapCache) {
+            double requiredScale = Math.min(viewPortSize.getWidth() / universe.getWidth(), viewPortSize.getHeight() / universe.getHeight());
+            setActiveType(OSMapType.getMapType(requiredScale));
+            setUniverse(universe);
+            Rectangle loaded = getLoaded();
+            if (loaded != null && loaded.contains(universe)) {
                 return;
             }
             Point geoTopleft = new Point(universe.x, universe.y + universe.height);
             try {
-                BufferedImage mapImage = buildMapImage(universe, progressTracker);
-                this.mapCache = new MapImageImpl(mapImage, geoTopleft);
-                this.universe = universe;
-                this.loaded = universe;
+                BufferedImage mapImage = buildMapImage(getActiveType(), universe, progressTracker);
+                setMapCache(new MapImageImpl(mapImage, geoTopleft));
+                setUniverse(universe);
+                setLoaded(universe);
             }
             catch (IOException ioe) {
                 throw new RuntimeException(ioe);
@@ -145,30 +159,55 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
     }
 
-    private BufferedImage buildMapImage(Rectangle universe, ProgressTracker progressTracker) throws IOException, InterruptedException {
-        BufferedImage universeImage = new BufferedImage(universe.width, universe.height, BufferedImage.TYPE_INT_ARGB);
+    private void setMapCache(MapImageImpl mapImage) {
+        this.mapCache.put(getActiveType(), mapImage);
+    }
+
+    private void setLoaded(Rectangle universe) {
+        this.loaded.put(getActiveType(), universe);
+    }
+
+    private Rectangle getLoaded() {
+        return this.loaded.get(getActiveType());
+    }
+
+    private void setUniverse(Rectangle universe) {
+        this.universe.put(getActiveType(), universe);
+    }
+
+    private OSMapType getActiveType() {
+        return activeType;
+    }
+
+    private void setActiveType(OSMapType mapType) {
+        this.activeType = mapType;
+    }
+
+    private BufferedImage buildMapImage(OSMapType mapType, Rectangle universe, ProgressTracker progressTracker) throws IOException, InterruptedException {
+        BufferedImage universeImage = new BufferedImage(
+                (int)(universe.width * mapType.getScale()),
+                (int)(universe.height * mapType.getScale()),
+                BufferedImage.TYPE_INT_ARGB);
         Graphics2D imageGraphics = (Graphics2D)universeImage.getGraphics();
-        List<OSMap> maps = osMapLocator.getMaps(universe);
+        Set<OSMap> maps = osMapLocator.getMaps(mapType, universe);
         if (progressTracker != null) {
             progressTracker.startSubsection(maps.size());
         }
+        Dimension imageSize = osMapLocator.getImageSize(mapType);
         for (OSMap map : maps) {
             if (progressTracker != null) {
                 progressTracker.setMessage(String.format("Loading %s", map.getMapName()));
             }
             LOG.debug("{}", map);
             Point mapBottomLeft = osMapLocator.getBottomLeftMapCoordinate(map);
-            int x = mapBottomLeft.x - universe.x;
-            int y = universe.y + universe.height - mapBottomLeft.y - 5000;
-            int w = 5000;
-            int h = 5000;
+            int x = (int)((mapBottomLeft.x - universe.x) * mapType.getScale());
+            int y = (int)((universe.y + universe.height - mapBottomLeft.y) * mapType.getScale()) - imageSize.height;
             BufferedImage mapImage = osMapLoader.loadMap(map);
-            imageGraphics.drawImage(mapImage, x, y, w, h, null);
+            imageGraphics.drawImage(mapImage, x, y, imageSize.width, imageSize.height, null);
             if (progressTracker != null) {
                 progressTracker.increment();
             }
         }
-        imageGraphics.setTransform(AffineTransform.getScaleInstance(1d, 1d));
         return universeImage;
     }
 
@@ -199,12 +238,13 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     @Override
     public Rectangle getUniverse() {
-        return universe;
+        return this.universe.get(getActiveType());
     }
 
     @Override
     public MapView getView() {
         MapImage mapImage = getMapImage();
+        LOG.debug("mapImage: {} x {}", mapImage.getMap().getWidth(), mapImage.getMap().getHeight());
         if (mapImage == null) return null;
         BufferedImage bufferedImage = new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)bufferedImage.getGraphics();
@@ -214,8 +254,12 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         Point drawFromUnscaled = mapView.getImageLocation(mapImage.getGeoTopLeft());
         Point drawFrom = new Point((int)(drawFromUnscaled.x / scale), (int)(drawFromUnscaled.y / scale));
         Rectangle fillAround = scaleTransform.createTransformedShape(
-                new Rectangle(drawFrom.x, drawFrom.y, mapImage.getMap().getWidth(), mapImage.getMap().getHeight())).getBounds();
-        g.drawImage(mapImage.getMap(), drawFrom.x, drawFrom.y, null);
+                new Rectangle(drawFrom.x, drawFrom.y,
+                        (int)(mapImage.getMap().getWidth() / getActiveType().getScale()),
+                        (int)(mapImage.getMap().getHeight() / getActiveType().getScale()))).getBounds();
+        g.drawImage(mapImage.getMap(), drawFrom.x, drawFrom.y,
+                (int)(mapImage.getMap().getWidth() / getActiveType().getScale()),
+                (int)(mapImage.getMap().getHeight() / getActiveType().getScale()), null);
         g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
         g.setColor(Color.WHITE);
         for (Rectangle r : getRectanglesToClear(new Rectangle(viewPortSize), fillAround)) {

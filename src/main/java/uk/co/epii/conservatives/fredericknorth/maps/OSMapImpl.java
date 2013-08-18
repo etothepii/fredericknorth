@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
+import java.awt.*;
+
 /**
  * User: James Robinson
  * Date: 24/06/2013
@@ -7,14 +9,26 @@ package uk.co.epii.conservatives.fredericknorth.maps;
  */
 class OSMapImpl implements OSMap {
 
-    private String quadrant;
-    private String largeSquare;
-    private int square;
+    private final OSMapType osMapType;
+    private final String quadrant;
+    private final String largeSquare;
+    private final Integer square;
+    private final Integer squareHundredth;
+    private final Integer quadrantHundredth;
 
-    OSMapImpl(String largeSquare, int square, String quadrant) {
+    OSMapImpl(OSMapType osMapType, String largeSquare, Integer square, String quadrant,
+              Integer squareHundredth, Integer quadrantHundredth) {
+        this.osMapType = osMapType;
         this.quadrant = quadrant;
         this.largeSquare = largeSquare;
         this.square = square;
+        this.squareHundredth = squareHundredth;
+        this.quadrantHundredth = quadrantHundredth;
+    }
+
+    @Override
+    public OSMapType getOSMapType() {
+        return osMapType;
     }
 
     @Override
@@ -23,7 +37,7 @@ class OSMapImpl implements OSMap {
     }
 
     @Override
-    public int getSquare() {
+    public Integer getSquare() {
         return square;
     }
 
@@ -32,12 +46,25 @@ class OSMapImpl implements OSMap {
         return quadrant;
     }
 
+
+    @Override
+    public Integer getSquareHundredth() {
+        return squareHundredth;
+    }
+
+    @Override
+    public Integer getQuadrantHundredth() {
+        return quadrantHundredth;
+    }
+
     @Override
     public String getMapName() {
-        StringBuilder stringBuilder = new StringBuilder(6);
+        StringBuilder stringBuilder = new StringBuilder(16);
         stringBuilder.append(largeSquare);
-        stringBuilder.append(square);
-        stringBuilder.append(quadrant);
+        if (square != null) stringBuilder.append(String.format("%02d", square));
+        if (quadrant != null) stringBuilder.append(quadrant);
+        if (quadrantHundredth != null) stringBuilder.append(String.format("%02d", quadrantHundredth));
+        if (squareHundredth != null) stringBuilder.append(String.format("%02d", squareHundredth));
         return stringBuilder.toString();
     }
 
@@ -48,26 +75,38 @@ class OSMapImpl implements OSMap {
 
         OSMapImpl osMap = (OSMapImpl) o;
 
-        if (square != osMap.square) return false;
         if (!largeSquare.equals(osMap.largeSquare)) return false;
-        if (quadrant.equals(osMap.quadrant)) return true;
-        return false;
+        if (osMapType != osMap.osMapType) return false;
+        if (quadrant != null ? !quadrant.equals(osMap.quadrant) : osMap.quadrant != null) return false;
+        if (quadrantHundredth != null ? !quadrantHundredth.equals(osMap.quadrantHundredth) : osMap.quadrantHundredth != null)
+            return false;
+        if (square != null ? !square.equals(osMap.square) : osMap.square != null) return false;
+        if (squareHundredth != null ? !squareHundredth.equals(osMap.squareHundredth) : osMap.squareHundredth != null)
+            return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = quadrant.hashCode();
+        int result = osMapType.hashCode();
+        result = 31 * result + (quadrant != null ? quadrant.hashCode() : 0);
         result = 31 * result + largeSquare.hashCode();
-        result = 31 * result + square;
+        result = 31 * result + (square != null ? square.hashCode() : 0);
+        result = 31 * result + (squareHundredth != null ? squareHundredth.hashCode() : 0);
+        result = 31 * result + (quadrantHundredth != null ? quadrantHundredth.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "OSMapImpl{" +
-                "quadrant='" + quadrant + '\'' +
+                "osMapType=" + osMapType +
+                ", quadrant='" + quadrant + '\'' +
                 ", largeSquare='" + largeSquare + '\'' +
                 ", square=" + square +
+                ", squareHundredth=" + squareHundredth +
+                ", quadrantHundredth=" + quadrantHundredth +
                 '}';
     }
 }

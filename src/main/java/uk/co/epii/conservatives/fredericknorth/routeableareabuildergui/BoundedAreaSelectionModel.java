@@ -30,4 +30,5 @@ public interface BoundedAreaSelectionModel {
     public void saveAll(File selectedFile);
     public void loadFrom(File selectedFile, ApplicationContext applicationContext);
     public BoundedAreaType[] getRootSelectionTypes();
+    public void loadOSKnownInstances();
 }

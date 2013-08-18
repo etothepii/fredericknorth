@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaOverlayItem;
@@ -34,6 +36,8 @@ import java.util.concurrent.Executors;
  */
 public class BuilderMapFrameModel {
 
+    private static final Logger LOG = LoggerFactory.getLogger(BuilderMapFrameModel.class);
+
     private MapPanelModel mapPanelModel;
     private BoundedAreaSelectionModel boundedAreaSelectionModel;
     private final Map<BoundedAreaType, Integer> priorities;
@@ -47,6 +51,10 @@ public class BuilderMapFrameModel {
     private final List<EnabledStateChangedListener<BuilderMapFrameModel>> enabledStateChangedListeners;
 
     public BuilderMapFrameModel(ApplicationContext applicationContext) {
+        this(applicationContext, true);
+    }
+
+    BuilderMapFrameModel(ApplicationContext applicationContext, boolean loadKnown) {
         this.mapPanelModel = new BuilderMapPanelModel(
                 applicationContext.getDefaultInstance(MapViewGenerator.class), this, constructorOverlay);
         enabledStateChangedListeners = new ArrayList<EnabledStateChangedListener<BuilderMapFrameModel>>();
@@ -55,6 +63,11 @@ public class BuilderMapFrameModel {
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
         priorities = createPriorities();
         boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
+        if (loadKnown) {
+            LOG.debug("Loading known instances");
+            boundedAreaSelectionModel.loadOSKnownInstances();
+            LOG.debug("Loaded known instances");
+        }
         boundedAreaSelectionModel.addBoundedAreaSelectionListener(new BoundedAreaSelectionAdapter() {
             @Override
             public void selectionChanged(SelectedBoundedAreaChangedEvent e) {

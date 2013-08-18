@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import uk.co.epii.conservatives.fredericknorth.maps.OSMap;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
 
 import java.awt.*;
 import java.util.Collection;
@@ -18,8 +19,8 @@ public interface PostcodeProcessor {
     public int[] getCouncilBandCount(String postcode);
     public Point getLocation(String postcode);
     public String getAdminWardId(String postcode);
-    public OSMap getContainingMap(String postcode);
-    public Set<OSMap> getContainingMaps(Collection<String> postcodes);
+    public OSMap getContainingMap(OSMapType osMapType, String postcode);
+    public Set<OSMap> getContainingMaps(OSMapType osMapType, Collection<String> postcodes);
     public Set<String> getWard(String wardId);
     public Set<String> getWards();
 

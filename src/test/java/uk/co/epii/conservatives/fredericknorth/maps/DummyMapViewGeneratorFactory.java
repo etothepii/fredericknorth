@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.EnumMap;
 
 /**
  * User: James Robinson
@@ -10,12 +11,14 @@ import java.awt.image.BufferedImage;
  */
 public class DummyMapViewGeneratorFactory {
     public static MapViewGenerator getDummyInstance(Rectangle coverage) {
-        return new MapViewGeneratorImpl(
+        EnumMap<OSMapType, MapImage> mapCache = new EnumMap<OSMapType, MapImage>(OSMapType.class);
+        mapCache.put(OSMapType.MINI,
                 new MapImageImpl(
                         new BufferedImage(
                                 coverage.width,
                                 coverage.height,
                                 BufferedImage.TYPE_INT_ARGB),
-                        coverage.getLocation()), null, null);
+                        coverage.getLocation()));
+        return new MapViewGeneratorImpl(mapCache, null, null);
     }
 }
