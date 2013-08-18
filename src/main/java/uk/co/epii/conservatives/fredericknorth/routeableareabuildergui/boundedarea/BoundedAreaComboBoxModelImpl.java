@@ -6,10 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.SelectedB
 import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.SelectedBoundedAreaChangedListener;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: James Robinson
@@ -18,6 +15,12 @@ import java.util.List;
  */
 class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements BoundedAreaComboBoxModel {
 
+    private final Comparator<BoundedArea> alphabeticalComparator = new Comparator<BoundedArea>() {
+        @Override
+        public int compare(BoundedArea a, BoundedArea b) {
+            return a.getName().compareTo(b.getName());
+        }
+    };
     private final BoundedAreaType childType;
     private BoundedArea parent;
     private BoundedArea selected;
@@ -50,11 +53,8 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
         setSelectedItem(null);
         int oldSize = getSize();
         this.children.clear();
-        for (BoundedArea boundedArea : children) {
-            if (boundedArea.getBoundedAreaType() == childType) {
-                this.children.add(boundedArea);
-            }
-        }
+        addAll(children);
+        Collections.sort(this.children, alphabeticalComparator);
         int size = getSize();
         if (size > 1) {
             int to = Math.min(oldSize, getSize());
@@ -67,6 +67,16 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
             else if (oldSize > size) {
                 fireIntervalRemoved(this, to, oldSize - 1);
             }
+        }
+    }
+
+    private void addChild(BoundedArea boundedArea) {
+        int index = Collections.binarySearch(children, boundedArea, alphabeticalComparator);
+        if (index >= 0) {
+            children.add(index, boundedArea);
+        }
+        else {
+            children.add(~index, boundedArea);
         }
     }
 
@@ -129,12 +139,28 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
 
     @Override
     public void add(BoundedArea boundedArea) {
-        if (parent == null) {
-            children.add(boundedArea);
-            fireContentsChanged(this, 0, getSize());
+        if (boundedArea.getBoundedAreaType() != childType) {
+            throw new IllegalArgumentException("You can only add a BoundedArea if it is of the type expected of the ComboBoxModel");
         }
-        else {
+        if (parent != null) {
             throw new UnsupportedOperationException("You can only add a BoundedArea if the parent is null");
         }
+        addChild(boundedArea);
+        fireContentsChanged(this, 0, getSize());
+    }
+
+    @Override
+    public void addAll(Collection<? extends BoundedArea> boundedAreas) {
+        if (parent != null) {
+            throw new UnsupportedOperationException("You can only add a BoundedArea if the parent is null");
+        }
+        for (BoundedArea boundedArea : boundedAreas) {
+            if (boundedArea.getBoundedAreaType() != childType) {
+                throw new IllegalArgumentException("You can only add a BoundedArea if it is of the type expected of the ComboBoxModel");
+            }
+        }
+        children.addAll(boundedAreas);
+        Collections.sort(children, alphabeticalComparator);
+        fireContentsChanged(this, 0, getSize());
     }
 }
