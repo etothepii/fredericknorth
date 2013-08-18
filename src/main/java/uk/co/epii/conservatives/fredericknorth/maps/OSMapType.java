@@ -9,10 +9,10 @@ import java.io.File;
  */
 public enum OSMapType {
 
-    STREET_VIEW(1, Double.MAX_VALUE, 1, "StreetView"),
-    VECTOR_MAP(0.4, 1, 0.4,  "VectorMap"),
-    RASTER(0.04, 0.4, 0.04, "Raster"),
-    MINI(0, 0.04, 0.01, "Mini");
+    STREET_VIEW(0.4, Double.MAX_VALUE, 1, "StreetView"),
+    VECTOR_MAP(0.04, 0.4, 0.4,  "VectorMap"),
+    RASTER(0.01, 0.04, 0.04, "Raster"),
+    MINI(0, 0.01, 0.01, "Mini");
 
     private double minScale;
     private double maxScale;
