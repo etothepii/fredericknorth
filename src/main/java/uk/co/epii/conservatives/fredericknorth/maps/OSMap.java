@@ -1,6 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
-import java.net.URL;
+import java.awt.*;
 
 /**
  * User: James Robinson
@@ -9,9 +9,11 @@ import java.net.URL;
  */
 public interface OSMap {
 
+    public OSMapType getOSMapType();
     public String getLargeSquare();
-    public int getSquare();
+    public Integer getSquare();
     public String getQuadrant();
+    public Integer getSquareHundredth();
+    public Integer getQuadrantHundredth();
     public String getMapName();
-
 }

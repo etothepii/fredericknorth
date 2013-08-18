@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.opendata;
+package uk.co.epii.conservatives.fredericknorth.maps;
 
 import org.apache.log4j.Logger;
 

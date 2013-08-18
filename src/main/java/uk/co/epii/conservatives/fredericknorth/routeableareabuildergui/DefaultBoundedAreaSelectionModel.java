@@ -1,6 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -32,6 +34,8 @@ import java.util.List;
  */
 public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelectionModel {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBoundedAreaSelectionModel.class);
+
     private final EnumMap<BoundedAreaType, BoundedAreaComboBoxModel> comboBoxModels;
     private final BoundaryLineController boundaryLineController;
     private BoundedAreaType[] masterBoundedAreaTypes;
@@ -57,31 +61,38 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
         }
         for (final BoundedAreaType boundedAreaType : getSelectionTypes()) {
             comboBoxModels.get(boundedAreaType).addSelectedBoundedAreaChangedListener(
-                new SelectedBoundedAreaChangedListener() {
-                    @Override
-                    public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {}
-
-                    @Override
-                    public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
-                        if (boundedAreaType.getChildType() != null) {
-                            BoundedAreaType child = boundedAreaType.getChildType();
-                            BoundedAreaComboBoxModel comboBoxModel = comboBoxModels.get(child);
-                            BoundedArea selected = e.getSelected();
-                            comboBoxModel.setParent(selected);
+                    new SelectedBoundedAreaChangedListener() {
+                        @Override
+                        public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
                         }
-                        fireSelectionChangedEvent(e.getSelected());
+
+                        @Override
+                        public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
+                            if (boundedAreaType.getChildType() != null) {
+                                BoundedAreaType child = boundedAreaType.getChildType();
+                                BoundedAreaComboBoxModel comboBoxModel = comboBoxModels.get(child);
+                                BoundedArea selected = e.getSelected();
+                                comboBoxModel.setParent(selected);
+                            }
+                            fireSelectionChangedEvent(e.getSelected());
+                        }
                     }
-                }
             );
         }
+    }
+
+    @Override
+    public void loadOSKnownInstances() {
         for (BoundedAreaType boundedAreaType : getRootSelectionTypes()) {
+            LOG.debug("Loading OS known instances of {}", boundedAreaType.getName());
             loadOSKnownInstances(boundedAreaType);
+            LOG.debug("Loaded OS known instances of {}", boundedAreaType.getName());
         }
     }
 
     private void loadOSKnownInstances(BoundedAreaType boundedAreaType) {
         BoundedAreaComboBoxModel boundedAreaComboBoxModel = comboBoxModels.get(boundedAreaType);
-            boundedAreaComboBoxModel.addAll(boundaryLineController.getAllOSKnownLazyBoundaryLineFeatures(boundedAreaType));
+        boundedAreaComboBoxModel.addAll(boundaryLineController.getAllOSKnownLazyBoundaryLineFeatures(boundedAreaType));
     }
 
     private BoundedAreaType[] calculateSelectionTypes(BoundedAreaType masterBoundedAreaType) {

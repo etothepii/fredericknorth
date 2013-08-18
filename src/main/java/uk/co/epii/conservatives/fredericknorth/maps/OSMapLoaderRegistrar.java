@@ -4,6 +4,7 @@ import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.io.File;
+import java.util.EnumMap;
 
 /**
  * User: James Robinson
@@ -13,14 +14,17 @@ import java.io.File;
 public class OSMapLoaderRegistrar {
 
     private static final String MAP_IMAGE_DIRECTORY_KEY = "MapsDirectory";
-    private static final String MAP_IMAGE_EXTENTION_KEY = "MapImageExtention";
+    private static final String FileFormatKeyFormat = "FormatFor%sMapFile";
 
     public static void registerToContext(ApplicationContext applicationContext) {
         String dataFolder = applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString();
+        EnumMap<OSMapType, String> mapLocationFormatStrings = new EnumMap<OSMapType, String>(OSMapType.class);
+        for(OSMapType osMapType : OSMapType.values()) {
+            mapLocationFormatStrings.put(osMapType, applicationContext.getProperty(String.format(FileFormatKeyFormat, osMapType.getName())));
+        }
         applicationContext.registerDefaultInstance(OSMapLoader.class,
                 new OSMapLoaderImpl(dataFolder + File.separator +
-                        applicationContext.getProperty(MAP_IMAGE_DIRECTORY_KEY),
-                        applicationContext.getProperty(MAP_IMAGE_EXTENTION_KEY)));
+                        applicationContext.getProperty(MAP_IMAGE_DIRECTORY_KEY), mapLocationFormatStrings));
     }
 
 }
