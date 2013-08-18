@@ -81,10 +81,8 @@ public class Main
             System.exit(1);
         }
         progress("Starting ...");
-        BoundedAreaFactory boundedAreaFactory = applicationContext.getDefaultInstance(BoundedAreaFactory.class);
-        BoundedArea masterArea = boundedAreaFactory.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
         BuilderMapFrameModel builderMapFrameModel =
-                new BuilderMapFrameModel(applicationContext, masterArea.getBoundedAreaType(), Arrays.asList(masterArea));
+                new BuilderMapFrameModel(applicationContext);
         BuilderMapFrame builderMapFrame =
                 new BuilderMapFrame(applicationContext, builderMapFrameModel);
         builderMapFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

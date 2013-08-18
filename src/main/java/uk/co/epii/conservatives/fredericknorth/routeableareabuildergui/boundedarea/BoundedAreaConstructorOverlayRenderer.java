@@ -4,6 +4,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: James Robinson
@@ -12,7 +13,7 @@ import java.util.HashMap;
  */
 class BoundedAreaConstructorOverlayRenderer extends BoundedAreaOverlayRenderer {
 
-    public BoundedAreaConstructorOverlayRenderer(HashMap<BoundedAreaType, Color> color) {
+    public BoundedAreaConstructorOverlayRenderer(Map<BoundedAreaType, Color> color) {
         super(color);
     }
 
