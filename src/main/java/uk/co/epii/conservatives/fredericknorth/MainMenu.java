@@ -1,9 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth;
 
-import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.BuilderMapFrame;
-import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.BuilderMapFrameModel;
-import uk.co.epii.conservatives.fredericknorth.routebuildergui.RouteBuilderMapFrame;
-import uk.co.epii.conservatives.fredericknorth.routebuildergui.RouteBuilderMapFrameModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BuilderMapFrame;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BuilderMapFrameModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapFrame;
+import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapFrameModel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import javax.swing.*;

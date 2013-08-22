@@ -5,7 +5,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.AbstractBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaOverlayItem;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaExtensions;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaExtensions;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
