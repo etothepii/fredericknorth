@@ -2,7 +2,6 @@ package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.util.LocaleServiceProviderPool;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaExtensions;
 
@@ -10,12 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -44,7 +39,7 @@ public class BoundedAreaSelectionPanel extends JPanel {
         addCheckboxes();
         updateVisibleBoundedAreaSelectors();
         addListeners();
-        model.addBoundedAreaSelectionListener(new BoundedAreaSelectionAdapter() {
+        model.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedAdapter() {
             @Override
             public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
                 updateVisibleBoundedAreaSelectors();
