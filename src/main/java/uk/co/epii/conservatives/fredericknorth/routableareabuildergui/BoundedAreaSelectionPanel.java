@@ -1,9 +1,9 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaExtensions;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaExtensions;
 
 import javax.swing.*;
 import java.awt.*;

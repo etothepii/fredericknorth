@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
