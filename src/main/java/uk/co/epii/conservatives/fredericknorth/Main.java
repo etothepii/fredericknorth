@@ -9,10 +9,6 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessorRegistr
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRendererRegistrar;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.BuilderMapFrame;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.BuilderMapFrameModel;
-import uk.co.epii.conservatives.fredericknorth.routebuildergui.RouteBuilderMapFrame;
-import uk.co.epii.conservatives.fredericknorth.routebuildergui.RouteBuilderMapFrameModel;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.DefaultApplicationContext;

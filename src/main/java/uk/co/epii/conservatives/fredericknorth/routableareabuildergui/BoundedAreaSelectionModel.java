@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;

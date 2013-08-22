@@ -1,9 +1,9 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea;
 
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.SelectedBoundedAreaChangedEvent;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.SelectedBoundedAreaChangedListener;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.SelectedBoundedAreaChangedListener;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.SelectedBoundedAreaChangedEvent;
 
 import javax.swing.*;
 import java.util.*;

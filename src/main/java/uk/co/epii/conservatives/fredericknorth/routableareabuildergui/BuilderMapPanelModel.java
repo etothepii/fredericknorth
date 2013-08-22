@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +9,10 @@ import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.AbstractMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MouseLocation;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaConstructor;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaExtensions;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.ConstructorOverlay;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaConstructor;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaExtensions;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.ConstructorOverlay;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.EnumMap;

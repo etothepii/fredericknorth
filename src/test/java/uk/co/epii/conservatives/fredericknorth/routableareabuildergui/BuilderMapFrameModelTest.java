@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +13,6 @@ import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegist
 
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
 
 import static junit.framework.TestCase.assertEquals;
 

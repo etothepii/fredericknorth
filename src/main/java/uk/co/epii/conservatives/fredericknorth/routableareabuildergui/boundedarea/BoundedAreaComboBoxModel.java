@@ -1,11 +1,10 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea;
 
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.SelectedBoundedAreaChangedListener;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.SelectedBoundedAreaChangedListener;
 
 import javax.swing.*;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * User: James Robinson

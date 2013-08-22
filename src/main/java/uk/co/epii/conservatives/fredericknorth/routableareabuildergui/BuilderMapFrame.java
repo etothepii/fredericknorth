@@ -1,12 +1,12 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaConstructor;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaConstructor;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
 import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerJProgressBar;

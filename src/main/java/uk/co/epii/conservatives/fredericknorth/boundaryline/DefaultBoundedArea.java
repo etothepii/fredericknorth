@@ -2,7 +2,6 @@ package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaConstructor;
 
 import java.awt.*;
 import java.util.ArrayList;

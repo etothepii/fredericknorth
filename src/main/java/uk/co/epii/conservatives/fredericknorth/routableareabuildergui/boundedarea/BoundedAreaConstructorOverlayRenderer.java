@@ -1,9 +1,8 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea;
 
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 
 import java.awt.*;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
