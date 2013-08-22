@@ -203,6 +203,9 @@ public class RouteBuilderMapFrameModel {
         }
         else {
             for (PostcodeDatum postcode : postcodeDatumFactory.getPostcodes()) {
+                if (postcode.getPoint() == null) {
+                    continue;
+                }
                 if (boundedArea.getArea().contains(postcode.getPoint())) {
                     for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getPostcode())) {
                         routableArea.addDwellingGroup(dwellingGroup, false);
