@@ -148,6 +148,9 @@ public class RouteBuilderMapFrameModel {
     }
 
     public RoutableArea getRoutableArea(BoundedArea boundedArea) {
+        if (boundedArea == null) {
+            return null;
+        }
         RoutableArea routableArea = routableAreas.get(boundedArea);
         if (routableArea == null) {
             loadRoutableArea(boundedArea);
