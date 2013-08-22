@@ -58,7 +58,7 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
         return routes.get(i);
     }
 
-    public void setSelectedRoutableArea(RoutableArea routableArea) {
+    public void setSelectedRoutableArea(RoutableArea selectedRoutableArea) {
         int oldSize = getSize();
         this.selectedRoutableArea = selectedRoutableArea;
         routes.clear();

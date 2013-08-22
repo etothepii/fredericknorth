@@ -2,6 +2,15 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
+import uk.co.epii.conservatives.fredericknorth.extensions.NearestPoint;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.DummyBoundedArea;
+import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
@@ -14,6 +23,9 @@ import uk.co.epii.conservatives.fredericknorth.opendata.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +49,9 @@ public class RouteBuilderMapFrameModelTest {
 
     @Before
     public void setUp() throws Exception {
-        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea("A RoutableArea", "A");
+        BoundedArea neighbourhood = new DummyBoundedArea(BoundedAreaType.NEIGHBOURHOOD,
+                "A Bounded Area", new Polygon(new int[] {0, 0, 100, 100}, new int[] {0, 100, 100, 0}, 4));
+        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea(neighbourhood, null, "A RoutableArea", "A");
         bRoad = new DummyDwellingGroup("B Road", 25, new Point(10, 90));
         bRoad.setPostcode(new DummyPostcodeDatum("A1 1AA"));
         dummyRoutableArea.addDwellingGroup(bRoad);
@@ -61,7 +75,10 @@ public class RouteBuilderMapFrameModelTest {
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(new Rectangle(0, 0, 100, 100)));
         DotFactoryRegistrar.registerToContext(applicationContext);
-        routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
+        HashMap<BoundedArea, RoutableArea> routableAreas = new HashMap<BoundedArea, RoutableArea>();
+        routableAreas.put(dummyRoutableArea.getBoundedArea(), dummyRoutableArea);
+        routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext, new DummyBoundedAreaSelectionModel(dummyRoutableArea.getBoundedArea()), routableAreas);
+        routeBuilderMapFrameModel.setSelectedBoundedArea(dummyRoutableArea.getBoundedArea());
         routeBuilderMapFrameModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
         routeBuilderMapFrameModel.getMapPanelModel().setViewportSize(new Dimension(50, 50));
         routeBuilderMapFrameModel.getMapPanelModel().setScale(0.5);

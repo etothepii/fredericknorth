@@ -24,8 +24,12 @@ public class DummyRoutableArea implements RoutableArea {
     private Polygon[] enclaves;
     private RoutableArea[] children;
     private Polygon area;
+    private BoundedArea boundedArea;
+    private RoutableArea parent;
 
-    public DummyRoutableArea(String name, String id) {
+    public DummyRoutableArea(BoundedArea boundedArea, RoutableArea parent, String name, String id) {
+        this.boundedArea = boundedArea;
+        this.parent = parent;
         this.name = name;
         this.id = id;
         dwellingGroups = new ArrayList<DummyDwellingGroup>();
@@ -40,22 +44,22 @@ public class DummyRoutableArea implements RoutableArea {
 
     @Override
     public void load(File selectedFile) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException("This operation is not supported as this is a dummy");
     }
 
     @Override
     public void save(File selectedFile) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException("This operation is not supported as this is a dummy");
     }
 
     @Override
     public RoutableArea getParent() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return parent;
     }
 
     @Override
     public BoundedArea getBoundedArea() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return boundedArea;
     }
 
     @Override
@@ -65,7 +69,7 @@ public class DummyRoutableArea implements RoutableArea {
 
     @Override
     public Collection<? extends DwellingGroup> getRoutedDwellingGroups() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException("This operation is not supported");
     }
 
     @Override
@@ -123,10 +127,24 @@ public class DummyRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void markAsRouted(DwellingGroup dwellingGroup) {}
+    public void markAsRouted(DwellingGroup dwellingGroup) {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
 
     @Override
-    public void markAsUnrouted(DwellingGroup dwellingGroup) {}
+    public void markAsUnrouted(DwellingGroup dwellingGroup) {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
+
+    @Override
+    public void markAsRouted(DwellingGroup dwellingGroup, RoutableArea routableArea) {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
+
+    @Override
+    public void markAsUnrouted(DwellingGroup dwellingGroup, RoutableArea routableArea) {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
 
     @Override
     public Collection<? extends DwellingGroup> getUnroutedDwellingGroups() {

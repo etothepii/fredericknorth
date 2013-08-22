@@ -30,6 +30,8 @@ public interface RoutableArea {
     public void removeAll();
     public void markAsRouted(DwellingGroup dwellingGroup);
     public void markAsUnrouted(DwellingGroup dwellingGroup);
+    public void markAsRouted(DwellingGroup dwellingGroup, RoutableArea routableArea);
+    public void markAsUnrouted(DwellingGroup dwellingGroup, RoutableArea routableArea);
     public String getName();
     public void load(File selectedFile);
     public void save(File selectedFile);

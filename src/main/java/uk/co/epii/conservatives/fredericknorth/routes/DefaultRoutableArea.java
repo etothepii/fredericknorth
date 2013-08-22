@@ -19,13 +19,13 @@ public class DefaultRoutableArea implements RoutableArea {
 
     private final BoundedArea boundedArea;
     private final HashSet<RouteImpl> routes;
-    private final DefaultRoutableArea parent;
+    private final RoutableArea parent;
     private final HashSet<DefaultRoutableArea> children;
     private final HashSet<DwellingGroup> unroutedDwellingGroups;
     private final HashSet<DwellingGroup> routedDwellingGroups;
     private final HashSet<DwellingGroup> dwellingGroups;
 
-    public DefaultRoutableArea(BoundedArea boundedArea, DefaultRoutableArea parent) {
+    public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
         this.boundedArea = boundedArea;
         routes = new HashSet<RouteImpl>();
         this.parent = parent;
@@ -107,7 +107,8 @@ public class DefaultRoutableArea implements RoutableArea {
         }
     }
 
-    private void markAsRouted(DwellingGroup dwellingGroup, RoutableArea informant) {
+    @Override
+    public void markAsRouted(DwellingGroup dwellingGroup, RoutableArea informant) {
         if (unroutedDwellingGroups.remove(dwellingGroup)) {
             routedDwellingGroups.add(dwellingGroup);
             if (informant == parent) {
@@ -127,7 +128,8 @@ public class DefaultRoutableArea implements RoutableArea {
         }
     }
 
-    private void markAsUnrouted(DwellingGroup dwellingGroup, RoutableArea informant) {
+    @Override
+    public void markAsUnrouted(DwellingGroup dwellingGroup, RoutableArea informant) {
         if (routedDwellingGroups.remove(dwellingGroup)) {
             unroutedDwellingGroups.add(dwellingGroup);
             if (informant == parent) {

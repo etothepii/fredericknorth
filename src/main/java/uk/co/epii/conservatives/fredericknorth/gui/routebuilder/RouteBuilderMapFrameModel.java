@@ -5,6 +5,8 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedEvent;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedListener;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
@@ -41,7 +43,7 @@ public class RouteBuilderMapFrameModel {
     private final DwellingGroupModel unroutedDwellingGroups;
     private final RoutedAndUnroutedToolTipModel routedAndUnroutedToolTipModel;
     private final RoutesModel routesModel;
-    private final HashMap<BoundedArea, DefaultRoutableArea> routableAreas;
+    private final HashMap<BoundedArea, RoutableArea> routableAreas;
     private final BoundedAreaSelectionModel boundedAreaSelectionModel;
     private final PostcodeDatumFactory postcodeDatumFactory;
     private final DwellingProcessor dwellingProcessor;
@@ -53,8 +55,13 @@ public class RouteBuilderMapFrameModel {
     private ApplicationContext applicationContext;
 
     public RouteBuilderMapFrameModel(ApplicationContext applicationContext) {
-        this.boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
-        this.routableAreas = new HashMap<BoundedArea, DefaultRoutableArea>();
+        this(applicationContext, new DefaultBoundedAreaSelectionModel(applicationContext), new HashMap<BoundedArea, RoutableArea>());
+    }
+
+    RouteBuilderMapFrameModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel,
+                              HashMap<BoundedArea, RoutableArea> routableAreas) {
+        this.boundedAreaSelectionModel = boundedAreaSelectionModel;
+        this.routableAreas = routableAreas;
         this.mapViewGenerator = applicationContext.getDefaultInstance(MapViewGenerator.class);
         this.dotFactory = applicationContext.getDefaultInstance(DotFactory.class);
         this.postcodeDatumFactory = applicationContext.getDefaultInstance(PostcodeDatumFactory.class);
@@ -114,6 +121,22 @@ public class RouteBuilderMapFrameModel {
                         }
                     }
                 });
+        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
+            @Override
+            public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
+                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
+            }
+
+            @Override
+            public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
+                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
+            }
+        });
+    }
+
+    void setSelectedBoundedArea(BoundedArea boundedArea) {
+        RoutableArea routableArea = getRoutableArea(boundedArea);
+        routesModel.setSelectedRoutableArea(routableArea);
     }
 
     public BoundedAreaSelectionModel getBoundedAreaSelectionModel() {
@@ -125,7 +148,7 @@ public class RouteBuilderMapFrameModel {
     }
 
     public RoutableArea getRoutableArea(BoundedArea boundedArea) {
-        DefaultRoutableArea routableArea = routableAreas.get(boundedArea);
+        RoutableArea routableArea = routableAreas.get(boundedArea);
         if (routableArea == null) {
             loadRoutableArea(boundedArea);
             routableArea = routableAreas.get(boundedArea);
@@ -149,10 +172,10 @@ public class RouteBuilderMapFrameModel {
     }
 
     private void loadRoutableAreas(List<BoundedArea> ancestors) {
-        DefaultRoutableArea parent = null;
+        RoutableArea parent = null;
         for (int i = 0; i < ancestors.size(); i++) {
             BoundedArea boundedArea = ancestors.get(i);
-            DefaultRoutableArea routableArea = routableAreas.get(boundedArea);
+            RoutableArea routableArea = routableAreas.get(boundedArea);
             if (routableArea == null) {
                 routableArea = loadRoutableArea(boundedArea, parent);
                 routableAreas.put(boundedArea, routableArea);
@@ -161,7 +184,7 @@ public class RouteBuilderMapFrameModel {
         }
     }
 
-    private DefaultRoutableArea loadRoutableArea(BoundedArea boundedArea, DefaultRoutableArea parent) {
+    private DefaultRoutableArea loadRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
         if (parent != null) {
             for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {

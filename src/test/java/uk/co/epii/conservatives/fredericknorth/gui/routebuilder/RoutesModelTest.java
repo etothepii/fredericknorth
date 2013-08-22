@@ -22,7 +22,7 @@ public class RoutesModelTest {
         TestApplicationContext applicationContext = new TestApplicationContext();
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(new Rectangle(1, 1, 1, 1)));
-        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea("A Ward", "A");
+        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea(null, null, "A Ward", "A");
         RoutesModel routesModel = new RoutesModel(
                 new RouteBuilderMapFrameModel(applicationContext));
         routesModel.setSelectedRoutableArea(dummyRoutableArea);

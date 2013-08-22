@@ -26,7 +26,7 @@ public class BoundedAreaConstructorTest {
         int npoints = 8;
         int[] xpoints = {2,6,6,2,2,4,4,2};
         int[] ypoints = {2,2,8,8,6,6,4,4};
-        boundedArea = new DummyBoundedArea("Dummy", new Polygon(xpoints, ypoints, npoints));
+        boundedArea = new DummyBoundedArea(null, "Dummy", new Polygon(xpoints, ypoints, npoints));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,6 +20,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class RoutableAreaTest {
 
+    @Ignore
     @Test
     public void wardWithOneRouteToXmlTest() throws Exception {
         RoutableArea routableArea = new DefaultRoutableArea(null, null);
