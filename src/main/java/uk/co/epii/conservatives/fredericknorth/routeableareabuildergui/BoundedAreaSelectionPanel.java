@@ -1,5 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.util.LocaleServiceProviderPool;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaExtensions;
 
@@ -22,6 +25,8 @@ import java.util.Map;
  * Time: 00:30
  */
 public class BoundedAreaSelectionPanel extends JPanel {
+
+    private static Logger LOG = LoggerFactory.getLogger(BoundedAreaSelectionPanel.class);
 
     private final BoundedAreaSelectionModel model;
     private final Map<BoundedAreaType, JCheckBox> masterBoundedAreaSelectionTypes;
@@ -90,6 +95,7 @@ public class BoundedAreaSelectionPanel extends JPanel {
     }
 
     private void updateVisibleBoundedAreaSelectors() {
+        LOG.debug("Updating Visible Bounded Area Selectors");
         BoundedAreaType[] visibleTypes = model.getVisibleBoundedAreaSelectorTypes();
         for (int i = displayedOrder.length - 1; i >= 0; i--) {
             BoundedAreaType visibleType = i < visibleTypes.length ? visibleTypes[i] : null;
@@ -110,6 +116,7 @@ public class BoundedAreaSelectionPanel extends JPanel {
         if (getParent() != null) {
             getParent().validate();
         }
+        repaint();
     }
 
     private void removeBoundedAreaType(BoundedAreaType type) {
