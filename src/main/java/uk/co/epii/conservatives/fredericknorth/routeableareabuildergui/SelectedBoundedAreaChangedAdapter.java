@@ -5,7 +5,7 @@ package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
  * Date: 29/07/2013
  * Time: 17:05
  */
-public class BoundedAreaSelectionAdapter implements SelectedBoundedAreaChangedListener {
+public class SelectedBoundedAreaChangedAdapter implements SelectedBoundedAreaChangedListener {
     @Override
     public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {}
 
