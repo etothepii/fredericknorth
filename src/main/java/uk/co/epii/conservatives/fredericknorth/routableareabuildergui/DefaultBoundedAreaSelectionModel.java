@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -11,15 +11,14 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaComboBoxModel;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.BoundedAreaExtensions;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaComboBoxModel;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.BoundedAreaExtensions;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

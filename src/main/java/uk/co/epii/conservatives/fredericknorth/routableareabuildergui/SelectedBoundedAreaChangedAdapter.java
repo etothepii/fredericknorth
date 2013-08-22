@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 /**
  * User: James Robinson

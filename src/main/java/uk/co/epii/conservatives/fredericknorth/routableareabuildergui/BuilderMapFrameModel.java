@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.routeableareabuildergui;
+package uk.co.epii.conservatives.fredericknorth.routableareabuildergui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MouseLocation;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilder;
-import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.ConstructorOverlay;
+import uk.co.epii.conservatives.fredericknorth.routableareabuildergui.boundedarea.ConstructorOverlay;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
