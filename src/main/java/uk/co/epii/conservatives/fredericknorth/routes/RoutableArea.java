@@ -4,6 +4,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
 import java.util.Collection;
@@ -14,13 +15,19 @@ import java.util.List;
  * Date: 19/07/2013
  * Time: 18:55
  */
-public interface RoutableArea extends BoundedArea {
+public interface RoutableArea {
 
-    public List<? extends Route> getRoutes();
+    public BoundedArea getBoundedArea();
+    public Collection<? extends Route> getRoutes();
     public Collection<? extends DwellingGroup> getUnroutedDwellingGroups();
-    public List<? extends DwellingGroup> getDwellingGroups();
+    public Collection<? extends DwellingGroup> getDwellingGroups();
     public Element toXml(Document document);
     public void autoGenerate(int targetSize, boolean unroutedOnly);
-    public List<? extends Route> proposeRoutes(int targetSize, boolean unroutedOnly);
+    public Route createRoute(String name);
+    public int getRouteCount();
+    public void removeAll();
+    public void markAsRouted(DwellingGroup dwellingGroup);
+    public void markAsUnrouted(DwellingGroup dwellingGroup);
+    public void load(ApplicationContext applicationContext, Element wardElt);
 
 }

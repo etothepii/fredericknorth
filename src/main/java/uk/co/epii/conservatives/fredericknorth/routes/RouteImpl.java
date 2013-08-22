@@ -18,12 +18,12 @@ class RouteImpl implements Route {
 
     private Set<DwellingGroup> dwellingGroups;
     private String name;
-    private Ward ward;
+    private RoutableArea routableArea;
     private String association = null;
 
-    public RouteImpl(Ward ward, String name) {
+    public RouteImpl(RoutableArea routableArea, String name) {
         this.name = name;
-        this.ward = ward;
+        this.routableArea = routableArea;
         dwellingGroups = new HashSet<DwellingGroup>();
     }
 
@@ -50,7 +50,7 @@ class RouteImpl implements Route {
     public void addDwellingGroups(Collection<? extends DwellingGroup> dwellingGroups) {
         for (DwellingGroup dwellingGroup : dwellingGroups) {
             if (!this.dwellingGroups.contains(dwellingGroup)) {
-                ward.markAsRouted(dwellingGroup);
+                routableArea.markAsRouted(dwellingGroup);
                 this.dwellingGroups.add(dwellingGroup);
             }
         }
@@ -60,7 +60,7 @@ class RouteImpl implements Route {
     public void removeDwellingGroups(Collection<? extends DwellingGroup> dwellingGroups) {
         for (DwellingGroup dwellingGroup : dwellingGroups) {
             this.dwellingGroups.remove(dwellingGroup);
-            ward.markAsUnrouted(dwellingGroup);
+            routableArea.markAsUnrouted(dwellingGroup);
         }
     }
 
@@ -135,8 +135,8 @@ class RouteImpl implements Route {
     }
 
     @Override
-    public Ward getWard() {
-        return ward;
+    public RoutableArea getRoutableArea() {
+        return routableArea;
     }
 
     @Override
@@ -147,7 +147,7 @@ class RouteImpl implements Route {
         RouteImpl route = (RouteImpl) o;
 
         if (!name.equals(route.name)) return false;
-        if (!ward.equals(route.ward)) return false;
+        if (!routableArea.equals(route.routableArea)) return false;
 
         return true;
     }
@@ -155,7 +155,7 @@ class RouteImpl implements Route {
     @Override
     public int hashCode() {
         int result = name.hashCode();
-        result = 31 * result + ward.hashCode();
+        result = 31 * result + routableArea.hashCode();
         return result;
     }
 }
