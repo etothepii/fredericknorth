@@ -18,6 +18,7 @@ public class OSMapLoaderRegistrar {
     private static final String MAP_IMAGE_DIRECTORY_KEY = "MapsDirectory";
     private static final String RemoteMapsURLKey = "RemoteMapsURL";
     private static final String FileFormatKeyFormat = "FormatFor%sMapFile";
+    private static final String URLEncodingFormatKey = "URLEncodingFormat";
 
 
     private static final String MapTypeWidthKeyFormat = "%sWidth";
@@ -41,7 +42,8 @@ public class OSMapLoaderRegistrar {
         applicationContext.registerDefaultInstance(OSMapLoader.class,
                 new OSMapLoaderImpl(dataFolder + File.separator +
                         applicationContext.getProperty(MAP_IMAGE_DIRECTORY_KEY),
-                        applicationContext.getProperty(RemoteMapsURLKey), mapLocationFormatStrings, mapDimensions));
+                        applicationContext.getProperty(RemoteMapsURLKey), mapLocationFormatStrings, mapDimensions,
+                        applicationContext.getProperty(URLEncodingFormatKey)));
     }
 
 }

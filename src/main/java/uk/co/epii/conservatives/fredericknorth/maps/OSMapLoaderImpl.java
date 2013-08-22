@@ -12,8 +12,10 @@ import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -31,13 +33,16 @@ public class OSMapLoaderImpl implements OSMapLoader {
 
     private String mapImagesRoot;
     private String mapImagesURLRoot;
+    private String urlEncodingFormat;
 
     public OSMapLoaderImpl(String mapImagesRoot, String mapImagesURLRoot,
-                           Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions) {
+                           Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions,
+                           String urlEncodingFormat) {
         this.mapImagesRoot = mapImagesRoot;
         this.mapImagesURLRoot = mapImagesURLRoot;
         this.mapLocationFormatStrings = mapLocationFormatStrings;
         this.mapDimensions = mapDimensions;
+        this.urlEncodingFormat = urlEncodingFormat;
     }
 
     @Override
@@ -98,7 +103,23 @@ public class OSMapLoaderImpl implements OSMapLoader {
         }
         stringBuilder = new StringBuilder(255);
         stringBuilder.append(mapImagesURLRoot);
-        stringBuilder.append(postRootLocation);
+        try {
+            boolean first = true;
+            for (String part : postRootLocation.split("/")) {
+                if (first) {
+                    first = false;
+                }
+                else {
+                    stringBuilder.append("/");
+                }
+                stringBuilder.append(URLEncoder.encode(part, urlEncodingFormat).replaceAll("\\+", "%20"));
+            }
+            LOG.debug("encoded URL: {}", stringBuilder);
+        }
+        catch (UnsupportedEncodingException uee) {
+            LOG.warn(uee.getMessage(), uee);
+            return false;
+        }
         try {
             URL url = new URL(stringBuilder.toString());
             new File(mapFile.getParent()).mkdirs();
