@@ -81,18 +81,10 @@ public class Main
             System.exit(1);
         }
         progress("Starting ...");
-        BuilderMapFrameModel builderMapFrameModel =
-                new BuilderMapFrameModel(applicationContext);
-        BuilderMapFrame builderMapFrame =
-                new BuilderMapFrame(applicationContext, builderMapFrameModel);
-        builderMapFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        builderMapFrame.setLocationRelativeTo(null);
-        builderMapFrame.setVisible(true);
-//        RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
-//        RouteBuilderMapFrame routeBuilderMapFrame = new RouteBuilderMapFrame(routeBuilderMapFrameModel, applicationContext);
-//        routeBuilderMapFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        routeBuilderMapFrame.setLocationRelativeTo(null);
-//        routeBuilderMapFrame.setVisible(true);
+        MainMenu mainMenu = new MainMenu(applicationContext);
+        mainMenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainMenu.setLocationRelativeTo(null);
+        mainMenu.setVisible(true);
         progressTracker.setVisible(false);
         progressTracker.dispose();
     }
