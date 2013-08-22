@@ -12,7 +12,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.MouseLocation;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilder;
 import uk.co.epii.conservatives.fredericknorth.routeableareabuildergui.boundedarea.ConstructorOverlay;
-import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
@@ -68,37 +67,52 @@ public class BuilderMapFrameModel {
             boundedAreaSelectionModel.loadOSKnownInstances();
             LOG.debug("Loaded known instances");
         }
-        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new BoundedAreaSelectionAdapter() {
+        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
+            @Override
+            public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
+                updateAfterSelectionChange(e.getSelected());
+            }
+
             @Override
             public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
-                if (e.getSelected() != null &&
-                        e.getSelected().getBoundedAreaType() == boundedAreaSelectionModel.getMasterSelectedType()) {
-                    final Rectangle bounds = e.getSelected().getArea().getBounds();
-                    synchronized (enabledSync) {
-                        disable();
-                        executor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                        bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
-                            }
-                        });
-                    }
-                }
-                List<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
-                for (BoundedAreaType boundedAreaType : boundedAreaSelectionModel.getSelectionTypes()) {
-                    BoundedArea selected = boundedAreaSelectionModel.getSelected(boundedAreaType);
-                    if (selected != null) {
-                        overlayItems.add(
-                                new BoundedAreaOverlayItem(
-                                        selected,
-                                        priorities.get(boundedAreaType)));
-                    }
-                }
-                overlayItems.add(constructorOverlay);
-                mapPanelModel.setOverlays(overlayItems);
+                updateAfterSelectionChange(e.getSelected());
             }
         });
+    }
+
+    private void updateAfterSelectionChange(BoundedArea changedTo) {
+        if (changedTo != null &&
+                changedTo.getBoundedAreaType() == boundedAreaSelectionModel.getMasterSelectedType()) {
+            final Rectangle bounds = changedTo.getArea().getBounds();
+            synchronized (enabledSync) {
+                disable();
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
+                                bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
+                    }
+                });
+            }
+        }
+        updateOverlays();
+    }
+
+    private void updateOverlays() {
+
+        List<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
+        for (BoundedAreaType boundedAreaType :
+                boundedAreaSelectionModel.getMasterSelectedType().getAllPossibleDecendentTypes()) {
+            BoundedArea selected = boundedAreaSelectionModel.getSelected(boundedAreaType);
+            if (selected != null) {
+                overlayItems.add(
+                        new BoundedAreaOverlayItem(
+                                selected,
+                                priorities.get(boundedAreaType)));
+            }
+        }
+        overlayItems.add(constructorOverlay);
+        mapPanelModel.setOverlays(overlayItems);
     }
 
     public void disable() {

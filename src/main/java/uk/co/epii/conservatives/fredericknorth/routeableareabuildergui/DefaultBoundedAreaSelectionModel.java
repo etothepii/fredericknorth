@@ -138,8 +138,16 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
     }
 
     @Override
-    public void setMasterParentType(BoundedAreaType boundedAreaType) {
-        masterBoundedAreaType = boundedAreaType;
+    public void setMasterParentType(BoundedAreaType masterBoundedAreaType) {
+        this.masterBoundedAreaType = masterBoundedAreaType;
+        if (masterBoundedAreaType.getChildType() != null) {
+            BoundedAreaType parentType = masterBoundedAreaType;
+            for (BoundedAreaType childType : masterBoundedAreaType.getChildType().getAllPossibleDecendentTypes()) {
+                BoundedArea parent = comboBoxModels.get(parentType).getSelectedItem();
+                comboBoxModels.get(childType).setParent(parent);
+                parentType = childType;
+            }
+        }
         fireMasterParentChangedEvent();
     }
 
