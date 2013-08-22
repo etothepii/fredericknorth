@@ -9,6 +9,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupTestFactory
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -16,13 +17,13 @@ import static org.junit.Assert.assertEquals;
  * Date: 23/06/2013
  * Time: 20:44
  */
-public class WardTest {
+public class RoutableAreaTest {
 
     @Test
     public void wardWithOneRouteToXmlTest() throws Exception {
-        Ward ward = new WardImpl("E05000583", "");
-        ward.removeAll();
-        Route route = ward.createRoute("Route 2");
+        RoutableArea routableArea = new DefaultRoutableArea(null, null);
+        routableArea.removeAll();
+        Route route = routableArea.createRoute("Route 2");
         route.getDwellingGroups().add(DwellingGroupTestFactory.getInstance(
                 "CHAPEL HOUSE STREET, LONDON", "CHAPEL HOUSE STREET, LONDON", "E14 3AS"));
         route.getDwellingGroups().add(DwellingGroupTestFactory.getInstance(
@@ -32,11 +33,12 @@ public class WardTest {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         Document document = documentBuilder.newDocument();
-        Element xml = ward.toXml(document);
+        Element xml = routableArea.toXml(document);
         document.appendChild(xml);
         String result = ResourceHelper.toString(document);
-        String expected = ResourceHelper.readResource(WardTest.class.getResource("/simpleWard.xml"));
+        String expected = ResourceHelper.readResource(RoutableAreaTest.class.getResource("/simpleWard.xml"));
         assertEquals(expected, result);
+        fail("This test should not pass as simpleWard.xml needs updating");
     }
 
 }

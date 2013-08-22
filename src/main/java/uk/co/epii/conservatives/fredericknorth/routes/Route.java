@@ -26,4 +26,5 @@ public interface Route {
     public void load(ApplicationContext applicationContext, Element routeElt);
     public String getAssociation();
     public void setAssociation(String association);
+    public String getFullyQualifiedName();
 }

@@ -2,12 +2,9 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.routebuildergui.RoutesModel;
 import uk.co.epii.conservatives.fredericknorth.maps.DummyMapViewGeneratorFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyCouncil;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyWard;
-import uk.co.epii.conservatives.fredericknorth.routes.Council;
+import uk.co.epii.conservatives.fredericknorth.opendata.DummyRoutableArea;
 
 import java.awt.*;
 
@@ -23,13 +20,12 @@ public class RoutesModelTest {
     @Test
     public void addingRoutesEndUpInAlphabeticalOrder() {
         TestApplicationContext applicationContext = new TestApplicationContext();
-        applicationContext.registerDefaultInstance(Council.class, new DummyCouncil());
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(new Rectangle(1, 1, 1, 1)));
-        DummyWard dummyWard = new DummyWard("A Ward", "A");
+        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea("A Ward", "A");
         RoutesModel routesModel = new RoutesModel(
                 new RouteBuilderMapFrameModel(applicationContext));
-        routesModel.setSelectedWard(dummyWard);
+        routesModel.setSelectedRoutableArea(dummyRoutableArea);
         routesModel.add("Route 1");
         routesModel.add("Route 2");
         routesModel.add("Route 3");

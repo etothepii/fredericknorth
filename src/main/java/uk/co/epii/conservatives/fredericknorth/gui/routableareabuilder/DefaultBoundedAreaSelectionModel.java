@@ -21,10 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: James Robinson
@@ -87,6 +84,32 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
             loadOSKnownInstances(boundedAreaType);
             LOG.debug("Loaded OS known instances of {}", boundedAreaType.getName());
         }
+    }
+
+    @Override
+    public Map<BoundedAreaType, BoundedArea> getAllSelected() {
+        BoundedAreaType currentType = masterBoundedAreaType;
+        EnumMap<BoundedAreaType, BoundedArea> selected = new EnumMap<BoundedAreaType, BoundedArea>(BoundedAreaType.class);
+        do {
+            selected.put(currentType, getSelected(currentType));
+        } while ((currentType = currentType.getChildType()) != null);
+        return selected;
+    }
+
+    @Override
+    public BoundedArea getSelected() {
+        BoundedAreaType boundedAreaType = getMasterSelectedType();
+        BoundedArea selected = getSelected(boundedAreaType);
+        while ((boundedAreaType = boundedAreaType.getChildType()) != null) {
+            BoundedArea selectedChild = getSelected(boundedAreaType);
+            if (selectedChild != null) {
+                selected = selectedChild;
+            }
+            else {
+                break;
+            }
+        }
+        return selected;
     }
 
     private void loadOSKnownInstances(BoundedAreaType boundedAreaType) {
@@ -153,6 +176,11 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
     @Override
     public BoundedArea getSelected(BoundedAreaType boundedAreaType) {
         return comboBoxModels.get(boundedAreaType).getSelectedItem();
+    }
+
+    @Override
+    public BoundedArea getMasterSelected() {
+        return getSelected(getMasterSelectedType());
     }
 
     @Override

@@ -1,6 +1,15 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.apache.log4j.Logger;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
+import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
+import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
@@ -12,6 +21,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +41,10 @@ public class RouteBuilderMapFrameModel {
     private final DwellingGroupModel unroutedDwellingGroups;
     private final RoutedAndUnroutedToolTipModel routedAndUnroutedToolTipModel;
     private final RoutesModel routesModel;
+    private final HashMap<BoundedArea, DefaultRoutableArea> routableAreas;
+    private final BoundedAreaSelectionModel boundedAreaSelectionModel;
+    private final PostcodeDatumFactory postcodeDatumFactory;
+    private final DwellingProcessor dwellingProcessor;
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
@@ -39,8 +53,12 @@ public class RouteBuilderMapFrameModel {
     private ApplicationContext applicationContext;
 
     public RouteBuilderMapFrameModel(ApplicationContext applicationContext) {
+        this.boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
+        this.routableAreas = new HashMap<BoundedArea, DefaultRoutableArea>();
         this.mapViewGenerator = applicationContext.getDefaultInstance(MapViewGenerator.class);
         this.dotFactory = applicationContext.getDefaultInstance(DotFactory.class);
+        this.postcodeDatumFactory = applicationContext.getDefaultInstance(PostcodeDatumFactory.class);
+        this.dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
         this.applicationContext = applicationContext;
         this.pdfRenderer = applicationContext.getDefaultInstance(PDFRenderer.class);
         mapPanelModel = new RouteBuilderMapPanelModel(this, Long.parseLong(applicationContext.getProperty(StationaryMouseRequirementKey)));
@@ -48,6 +66,7 @@ public class RouteBuilderMapFrameModel {
         unroutedDwellingGroups = new DwellingGroupModel(applicationContext);
         routesModel = new RoutesModel(this);
         routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel(this);
+        boundedAreaSelectionModel.loadOSKnownInstances();
         addListeners();
     }
 
@@ -97,8 +116,75 @@ public class RouteBuilderMapFrameModel {
                 });
     }
 
+    public BoundedAreaSelectionModel getBoundedAreaSelectionModel() {
+        return boundedAreaSelectionModel;
+    }
+
     private void updateSelectedRouteAndWard() {
         routesModel.updateSelected();
+    }
+
+    public RoutableArea getRoutableArea(BoundedArea boundedArea) {
+        DefaultRoutableArea routableArea = routableAreas.get(boundedArea);
+        if (routableArea == null) {
+            loadRoutableArea(boundedArea);
+            routableArea = routableAreas.get(boundedArea);
+        }
+        return routableArea;
+    }
+
+    private void loadRoutableArea(BoundedArea boundedArea) {
+        Map<BoundedAreaType, BoundedArea> selected = boundedAreaSelectionModel.getAllSelected();
+        if (selected.get(boundedArea.getBoundedAreaType()) != boundedArea) {
+            throw new IllegalArgumentException("The boundedArea supplied is not selected");
+        }
+        List<BoundedArea> ancestors = new ArrayList<BoundedArea>();
+        BoundedAreaType boundedAreaType = boundedAreaSelectionModel.getMasterSelectedType();
+        do {
+            ancestors.add(selected.get(boundedAreaType));
+        } while ((boundedAreaType = boundedAreaType.getChildType()) != null &&
+                boundedAreaType != boundedArea.getBoundedAreaType());
+        ancestors.add(boundedArea);
+        loadRoutableAreas(ancestors);
+    }
+
+    private void loadRoutableAreas(List<BoundedArea> ancestors) {
+        DefaultRoutableArea parent = null;
+        for (int i = 0; i < ancestors.size(); i++) {
+            BoundedArea boundedArea = ancestors.get(i);
+            DefaultRoutableArea routableArea = routableAreas.get(boundedArea);
+            if (routableArea == null) {
+                routableArea = loadRoutableArea(boundedArea, parent);
+                routableAreas.put(boundedArea, routableArea);
+            }
+            parent = routableArea;
+        }
+    }
+
+    private DefaultRoutableArea loadRoutableArea(BoundedArea boundedArea, DefaultRoutableArea parent) {
+        DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
+        if (parent != null) {
+            for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
+                if (boundedArea.getArea().contains(dwellingGroup.getPoint())) {
+                    routableArea.addDwellingGroup(dwellingGroup, false);
+                }
+            }
+            for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
+                if (boundedArea.getArea().contains(dwellingGroup.getPoint())) {
+                    routableArea.addDwellingGroup(dwellingGroup, true);
+                }
+            }
+        }
+        else {
+            for (PostcodeDatum postcode : postcodeDatumFactory.getPostcodes()) {
+                if (boundedArea.getArea().contains(postcode.getPoint())) {
+                    for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getPostcode())) {
+                        routableArea.addDwellingGroup(dwellingGroup, false);
+                    }
+                }
+            }
+        }
+        return routableArea;
     }
 
     private void clearOtherDwellingGroup(DwellingGroupModel otherDwellingGroup) {
@@ -180,16 +266,15 @@ public class RouteBuilderMapFrameModel {
     }
 
     public void save(File selectedFile) {
-        council.save(selectedFile);
+        getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).save(selectedFile);
     }
 
     public void load(File selectedFile) {
-        council.load(applicationContext, selectedFile);
-        wardsModel.refresh();
+        getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(selectedFile);
     }
 
     public void export(File selectedFile) {
-        pdfRenderer.buildRoutesGuide(council, selectedFile);
+        pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getMasterSelected()), selectedFile);
     }
 
     public void invertSelectionInRoutedAndUnrouted() {
@@ -197,6 +282,10 @@ public class RouteBuilderMapFrameModel {
     }
 
     public void autoGenerate(int targetSize, boolean unroutedOnly) {
-        council.autoGenerate(targetSize, unroutedOnly);
+        BoundedArea boundedArea = boundedAreaSelectionModel.getSelected();
+        if (boundedArea == null) {
+            return;
+        }
+        getRoutableArea(boundedArea).autoGenerate(targetSize, unroutedOnly);
     }
 }

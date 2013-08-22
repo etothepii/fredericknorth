@@ -2,7 +2,6 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Before;
 import org.junit.Test;
-import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.routebuildergui.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
@@ -11,7 +10,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.maps.DummyMapViewGeneratorFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.*;
-import uk.co.epii.conservatives.fredericknorth.routes.Council;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,30 +37,27 @@ public class RouteBuilderMapFrameModelTest {
 
     @Before
     public void setUp() throws Exception {
-        DummyCouncil dummyCouncil = new DummyCouncil();
-        DummyWard dummyWard = new DummyWard("A Ward", "A");
+        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea("A RoutableArea", "A");
         bRoad = new DummyDwellingGroup("B Road", 25, new Point(10, 90));
         bRoad.setPostcode(new DummyPostcodeDatum("A1 1AA"));
-        dummyWard.addDwellingGroup(bRoad);
+        dummyRoutableArea.addDwellingGroup(bRoad);
         bRoadFlats = new DummyDwellingGroup("D Flats 26, B Road", 10, new Point(10, 90));
         bRoadFlats.setPostcode(new DummyPostcodeDatum("A1 1AA"));
-        dummyWard.addDwellingGroup(bRoadFlats);
+        dummyRoutableArea.addDwellingGroup(bRoadFlats);
         cStreet = new DummyDwellingGroup("C Street", 25, new Point(50, 10));
         cStreet.setPostcode(new DummyPostcodeDatum("A1 1AB"));
-        dummyWard.addDwellingGroup(cStreet);
+        dummyRoutableArea.addDwellingGroup(cStreet);
         eGrove = new DummyDwellingGroup("E Grove", 25, new Point(90, 90));
         eGrove.setPostcode(new DummyPostcodeDatum("A1 1AC"));
-        dummyWard.addDwellingGroup(eGrove);
+        dummyRoutableArea.addDwellingGroup(eGrove);
         eGroveAppartments = new DummyDwellingGroup("Apartment 26, E Grove", 25, new Point(90, 90));
         eGroveAppartments.setPostcode(new DummyPostcodeDatum("A1 1AC"));
-        dummyWard.addDwellingGroup(eGroveAppartments);
-        DummyRoute dummyRoute = new DummyRoute("Route 1", dummyWard);
+        dummyRoutableArea.addDwellingGroup(eGroveAppartments);
+        DummyRoute dummyRoute = new DummyRoute("Route 1", dummyRoutableArea);
         dummyRoute.addDwellingGroup(bRoad);
         dummyRoute.addDwellingGroup(cStreet);
-        dummyCouncil.addWard("A", dummyWard);
-        dummyWard.addRoute(dummyRoute);
+        dummyRoutableArea.addRoute(dummyRoute);
         ApplicationContext applicationContext = new TestApplicationContext();
-        applicationContext.registerDefaultInstance(Council.class, dummyCouncil);
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(new Rectangle(0, 0, 100, 100)));
         DotFactoryRegistrar.registerToContext(applicationContext);

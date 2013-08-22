@@ -7,6 +7,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public interface RoutableArea {
 
     public BoundedArea getBoundedArea();
     public Collection<? extends Route> getRoutes();
+    public Collection<? extends DwellingGroup> getRoutedDwellingGroups();
     public Collection<? extends DwellingGroup> getUnroutedDwellingGroups();
     public Collection<? extends DwellingGroup> getDwellingGroups();
     public Element toXml(Document document);
@@ -28,6 +30,10 @@ public interface RoutableArea {
     public void removeAll();
     public void markAsRouted(DwellingGroup dwellingGroup);
     public void markAsUnrouted(DwellingGroup dwellingGroup);
-    public void load(ApplicationContext applicationContext, Element wardElt);
-
+    public String getName();
+    public void load(File selectedFile);
+    public void save(File selectedFile);
+    public RoutableArea getParent();
+    public int getUnroutedDwellingCount();
+    public int getDwellingCount();
 }

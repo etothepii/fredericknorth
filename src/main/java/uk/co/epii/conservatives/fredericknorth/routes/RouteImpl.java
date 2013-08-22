@@ -104,6 +104,18 @@ class RouteImpl implements Route {
     }
 
     @Override
+    public String getFullyQualifiedName() {
+        StringBuilder stringBuilder = new StringBuilder(255);
+        stringBuilder.append(getName());
+        RoutableArea parent = routableArea;
+        do {
+            stringBuilder.insert(0, " - ");
+            stringBuilder.insert(0, parent.getName());
+        } while ((parent = parent.getParent()) != null);
+        return stringBuilder.toString();
+    }
+
+    @Override
     public Set<DwellingGroup> getDwellingGroups() {
         return dwellingGroups;
     }

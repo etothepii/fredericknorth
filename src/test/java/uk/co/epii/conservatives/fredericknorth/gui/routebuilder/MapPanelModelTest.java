@@ -1,14 +1,11 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Test;
-import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.routebuildergui.RouteBuilderMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.DummyMapViewGeneratorFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelModel;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyCouncil;
-import uk.co.epii.conservatives.fredericknorth.routes.Council;
 
 import java.awt.*;
 
@@ -26,7 +23,6 @@ public class MapPanelModelTest {
         MapViewGenerator mapViewGenerator =
                 DummyMapViewGeneratorFactory.getDummyInstance(new Rectangle(100, 200, 300, 400));
         ApplicationContext applicationContext = new TestApplicationContext();
-        applicationContext.registerDefaultInstance(Council.class, new DummyCouncil());
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
         RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
         MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderMapFrameModel, 0);
@@ -46,7 +42,6 @@ public class MapPanelModelTest {
         MapViewGenerator mapViewGenerator =
                 DummyMapViewGeneratorFactory.getDummyInstance(new Rectangle(100, 200, 300, 400));
         ApplicationContext applicationContext = new TestApplicationContext();
-        applicationContext.registerDefaultInstance(Council.class, new DummyCouncil());
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
         RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
         MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderMapFrameModel, 0);

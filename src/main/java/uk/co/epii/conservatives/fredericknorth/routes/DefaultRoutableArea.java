@@ -6,6 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -47,6 +48,11 @@ public class DefaultRoutableArea implements RoutableArea {
     @Override
     public Collection<? extends DwellingGroup> getUnroutedDwellingGroups() {
         return unroutedDwellingGroups;
+    }
+
+    @Override
+    public Collection<? extends DwellingGroup> getRoutedDwellingGroups() {
+        return routedDwellingGroups;
     }
 
     @Override
@@ -142,8 +148,41 @@ public class DefaultRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void load(ApplicationContext applicationContext, Element wardElt) {
-        throw new UnsupportedOperationException("This method has not yet been implemented");
+    public String getName() {
+        return getBoundedArea().getName();
+    }
+
+    @Override
+    public void save(File selectedFile) {
+        throw new UnsupportedOperationException("This method is not yet supported");
+    }
+
+    @Override
+    public RoutableArea getParent() {
+        return parent;
+    }
+
+    @Override
+    public int getUnroutedDwellingCount() {
+        int count = 0;
+        for (DwellingGroup dwellingGroup : getUnroutedDwellingGroups()) {
+            count += dwellingGroup.size();
+        }
+        return count;
+    }
+
+    @Override
+    public int getDwellingCount() {
+        int count = 0;
+        for (DwellingGroup dwellingGroup : getDwellingGroups()) {
+            count += dwellingGroup.size();
+        }
+        return count;
+    }
+
+    @Override
+    public void load(File selectedFile) {
+        throw new UnsupportedOperationException("This method is not yet supported");
     }
 
     @Override
@@ -161,5 +200,15 @@ public class DefaultRoutableArea implements RoutableArea {
     @Override
     public int hashCode() {
         return boundedArea != null ? boundedArea.hashCode() : 0;
+    }
+
+    public void addDwellingGroup(DwellingGroup dwellingGroup, boolean routed) {
+        dwellingGroups.add(dwellingGroup);
+        if (routed) {
+            routedDwellingGroups.add(dwellingGroup);
+        }
+        else {
+            unroutedDwellingGroups.add(dwellingGroup);
+        }
     }
 }

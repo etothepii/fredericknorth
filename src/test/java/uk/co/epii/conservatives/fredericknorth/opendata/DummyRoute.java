@@ -2,9 +2,9 @@ package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
-import uk.co.epii.conservatives.fredericknorth.routes.Ward;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,13 +19,13 @@ public class DummyRoute implements Route {
 
     private String name;
     private HashSet<DwellingGroup> dwellingGroupHashSet;
-    private final Ward ward;
+    private final RoutableArea routableArea;
     private int dwellingCount;
     private String association;
 
-    public DummyRoute(String name, Ward ward) {
+    public DummyRoute(String name, RoutableArea routableArea) {
         this.name = name;
-        this.ward = ward;
+        this.routableArea = routableArea;
         dwellingGroupHashSet = new HashSet<DwellingGroup>();
     }
 
@@ -50,8 +50,8 @@ public class DummyRoute implements Route {
     }
 
     @Override
-    public Ward getWard() {
-        return ward;
+    public RoutableArea getRoutableArea() {
+        return routableArea;
     }
 
     @Override
@@ -90,5 +90,17 @@ public class DummyRoute implements Route {
     @Override
     public void setAssociation(String association) {
         this.association = association;
+    }
+
+    @Override
+    public String getFullyQualifiedName() {
+        StringBuilder stringBuilder = new StringBuilder(255);
+        stringBuilder.append(getName());
+        RoutableArea parent = routableArea;
+        do {
+            stringBuilder.insert(0, " - ");
+            stringBuilder.insert(0, parent.getName());
+        } while ((parent = parent.getParent()) != null);
+        return stringBuilder.toString();
     }
 }

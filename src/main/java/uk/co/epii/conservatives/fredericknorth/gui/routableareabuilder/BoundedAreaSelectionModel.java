@@ -6,6 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Map;
 
 /**
  * User: James Robinson
@@ -19,6 +20,7 @@ public interface BoundedAreaSelectionModel {
     public int getChildTypes();
     public void setMasterParentType(BoundedAreaType boundedAreaType);
     public BoundedArea getSelected(BoundedAreaType boundedAreaType);
+    public BoundedArea getMasterSelected();
     public BoundedAreaType getMasterSelectedType();
     public void addBoundedAreaSelectionListener(SelectedBoundedAreaChangedListener l);
     public void removeBoundedAreaSelectionListener(SelectedBoundedAreaChangedListener l);
@@ -31,4 +33,6 @@ public interface BoundedAreaSelectionModel {
     public void loadFrom(File selectedFile, ApplicationContext applicationContext);
     public BoundedAreaType[] getRootSelectionTypes();
     public void loadOSKnownInstances();
+    public Map<BoundedAreaType,BoundedArea> getAllSelected();
+    public BoundedArea getSelected();
 }

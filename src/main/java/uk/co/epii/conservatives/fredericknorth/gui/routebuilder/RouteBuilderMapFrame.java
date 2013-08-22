@@ -1,6 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.apache.log4j.Logger;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionPanel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelDataEvent;
@@ -47,7 +49,7 @@ public class RouteBuilderMapFrame extends JFrame {
     private final JButton load;
     private final JButton export;
     private final JButton autoGenerate;
-    private final JComboBox wards;
+    private final BoundedAreaSelectionPanel boundedAreaSelectionPanel;
     private final JComboBox routes;
     private final JScrollPane unselectedDwellingGroupsScrollPane;
     private final JScrollPane selectedDwellingGroupsScrollPane;
@@ -120,7 +122,7 @@ public class RouteBuilderMapFrame extends JFrame {
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         TableHelper.forceColumnWidth(unselectedDwellingGroups.getColumnModel().getColumn(1), dwellingCountColumnWidth);
         TableHelper.forceColumnWidth(selectedDwellingGroups.getColumnModel().getColumn(1), dwellingCountColumnWidth);
-        wards = new JComboBox(this.routeBuilderMapFrameModel.getWardsModel());
+        boundedAreaSelectionPanel = new BoundedAreaSelectionPanel(routeBuilderMapFrameModel.getBoundedAreaSelectionModel());
         routes = new JComboBox(this.routeBuilderMapFrameModel.getRoutesModel());
         addRoute = new JButton("Add");
         renameRoute = new JButton("Rename");
@@ -184,7 +186,7 @@ public class RouteBuilderMapFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 routeBuilderMapFrameModel.moveSelectedUnroutedDwellingGroupsInToRoute();
                 routes.repaint();
-                wards.repaint();
+                boundedAreaSelectionPanel.repaint();
             }
         });
         moveOutOfRoute.addActionListener(new ActionListener() {
@@ -192,7 +194,7 @@ public class RouteBuilderMapFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 routeBuilderMapFrameModel.moveSelectedRoutedDwellingGroupsOutOfRoute();
                 routes.repaint();
-                wards.repaint();
+                boundedAreaSelectionPanel.repaint();
             }
         });
         routes.addItemListener(new ItemListener() {
@@ -350,7 +352,6 @@ public class RouteBuilderMapFrame extends JFrame {
 
     private void layoutContent() {
         getContentPane().setLayout(new GridBagLayout());
-        wards.setRenderer(new WardRenderer());
         routes.setRenderer(new RouteRenderer());
         JPanel routesAndButtons = new JPanel(new GridBagLayout());
         JPanel ioButtons = new JPanel(new GridBagLayout());
@@ -363,7 +364,7 @@ public class RouteBuilderMapFrame extends JFrame {
                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         routesAndButtons.add(deleteRoute, new GridBagConstraints(3, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-        getContentPane().add(wards, new GridBagConstraints(0, 0, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
+        getContentPane().add(boundedAreaSelectionPanel, new GridBagConstraints(0, 0, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         getContentPane().add(routesAndButtons, new GridBagConstraints(0, 1, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(0, 5, 5, 5), 0, 0));

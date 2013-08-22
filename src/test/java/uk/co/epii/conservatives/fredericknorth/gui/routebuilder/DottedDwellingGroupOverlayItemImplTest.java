@@ -2,8 +2,6 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.routebuildergui.DottedDwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.routebuildergui.DottedDwellingGroupOverlayItemImpl;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.*;

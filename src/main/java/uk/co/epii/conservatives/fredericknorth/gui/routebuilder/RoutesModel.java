@@ -1,8 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
-import uk.co.epii.conservatives.fredericknorth.routes.Ward;
 
 import javax.swing.*;
 import java.util.*;
@@ -17,7 +17,7 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
     private final List<Route> routes;
     private final Set<String> routeNames;
     private final HashMap<Route, Integer> routesIndexMap;
-    private Ward selectedWard;
+    private RoutableArea selectedRoutableArea;
     private int currentIndex;
 
     public RoutesModel(RouteBuilderMapFrameModel routeBuilderMapFrameModel) {
@@ -26,7 +26,7 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
         routes = new ArrayList<Route>();
         routeNames = new HashSet<String>();
         currentIndex = -1;
-        selectedWard = null;
+        selectedRoutableArea = null;
     }
 
     @Override
@@ -47,10 +47,10 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
 
     @Override
     public int getSize() {
-        if (selectedWard == null) {
+        if (selectedRoutableArea == null) {
             return 0;
         }
-        return selectedWard.getRoutes().size();
+        return selectedRoutableArea.getRoutes().size();
     }
 
     @Override
@@ -58,14 +58,14 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
         return routes.get(i);
     }
 
-    public void setSelectedWard(Ward selectedWard) {
+    public void setSelectedRoutableArea(RoutableArea routableArea) {
         int oldSize = getSize();
-        this.selectedWard = selectedWard;
+        this.selectedRoutableArea = selectedRoutableArea;
         routes.clear();
         routeBuilderMapFrameModel.getUnroutedDwellingGroups().clear();
-        if (selectedWard != null) {
-            routeBuilderMapFrameModel.getUnroutedDwellingGroups().setToContentsOf(selectedWard.getUnroutedDwellingGroups());
-            routes.addAll(this.selectedWard.getRoutes());
+        if (selectedRoutableArea != null) {
+            routeBuilderMapFrameModel.getUnroutedDwellingGroups().setToContentsOf(selectedRoutableArea.getUnroutedDwellingGroups());
+            routes.addAll(this.selectedRoutableArea.getRoutes());
         }
         updateRoutesIndexMap();
         setSelectedRoute(getSize() == 0 ? null : routes.get(0));
@@ -100,7 +100,7 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
     }
 
     public void add(String routeName) {
-        Route route = selectedWard.createRoute(routeName);
+        Route route = selectedRoutableArea.createRoute(routeName);
         routes.add(route);
         updateRoutesIndexMap();
         setSelectedItem(route);
