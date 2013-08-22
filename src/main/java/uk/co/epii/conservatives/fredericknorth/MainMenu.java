@@ -82,7 +82,7 @@ public class MainMenu extends JFrame {
             RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
             routeBuilderMapFrame = new RouteBuilderMapFrame(routeBuilderMapFrameModel, applicationContext);
             routeBuilderMapFrame.setLocationRelativeTo(null);
-            routableAreaBuilderMapFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            routeBuilderMapFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
             routeBuilderMapFrame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent windowEvent) {
