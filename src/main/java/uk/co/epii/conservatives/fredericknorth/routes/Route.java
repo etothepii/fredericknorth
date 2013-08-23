@@ -19,11 +19,12 @@ public interface Route {
     public void setName(String name);
     public Set<DwellingGroup> getDwellingGroups();
     public Element toXml(Document document);
-    public Ward getWard();
+    public RoutableArea getRoutableArea();
     public int getDwellingCount();
     public void addDwellingGroups(Collection<? extends DwellingGroup> dwellingGroups);
     public void removeDwellingGroups(Collection<? extends DwellingGroup> dwellingGroups);
     public void load(ApplicationContext applicationContext, Element routeElt);
     public String getAssociation();
     public void setAssociation(String association);
+    public String getFullyQualifiedName();
 }

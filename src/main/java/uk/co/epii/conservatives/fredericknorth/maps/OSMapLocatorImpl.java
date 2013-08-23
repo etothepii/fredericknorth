@@ -14,7 +14,7 @@ class OSMapLocatorImpl implements OSMapLocator {
     private final Map<OSMapType, Dimension> mapDimensions;
     private final Map<OSMapType, Dimension> representedMapDimensions;
 
-    private static final Logger LOG = Logger.getLogger(OSMapLocator.class);
+    private static final Logger LOG = Logger.getLogger(OSMapLocatorImpl.class);
 
     OSMapLocatorImpl(String largeSquareLocatorResource, Map<OSMapType, Dimension> mapDimensions) {
         this.mapDimensions = mapDimensions;
@@ -111,7 +111,7 @@ class OSMapLocatorImpl implements OSMapLocator {
                 OSMap map = getMap(osMapType, new Point(x, y));
                 if (!maps.contains(map)) {
                     maps.add(map);
-                    LOG.info("Adding map: " + map.toString());
+                    LOG.debug("Adding map: " + map.toString());
                 }
             }
         }

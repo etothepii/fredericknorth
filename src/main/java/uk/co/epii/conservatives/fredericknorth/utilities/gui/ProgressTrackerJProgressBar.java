@@ -54,6 +54,9 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     @Override
     public void startSubsection(int steps) {
         synchronized (sync) {
+            if (progressBar.getValue() == progressBar.getMaximum()) {
+                finish();
+            }
             subsectionSizes.add(0, steps);
             int value = progressBar.getValue();
             int maximum = progressBar.getMaximum();
@@ -123,6 +126,11 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         progressBar.setMaximum(1);
         progressBar.setValue(0);
         progressBar.setIndeterminate(false);
+    }
+
+    @Override
+    public boolean isAtEnd() {
+        return progressBar.getMaximum() == progressBar.getValue();
     }
 
     public void paint(Graphics g) {

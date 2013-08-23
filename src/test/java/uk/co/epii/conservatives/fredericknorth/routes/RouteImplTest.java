@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class RouteImplTest {
 
-    private WardImpl wardImpl;
+    private DefaultRoutableArea defaultRoutableArea;
     private RouteImpl routeImpl;
     private DummyDwellingGroup bRoad;
     private DummyDwellingGroup bRoadFlats;
@@ -34,8 +34,11 @@ public class RouteImplTest {
         dwellingGroups.add(bRoad);
         dwellingGroups.add(bRoadFlats);
         dwellingGroups.add(cStreet);
-        wardImpl = new WardImpl("A Ward", dwellingGroups, "A");
-        routeImpl = new RouteImpl(wardImpl, "Route 1");
+        defaultRoutableArea = new DefaultRoutableArea(null, null);
+        for (DwellingGroup dwellingGroup : dwellingGroups) {
+            defaultRoutableArea.addDwellingGroup(dwellingGroup, false);
+        }
+        routeImpl = new RouteImpl(defaultRoutableArea, "Route 1");
     }
 
     @Test
@@ -45,9 +48,9 @@ public class RouteImplTest {
         routeImpl.addDwellingGroups(dwellingGroups);
         assertTrue("B Road Present", routeImpl.getDwellingGroups().contains(bRoad));
         assertEquals("B Road Alone", 1, routeImpl.getDwellingGroups().size());
-        assertEquals("Ward Dwellings ", 60, wardImpl.getDwellingCount());
+        assertEquals("Ward Dwellings ", 60, defaultRoutableArea.getDwellingCount());
         assertEquals("Route Dwellings ", 20, routeImpl.getDwellingCount());
-        assertEquals("Routed Dwellings ", 40, wardImpl.getUnroutedDwellingCount());
+        assertEquals("Routed Dwellings ", 40, defaultRoutableArea.getUnroutedDwellingCount());
     }
 
     @Test
@@ -59,16 +62,16 @@ public class RouteImplTest {
         assertTrue("B Road Present", routeImpl.getDwellingGroups().contains(bRoad));
         assertTrue("B Road Flats Present", routeImpl.getDwellingGroups().contains(bRoadFlats));
         assertEquals("B Roads and Flats are alone", 2, routeImpl.getDwellingGroups().size());
-        assertEquals("Ward Dwellings ", 60,  wardImpl.getDwellingCount());
+        assertEquals("Ward Dwellings ", 60,  defaultRoutableArea.getDwellingCount());
         assertEquals("Route Dwellings ", 40, routeImpl.getDwellingCount());
-        assertEquals("Routed Dwellings ", 20, wardImpl.getUnroutedDwellingCount());
+        assertEquals("Routed Dwellings ", 20, defaultRoutableArea.getUnroutedDwellingCount());
         dwellingGroups.clear();
         dwellingGroups.add(bRoadFlats);
         routeImpl.removeDwellingGroups(dwellingGroups);
         assertTrue("B Road Present", routeImpl.getDwellingGroups().contains(bRoad));
         assertEquals("B Road alone", 1, routeImpl.getDwellingGroups().size());
-        assertEquals("Ward Dwellings ", 60, wardImpl.getDwellingCount());
+        assertEquals("Ward Dwellings ", 60, defaultRoutableArea.getDwellingCount());
         assertEquals("Route Dwellings ", 20, routeImpl.getDwellingCount());
-        assertEquals("Routed Dwellings ", 40, wardImpl.getUnroutedDwellingCount());
+        assertEquals("Routed Dwellings ", 40, defaultRoutableArea.getUnroutedDwellingCount());
     }
 }
