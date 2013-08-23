@@ -45,16 +45,6 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
     }
 
     @Override
-    public void setSteps(int n) {
-        progressBar.setSteps(n);
-    }
-
-    @Override
-    public void setStep(int n) {
-        progressBar.setStep(n);
-    }
-
-    @Override
     public void startSubsection(int steps) {
         progressBar.startSubsection(steps);
     }
