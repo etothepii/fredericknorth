@@ -7,8 +7,8 @@ package uk.co.epii.conservatives.fredericknorth.utilities;
  */
 public interface ProgressTracker {
 
-    public void setSteps(int n);
-    public void setStep(int n);
+//    public void setSteps(int n);
+//    public void setStep(int n);
     public void startSubsection(int steps);
     public void increment(String message, int n);
     public void increment(String message);

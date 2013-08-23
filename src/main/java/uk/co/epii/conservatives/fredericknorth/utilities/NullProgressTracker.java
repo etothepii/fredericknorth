@@ -10,12 +10,6 @@ public class NullProgressTracker implements ProgressTracker {
     private final Object sync = new Object();
 
     @Override
-    public void setSteps(int n) {}
-
-    @Override
-    public void setStep(int n) {}
-
-    @Override
     public void startSubsection(int steps) {}
 
     @Override

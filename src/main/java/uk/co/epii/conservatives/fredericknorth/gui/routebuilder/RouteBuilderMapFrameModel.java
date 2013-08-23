@@ -272,7 +272,6 @@ public class RouteBuilderMapFrameModel {
 
     private void loadRoutableAreas(List<BoundedArea> ancestors) {
         RoutableArea parent = null;
-        progressTracker.startSubsection(ancestors.size());
         for (int i = 0; i < ancestors.size(); i++) {
             BoundedArea boundedArea = ancestors.get(i);
             LOG.debug("ancestor({}) == null: {}", new Object[] {i, boundedArea == null});
@@ -284,7 +283,6 @@ public class RouteBuilderMapFrameModel {
                 routableArea = loadRoutableArea(boundedArea, parent);
                 routableAreas.put(boundedArea, routableArea);
             }
-            progressTracker.increment();
             parent = routableArea;
         }
         if (progressTracker.isAtEnd()) {
