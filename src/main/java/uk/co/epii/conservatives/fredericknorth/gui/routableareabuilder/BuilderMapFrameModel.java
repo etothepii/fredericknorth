@@ -126,8 +126,8 @@ public class BuilderMapFrameModel {
 
     public void enable() {
         synchronized (enabledSync) {
-            if (enabled) {
-                enabled = false;
+            if (!enabled) {
+                enabled = true;
                 fireEnabledStateChanged();
             }
         }
