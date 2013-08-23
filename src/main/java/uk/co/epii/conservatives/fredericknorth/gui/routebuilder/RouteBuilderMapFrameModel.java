@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
@@ -12,20 +13,21 @@ import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.*;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRenderer;
 
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * User: James Robinson
@@ -34,7 +36,7 @@ import java.util.Map;
  */
 public class RouteBuilderMapFrameModel {
 
-    private static final Logger LOG = Logger.getLogger(RouteBuilderMapFrameModel.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderMapFrameModel.class);
 
     private static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
 
@@ -47,12 +49,18 @@ public class RouteBuilderMapFrameModel {
     private final BoundedAreaSelectionModel boundedAreaSelectionModel;
     private final PostcodeDatumFactory postcodeDatumFactory;
     private final DwellingProcessor dwellingProcessor;
+    private final Executor executor;
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
     private final DotFactory dotFactory;
     private final PDFRenderer pdfRenderer;
     private ApplicationContext applicationContext;
+    private ProgressTracker progressTracker;
+    private final Object enabledSync = new Object();
+    private boolean enabled = true;
+    private final ArrayList<EnabledStateChangedListener<RouteBuilderMapFrameModel>> enabledStateChangedListeners =
+            new ArrayList<EnabledStateChangedListener<RouteBuilderMapFrameModel>>();
 
     public RouteBuilderMapFrameModel(ApplicationContext applicationContext) {
         this(applicationContext, new DefaultBoundedAreaSelectionModel(applicationContext), new HashMap<BoundedArea, RoutableArea>());
@@ -61,6 +69,8 @@ public class RouteBuilderMapFrameModel {
     RouteBuilderMapFrameModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel,
                               HashMap<BoundedArea, RoutableArea> routableAreas) {
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
+        executor = Executors.newSingleThreadExecutor();
+        progressTracker = new NullProgressTracker();
         this.routableAreas = routableAreas;
         this.mapViewGenerator = applicationContext.getDefaultInstance(MapViewGenerator.class);
         this.dotFactory = applicationContext.getDefaultInstance(DotFactory.class);
@@ -134,9 +144,94 @@ public class RouteBuilderMapFrameModel {
         });
     }
 
-    void setSelectedBoundedArea(BoundedArea boundedArea) {
-        RoutableArea routableArea = getRoutableArea(boundedArea);
-        routesModel.setSelectedRoutableArea(routableArea);
+    void setSelectedBoundedArea(final BoundedArea boundedArea) {
+        if (boundedAreaSelectionModel.getSelected() != boundedArea) {
+            return;
+        }
+        disable();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                setSelectedBoundedAreaOnThread(boundedArea);
+            }
+        });
+    }
+
+    private void setSelectedBoundedAreaOnThread(BoundedArea boundedArea) {
+        final RoutableArea routableArea = getRoutableArea(boundedArea);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                LOG.debug("Setting selected routable area: {}", routableArea == null ? "null" : routableArea.getName());
+                routesModel.setSelectedRoutableArea(routableArea);
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (routableArea == null) {
+                            enable();
+                            return;
+                        }
+                        Rectangle bounds = routableArea.getBoundedArea().getArea().getBounds();
+                        LOG.debug("Setting universe");
+                        mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
+                                bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
+                        LOG.debug("Set universe");
+                    }
+                });
+            }
+        });
+    }
+
+    public void disable() {
+        LOG.debug("Awaiting enabled sync");
+        synchronized (enabledSync) {
+            LOG.debug("Received enabled sync");
+            if (enabled) {
+                enabled = false;
+                fireEnabledStateChanged();
+            }
+        }
+    }
+
+    private void fireEnabledStateChanged() {
+        synchronized (enabledStateChangedListeners) {
+            EnabledStateChangedEvent<RouteBuilderMapFrameModel> e =
+                    new EnabledStateChangedEvent<RouteBuilderMapFrameModel>(this, isEnabled());
+            for (EnabledStateChangedListener l : enabledStateChangedListeners) {
+                l.enabledStateChanged(e);
+            }
+        }
+    }
+
+    public boolean isEnabled() {
+        LOG.debug("Awaiting enabled sync");
+        synchronized (enabledSync) {
+            LOG.debug("Received enabled sync");
+            return enabled;
+        }
+    }
+
+    public void addEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderMapFrameModel> l) {
+        synchronized (enabledStateChangedListeners) {
+            enabledStateChangedListeners.add(l);
+        }
+    }
+
+    public void removeEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderMapFrameModel> l) {
+        synchronized (enabledStateChangedListeners) {
+            enabledStateChangedListeners.remove(l);
+        }
+    }
+
+    public void enable() {
+        LOG.debug("Awaiting enabled sync");
+        synchronized (enabledSync) {
+            LOG.debug("Received enabled sync");
+            if (!enabled) {
+                enabled = true;
+                fireEnabledStateChanged();
+            }
+        }
     }
 
     public BoundedAreaSelectionModel getBoundedAreaSelectionModel() {
@@ -168,49 +263,64 @@ public class RouteBuilderMapFrameModel {
         BoundedAreaType boundedAreaType = boundedAreaSelectionModel.getMasterSelectedType();
         do {
             ancestors.add(selected.get(boundedAreaType));
-        } while ((boundedAreaType = boundedAreaType.getChildType()) != null &&
-                boundedAreaType != boundedArea.getBoundedAreaType());
+        } while (boundedAreaType != boundedArea.getBoundedAreaType() &&
+                (boundedAreaType = boundedAreaType.getChildType()) != null);
         ancestors.add(boundedArea);
         loadRoutableAreas(ancestors);
     }
 
     private void loadRoutableAreas(List<BoundedArea> ancestors) {
         RoutableArea parent = null;
+        progressTracker.startSubsection(ancestors.size());
         for (int i = 0; i < ancestors.size(); i++) {
             BoundedArea boundedArea = ancestors.get(i);
+            LOG.debug("ancestor({}) == null: {}", new Object[] {i, boundedArea == null});
+            LOG.debug("ancestor({}): {} {}", new Object[] {i, boundedArea.getBoundedAreaType(),
+                    boundedArea.getName() == null ? "Unnamed" : boundedArea.getName()});
+            progressTracker.setMessage(String.format("Loading %s", boundedArea.getName()));
             RoutableArea routableArea = routableAreas.get(boundedArea);
             if (routableArea == null) {
                 routableArea = loadRoutableArea(boundedArea, parent);
                 routableAreas.put(boundedArea, routableArea);
             }
+            progressTracker.increment();
             parent = routableArea;
+        }
+        if (progressTracker.isAtEnd()) {
+            progressTracker.finish();
         }
     }
 
     private DefaultRoutableArea loadRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
+        LOG.debug("loadRoutableArea: boundedArea {}, parent {}", new Object[] {boundedArea.getName(), parent == null ?
+                "null" : parent.getBoundedArea().getName()});
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
         if (parent != null) {
+            progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
+                    parent.getRoutedDwellingGroups().size());
             for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
                 if (boundedArea.getArea().contains(dwellingGroup.getPoint())) {
                     routableArea.addDwellingGroup(dwellingGroup, false);
                 }
+                progressTracker.increment();
             }
             for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
                 if (boundedArea.getArea().contains(dwellingGroup.getPoint())) {
                     routableArea.addDwellingGroup(dwellingGroup, true);
                 }
+                progressTracker.increment();
             }
         }
         else {
-            for (PostcodeDatum postcode : postcodeDatumFactory.getPostcodes()) {
-                if (postcode.getPoint() == null) {
-                    continue;
-                }
-                if (boundedArea.getArea().contains(postcode.getPoint())) {
+            Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes();
+            progressTracker.startSubsection(postcodes.size());
+            for (PostcodeDatum postcode : postcodes) {
+                if (postcode.getPoint() != null && boundedArea.getArea().contains(postcode.getPoint())) {
                     for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getPostcode())) {
                         routableArea.addDwellingGroup(dwellingGroup, false);
                     }
                 }
+                progressTracker.increment();
             }
         }
         return routableArea;
@@ -316,5 +426,17 @@ public class RouteBuilderMapFrameModel {
             return;
         }
         getRoutableArea(boundedArea).autoGenerate(targetSize, unroutedOnly);
+    }
+
+    public void setProgressTracker(ProgressTracker progressTracker) {
+        this.progressTracker = progressTracker;
+    }
+
+    public void setEnabled(boolean enabled) {
+        LOG.debug("Awaiting enabled sync");
+        synchronized (enabledSync) {
+            LOG.debug("Received enabled sync");
+            this.enabled = enabled;
+        }
     }
 }

@@ -125,6 +125,11 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         progressBar.setIndeterminate(false);
     }
 
+    @Override
+    public boolean isAtEnd() {
+        return progressBar.getMaximum() == progressBar.getValue();
+    }
+
     public void paint(Graphics g) {
         synchronized (sync) {
             super.paint(g);

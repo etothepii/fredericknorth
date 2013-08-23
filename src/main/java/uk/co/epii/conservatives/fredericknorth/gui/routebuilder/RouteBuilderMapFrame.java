@@ -1,13 +1,13 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
-import org.apache.log4j.Logger;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionPanel;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanel;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelDataEvent;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelDataListener;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelModel;
+import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
+import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
+import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerJProgressBar;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -16,7 +16,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * User: James Robinson
@@ -25,7 +28,7 @@ import java.io.File;
  */
 public class RouteBuilderMapFrame extends JFrame {
 
-    private static final Logger LOG = Logger.getLogger(RouteBuilderMapFrame.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderMapFrame.class);
     private static final String ZoomRateKey = "MapPanelZoomRate";
     private static final String DwellingCountColumnWidthKey = "DwellingCountColumnWidth";
     private static final String WorkingDirectoryKey = "WorkingDirectory";
@@ -48,6 +51,7 @@ public class RouteBuilderMapFrame extends JFrame {
     private final JButton save;
     private final JButton load;
     private final JButton export;
+    private final ProgressTrackerJProgressBar progressTracker;
     private final JButton autoGenerate;
     private final BoundedAreaSelectionPanel boundedAreaSelectionPanel;
     private final JComboBox routes;
@@ -62,7 +66,9 @@ public class RouteBuilderMapFrame extends JFrame {
     private final JTextField targetSizeField;
 
     public RouteBuilderMapFrame(RouteBuilderMapFrameModel RouteBuilderMapFrameModel, ApplicationContext applicationContext) throws HeadlessException {
+        progressTracker = new ProgressTrackerJProgressBar(1);
         routeBuilderMapFrameModel = RouteBuilderMapFrameModel;
+        routeBuilderMapFrameModel.setProgressTracker(progressTracker);
         double zoomRate = Double.parseDouble(applicationContext.getProperty(ZoomRateKey));
         int dwellingCountColumnWidth = Integer.parseInt(applicationContext.getProperty(DwellingCountColumnWidthKey));
         mapPanel = new MapPanel(this.routeBuilderMapFrameModel.getMapPanelModel(), zoomRate);
@@ -82,6 +88,7 @@ public class RouteBuilderMapFrame extends JFrame {
                     @Override
                     public void run() {
                         routeBuilderMapFrameModel.getMapPanelModel().zoomToFitUniverse(mapPanel.getSize());
+                        setEnabled(true);
                     }
                 });
             }
@@ -106,6 +113,77 @@ public class RouteBuilderMapFrame extends JFrame {
                             mouseLocationOnScreen.y + mouseOffset.y);
                 routedAndUnroutedToolTipFrame.setLocation(drawAt.x, drawAt.y);
                 routedAndUnroutedToolTipFrame.repaint();
+            }
+        });
+        routeBuilderMapFrameModel.addEnableStateChangedListener(new EnabledStateChangedListener<RouteBuilderMapFrameModel>() {
+            @Override
+            public void enabledStateChanged(final EnabledStateChangedEvent<RouteBuilderMapFrameModel> e) {
+                if (isEnabled() == e.isEnabled()) return;
+                LOG.debug("enabledStateChanged: {}", e.isEnabled());
+                if (SwingUtilities.isEventDispatchThread()) {
+                    LOG.debug("Setting enabled on EventDispatchThread: {}", e.isEnabled());
+                    setEnabled(e.isEnabled());
+                }
+                else {
+                    try {
+                        LOG.debug("Waiting to set enabled on EventDispatchThread: {}", e.isEnabled());
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                setEnabled(e.isEnabled());
+                            }
+                        });
+                        LOG.debug("Enabled set on EventDispatchThread: {}", e.isEnabled());
+                    }
+                    catch (InterruptedException ie) {
+                        throw new RuntimeException(ie);
+                    }
+                    catch (InvocationTargetException ite) {
+                        throw new RuntimeException(ite);
+                    }
+                }
+            }
+        });
+        addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+                if (propertyChangeEvent.getPropertyName().equals("enabled")) {
+                    boolean enabled = (Boolean) propertyChangeEvent.getNewValue();
+                    LOG.debug("The enabled status of the Frame has been changed: {}", enabled);
+                    mapPanel.setEnabled(enabled);
+                    selectedDwellingGroups.setEnabled(enabled);
+                    unselectedDwellingGroups.setEnabled(enabled);
+                    moveInToRoute.setEnabled(enabled);
+                    moveOutOfRoute.setEnabled(enabled);
+                    addRoute.setEnabled(enabled);
+                    renameRoute.setEnabled(enabled);
+                    deleteRoute.setEnabled(enabled);
+                    save.setEnabled(enabled);
+                    load.setEnabled(enabled);
+                    export.setEnabled(enabled);
+                    autoGenerate.setEnabled(enabled);
+                    boundedAreaSelectionPanel.setEnabled(enabled);
+                    routes.setEnabled(enabled);
+                    unselectedDwellingGroupsScrollPane.setEnabled(enabled);
+                    selectedDwellingGroupsScrollPane.setEnabled(enabled);
+                    targetSizeSlider.setEnabled(enabled);
+                    targetSizeField.setEnabled(enabled);
+                    routeBuilderMapFrameModel.setEnabled(enabled);
+                }
+            }
+        });
+        routeBuilderMapFrameModel.getMapPanelModel().addMapPanelDataListener(new MapPanelDataAdapter() {
+            @Override
+            public void universeChanged(MapPanelDataEvent e) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        routeBuilderMapFrameModel.getMapPanelModel().zoomToFitUniverse(mapPanel.getSize());
+                        mapPanel.repaint();
+                        progressTracker.finish();
+                        setEnabled(true);
+                    }
+                });
             }
         });
         targetSizeSlider = new LogarithmicJSlider(50, 1000);
@@ -365,11 +443,13 @@ public class RouteBuilderMapFrame extends JFrame {
         routesAndButtons.add(deleteRoute, new GridBagConstraints(3, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         getContentPane().add(boundedAreaSelectionPanel, new GridBagConstraints(0, 0, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
-                GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
+                GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
         getContentPane().add(routesAndButtons, new GridBagConstraints(0, 1, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(0, 5, 5, 5), 0, 0));
         getContentPane().add(mapPanel, new GridBagConstraints(0, 2, 1, 6, 1d, 1d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 5, 0), 0, 0));
+        getContentPane().add(progressTracker, new GridBagConstraints(0, 8, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
+                GridBagConstraints.BOTH, new Insets(0, 5, 5, 5), 0, 0));
         getContentPane().add(selectedDwellingGroupsScrollPane,
                 new GridBagConstraints(1, 2, 2, 1, 0d, 1d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 0, 5), 0, 0));
