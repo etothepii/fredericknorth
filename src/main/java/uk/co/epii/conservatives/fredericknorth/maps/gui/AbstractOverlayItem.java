@@ -69,12 +69,20 @@ public abstract class AbstractOverlayItem<T> implements OverlayItem<T> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         AbstractOverlayItem that = (AbstractOverlayItem) o;
-        return t.equals(that.t);
+
+        if (priority != that.priority) return false;
+        if (!getGeoLocationOfCenter().equals(that.getGeoLocationOfCenter())) return false;
+        if (!t.equals(that.t)) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return t.hashCode();
+        int result = t.hashCode();
+        result = 31 * result + priority;
+        return result;
     }
 }

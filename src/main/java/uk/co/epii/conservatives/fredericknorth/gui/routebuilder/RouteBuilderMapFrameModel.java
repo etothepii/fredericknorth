@@ -178,6 +178,7 @@ public class RouteBuilderMapFrameModel {
                         LOG.debug("Set universe");
                     }
                 });
+                updateOverlays();
             }
         });
     }
