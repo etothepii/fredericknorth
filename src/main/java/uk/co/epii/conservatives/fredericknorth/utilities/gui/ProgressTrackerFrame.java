@@ -93,4 +93,9 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
     public void finish() {
         progressBar.finish();
     }
+
+    @Override
+    public boolean isAtEnd() {
+        return progressBar.isAtEnd();
+    }
 }

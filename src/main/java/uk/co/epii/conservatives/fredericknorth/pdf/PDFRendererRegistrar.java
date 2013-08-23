@@ -11,7 +11,6 @@ import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.maps.LocationFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapLabelFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
-import uk.co.epii.conservatives.fredericknorth.routes.Council;
 import uk.co.epii.conservatives.williampittjr.LogoGenerator;
 
 import java.io.File;
@@ -29,7 +28,6 @@ public class PDFRendererRegistrar {
     private static final Logger LOG = Logger.getLogger(PDFRendererRegistrar.class);
 
     private static final String PDFFontKey = "PDFFont";
-    private static final String LogoLocationKey = "AssociationLogo";
 
     public static void registerToContext(ApplicationContext applicationContext) {
         LOG.info("Loading PDF Font to temp dir");

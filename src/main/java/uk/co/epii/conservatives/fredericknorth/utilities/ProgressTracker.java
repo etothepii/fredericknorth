@@ -17,4 +17,5 @@ public interface ProgressTracker {
     public void setMessage(String message);
     public Object getSync();
     public void finish();
+    public boolean isAtEnd();
 }

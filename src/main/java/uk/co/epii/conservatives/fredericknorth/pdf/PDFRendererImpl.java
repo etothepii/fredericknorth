@@ -8,10 +8,6 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import org.apache.log4j.Logger;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.geometry.BoundingBox;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundaryLineController;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
@@ -19,9 +15,8 @@ import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.maps.extentions.WeightedPointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.routes.Council;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
-import uk.co.epii.conservatives.fredericknorth.routes.Ward;
 import uk.co.epii.conservatives.williampittjr.LogoGenerator;
 
 import java.awt.*;
@@ -87,7 +82,7 @@ class PDFRendererImpl implements PDFRenderer {
             @Override
             public int compare(Route o1, Route o2) {
                 int compare;
-                if ((compare = o1.getWard().getName().compareTo(o2.getWard().getName())) != 0) return compare;
+                if ((compare = o1.getFullyQualifiedName().compareTo(o2.getFullyQualifiedName())) != 0) return compare;
                 return o1.getName().compareTo(o2.getName());
             }
         };
@@ -162,22 +157,8 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     @Override
-    public void buildRoutesGuide(Ward ward, File file) {
-        buildRoutesGuide(ward.getRoutes(), file);
-    }
-
-    @Override
-    public void buildRoutesGuide(Council council, File file) {
-        setMeetingPoints(council.getMeetingPoints());
-        int routeCount = 0;
-        for (Ward ward : council.getWards()) {
-            routeCount += ward.getRouteCount();
-        }
-        List<Route> routes = new ArrayList<Route>(routeCount);
-        for (Ward ward : council.getWards()) {
-            routes.addAll(ward.getRoutes());
-        }
-        buildRoutesGuide(routes, file);
+    public void buildRoutesGuide(RoutableArea routableArea, File file) {
+        buildRoutesGuide(routableArea.getRoutes(), file);
     }
 
     @Override
@@ -186,7 +167,7 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     private void addRouteContent(Route route) throws DocumentException, IOException {
-        String wardName = route.getWard().getName();
+        String wardName = route.getRoutableArea().getName();
         String routeName = route.getName();
         String association = route.getAssociation();
         if (association == null) {

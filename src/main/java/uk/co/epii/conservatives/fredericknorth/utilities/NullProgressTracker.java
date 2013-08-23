@@ -40,4 +40,9 @@ public class NullProgressTracker implements ProgressTracker {
 
     @Override
     public void finish() {}
+
+    @Override
+    public boolean isAtEnd() {
+        return false;
+    }
 }
