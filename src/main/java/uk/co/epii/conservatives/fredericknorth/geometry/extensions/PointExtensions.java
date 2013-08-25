@@ -1,4 +1,4 @@
-package uk.co.epii.conservatives.fredericknorth.extensions;
+package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
 import java.awt.*;
 import java.util.Arrays;

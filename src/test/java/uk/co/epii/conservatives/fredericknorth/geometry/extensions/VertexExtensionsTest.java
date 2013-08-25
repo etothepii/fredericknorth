@@ -1,6 +1,8 @@
-package uk.co.epii.conservatives.fredericknorth.extensions;
+package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
 import org.junit.Test;
+import uk.co.epii.conservatives.fredericknorth.geometry.Edge;
+import uk.co.epii.conservatives.fredericknorth.geometry.Vertex;
 
 import java.awt.*;
 
