@@ -11,7 +11,6 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -63,7 +62,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                                  ProgressTracker progressTracker) {
         Rectangle initial = new Rectangle(new Dimension(700000, 1300000));
         currentImage = new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB),
-                new Point(0, 0), OSMapType.STREET_VIEW);
+                new Point(0, 0), OSMapType.STREET_VIEW, 1d);
         executor = Executors.newSingleThreadExecutor();
         this.activeType = activeType;
         this.osMapLoader = osMapLoader;
@@ -169,8 +168,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 final OSMapType mapType = OSMapType.getMapType(requiredScale);
                 final Point geoTopleft = new Point(visible.x, visible.y + visible.height);
                 MapImageImpl previousMapImage = getCurrentImage();
-                final BufferedImage bufferedImage = paintCurrentForNext(previousMapImage, requiredScale, geoTopleft);
-                final MapImageImpl mapImage = new MapImageImpl(bufferedImage, geoTopleft, mapType);
+                final BufferedImage bufferedImage = startWithWhatWorksFromBefore(previousMapImage, requiredScale, geoTopleft);
+                final MapImageImpl mapImage = new MapImageImpl(bufferedImage, geoTopleft, mapType, requiredScale);
                 try {
                     if (SwingUtilities.isEventDispatchThread()) {
                         setCurrentImage(mapImage);
@@ -218,7 +217,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
     }
 
-    private BufferedImage paintCurrentForNext(MapImageImpl previousMapImage, double newScale, Point newGeoTopleft) {
+    private BufferedImage startWithWhatWorksFromBefore(MapImageImpl previousMapImage, double newScale, Point newGeoTopleft) {
         BufferedImage bufferedImage =
                 new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)bufferedImage.getGraphics();

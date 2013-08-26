@@ -18,7 +18,7 @@ public class DummyMapViewGeneratorFactory {
                                 coverage.width,
                                 coverage.height,
                                 BufferedImage.TYPE_INT_ARGB),
-                        coverage.getLocation(), osMapType));
+                        coverage.getLocation(), osMapType, 1d));
         return new MapViewGeneratorImpl(mapCache, null, null);
     }
 }

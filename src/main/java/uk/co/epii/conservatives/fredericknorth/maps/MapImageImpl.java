@@ -14,13 +14,15 @@ class MapImageImpl implements MapImage {
     private final BufferedImage map;
     private final Point geoTopLeft;
     private final Dimension size;
+    private final double scale;
     private boolean completelyLoaded;
 
-    MapImageImpl(BufferedImage map, Point geoTopLeft, OSMapType osMapType) {
+    MapImageImpl(BufferedImage map, Point geoTopLeft, OSMapType osMapType, double scale) {
         this.map = map;
         this.osMapType = osMapType;
         this.geoTopLeft = geoTopLeft;
         this.size = new Dimension(map.getWidth(), map.getHeight());
+        this.scale = scale;
     }
 
     @Override
@@ -57,5 +59,9 @@ class MapImageImpl implements MapImage {
 
     public void setCompletelyLoaded(boolean completelyLoaded) {
         this.completelyLoaded = completelyLoaded;
+    }
+
+    public double getScale() {
+        return scale;
     }
 }

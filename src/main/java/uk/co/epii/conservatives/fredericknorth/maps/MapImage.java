@@ -15,4 +15,5 @@ public interface MapImage {
     public Point getGeoCenter();
     public Dimension getSize();
     public Point getGeoBottomLeft();
+    public double getScale();
 }
