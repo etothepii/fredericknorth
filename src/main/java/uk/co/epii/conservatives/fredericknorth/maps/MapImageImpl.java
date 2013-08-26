@@ -14,6 +14,7 @@ class MapImageImpl implements MapImage {
     private final BufferedImage map;
     private final Point geoTopLeft;
     private final Dimension size;
+    private boolean completelyLoaded;
 
     MapImageImpl(BufferedImage map, Point geoTopLeft, OSMapType osMapType) {
         this.map = map;
@@ -48,5 +49,13 @@ class MapImageImpl implements MapImage {
         return new Point(
                 (int)(geoTopLeft.x + size.width / osMapType.getScale() / 2),
                 (int)(geoTopLeft.y - size.height / osMapType.getScale()));
+    }
+
+    public boolean isCompletelyLoaded() {
+        return completelyLoaded;
+    }
+
+    public void setCompletelyLoaded(boolean completelyLoaded) {
+        this.completelyLoaded = completelyLoaded;
     }
 }
