@@ -1,4 +1,6 @@
-package uk.co.epii.conservatives.fredericknorth.extensions;
+package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
+
+import uk.co.epii.conservatives.fredericknorth.geometry.Vertex;
 
 import java.awt.geom.Point2D;
 

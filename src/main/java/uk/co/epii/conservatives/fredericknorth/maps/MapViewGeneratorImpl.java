@@ -3,14 +3,20 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 import com.sun.istack.internal.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
+import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * It is important to remember that the co-ordinates in an Image start at increase as one descends down the page
@@ -23,9 +29,12 @@ import java.util.List;
 class MapViewGeneratorImpl implements MapViewGenerator {
 
     private static final Logger LOG = LoggerFactory.getLogger(MapViewGeneratorImpl.class);
+    private static final Logger LOG_EACH_MAP = LoggerFactory.getLogger(MapViewGeneratorImpl.class.getName().concat("_eachMap"));
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(MapViewGeneratorImpl.class.getName().concat("_sync"));
 
     private static Dimension DEFAULT_SIZE = new Dimension(640,480);
 
+    private final Executor executor;
     private final LocationFactory locationFactory;
     private final MapLabelFactory mapLabelFactory;
     private final OSMapLoader osMapLoader;
@@ -34,145 +43,194 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private OSMapType activeType;
     private Dimension viewPortSize;
     private double scale;
-    private final Map<OSMapType, Rectangle> loaded;
-    private final Map<OSMapType, Rectangle> universe;
-    private final Map<OSMapType, MapImage> mapCache;
+    private MapImageImpl currentImage;
+    private final Object currentImageSync = new Object();
+    private double maxScale = 5;
+    private double minScale = 0.001;
 
     MapViewGeneratorImpl(Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
-        this(mapCache, null, null, locationFactory, mapLabelFactory, OSMapType.MINI);
+        this(null, null, locationFactory, mapLabelFactory, OSMapType.MINI, NullProgressTracker.NULL);
     }
 
     public MapViewGeneratorImpl(OSMapLoader osMapLoader, OSMapLocator osMapLocator, LocationFactory locationFactory,
-                                MapLabelFactory mapLabelFactory) {
-        this(null, osMapLoader, osMapLocator, locationFactory, mapLabelFactory, OSMapType.MINI);
+                                MapLabelFactory mapLabelFactory, ProgressTracker progressTracker) {
+        this(osMapLoader, osMapLocator, locationFactory, mapLabelFactory, OSMapType.MINI, progressTracker);
     }
 
-    private MapViewGeneratorImpl(Map<OSMapType, MapImage> mapCache, OSMapLoader osMapLoader, OSMapLocator osMapLocator,
-                                 LocationFactory locationFactory, MapLabelFactory mapLabelFactory, OSMapType activeType) {
-        this.mapCache = mapCache == null ?
-                createMapCache() : mapCache;
+    private MapViewGeneratorImpl(OSMapLoader osMapLoader, OSMapLocator osMapLocator,
+                                 LocationFactory locationFactory, MapLabelFactory mapLabelFactory, OSMapType activeType,
+                                 ProgressTracker progressTracker) {
+        Rectangle initial = new Rectangle(new Dimension(700000, 1300000));
+        currentImage = new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB),
+                new Point(0, 0), OSMapType.STREET_VIEW);
+        executor = Executors.newSingleThreadExecutor();
         this.activeType = activeType;
         this.osMapLoader = osMapLoader;
         this.osMapLocator = osMapLocator;
         this.locationFactory = locationFactory;
         this.mapLabelFactory = mapLabelFactory;
-        loaded = new EnumMap<OSMapType, Rectangle>(OSMapType.class);
-        universe = new EnumMap<OSMapType, Rectangle>(OSMapType.class);
-        setGeoCenter(new Point(
-                this.mapCache.get(activeType).getGeoTopLeft().x + this.mapCache.get(activeType).getSize().width / 2,
-                this.mapCache.get(activeType).getGeoTopLeft().y - this.mapCache.get(activeType).getSize().height / 2));
-        setViewPortSize(DEFAULT_SIZE);
-    }
-
-    private Map<OSMapType, MapImage> createMapCache() {
-        Map<OSMapType, MapImage> empty = new EnumMap<OSMapType, MapImage>(OSMapType.class);
-        for (OSMapType osMapType : OSMapType.values()) {
-            empty.put(osMapType, new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), new Point(-1, -1)));
-        }
-        return empty;
-    }
-
-    private BufferedImage getNullImage() {
-        BufferedImage nullImage = new BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB);
-        Graphics g = nullImage.getGraphics();
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, 1, 1);
-        return nullImage;
+        setViewPortSize(DEFAULT_SIZE, true, false, new NullProgressTracker(), null);
+        scaleToFitRectangle(initial, progressTracker, null);
     }
 
     private MapImage getMapImage() {
-        synchronized (mapCache) {
-            return mapCache.get(getActiveType());
+        LOG_SYNC.debug("Awaiting currentImageSync");
+        try {
+            synchronized (currentImageSync) {
+                LOG_SYNC.debug("Received currentImageSync");
+                return currentImage;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released currentImageSync");
         }
     }
 
     @Override
     @NotNull
-    public boolean setGeoCenter(Point geoCenter) {
-        if (!geoCenter.equals(this.geoCenter)) {
-            this.geoCenter = geoCenter;
-            return true;
+    public boolean setGeoCenter(Point geoCenter, ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        return setGeoCenter(geoCenter, true, progressTracker, imageObserver);
+    }
+
+    private boolean setGeoCenter(Point geoCenter, boolean updateImage, ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        if (geoCenter.equals(this.geoCenter)) {
+            return false;
         }
-        return false;
+        this.geoCenter = geoCenter;
+        if (updateImage) {
+            updateImage(progressTracker, imageObserver);
+        }
+        return true;
     }
 
     @Override
-    @NotNull
-    public boolean setViewPortSize(Dimension viewPortSize) {
-        return setViewPortSize(viewPortSize, false);
+    public boolean setViewPortSize(Dimension viewPortSize, ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        return setViewPortSize(viewPortSize, false, true, progressTracker, imageObserver);
     }
 
-    private boolean setViewPortSize(Dimension viewPortSize, boolean force) {
+    private boolean setViewPortSize(Dimension viewPortSize, boolean force, boolean updateImage,
+                                    ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        minScale = Math.min(viewPortSize.getHeight() / 1300000, viewPortSize.getWidth() / 700000);
         if (!force && viewPortSize.equals(this.viewPortSize)) {
             return false;
         }
         if (this.viewPortSize != null) {
-            scale *= Math.min(viewPortSize.getWidth() / this.viewPortSize.getWidth(),
-                    viewPortSize.getHeight() / this.viewPortSize.getHeight());
+            scale = Math.min(maxScale, Math.max(minScale, scale * Math.min(viewPortSize.getWidth() / this.viewPortSize.getWidth(),
+                    viewPortSize.getHeight() / this.viewPortSize.getHeight())));
         }
         else {
             MapImage mapImage = getMapImage();
-            scale = Math.min(viewPortSize.getWidth() / mapImage.getSize().getWidth(),
-                    viewPortSize.getHeight() / mapImage.getSize().getHeight());
+            scale = Math.min(maxScale, Math.max(minScale, Math.min(viewPortSize.getWidth() / mapImage.getSize().getWidth(),
+                    viewPortSize.getHeight() / mapImage.getSize().getHeight())));
         }
         this.viewPortSize = viewPortSize;
+        if (updateImage) {
+            updateImage(progressTracker, imageObserver);
+        }
         return true;
     }
 
     @Override
-    public boolean setScale(double scale) {
+    public boolean setScale(double scale, ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        return setScale(scale, true, progressTracker, imageObserver);
+    }
+
+    private boolean setScale(double scale, boolean updateImage, ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        if (scale < minScale) {
+            scale = minScale;
+        }
+        else if (scale > maxScale) {
+            scale = maxScale;
+        }
         if (Double.compare(scale, this.scale) == 0) {
             return false;
         }
         this.scale = scale;
+        if (updateImage) {
+            updateImage(progressTracker, imageObserver);
+        }
         return true;
     }
 
-    @Override
-    public void loadUniverse(Rectangle universe) {
-        loadUniverse(universe, null);
-    }
-
-    @Override
-    public void loadUniverse(Rectangle universe, ProgressTracker progressTracker) {
-        synchronized (mapCache) {
-            double requiredScale = Math.min(viewPortSize.getWidth() / universe.getWidth(), viewPortSize.getHeight() / universe.getHeight());
-            setActiveType(OSMapType.getMapType(requiredScale));
-            setUniverse(universe);
-            Rectangle loaded = getLoaded();
-            if (loaded != null && loaded.contains(universe)) {
-                return;
+    private void updateImage(final ProgressTracker progressTracker, final MapImageObserver imageObserver) {
+        if (imageObserver == null) {
+            updateImageOnThread(progressTracker, imageObserver);
+        }
+        else {
+            executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                updateImageOnThread(progressTracker, imageObserver);
             }
-            Point geoTopleft = new Point(universe.x, universe.y + universe.height);
-            try {
-                BufferedImage mapImage = buildMapImage(getActiveType(), universe, progressTracker);
-                setMapCache(new MapImageImpl(mapImage, geoTopleft));
-                setUniverse(universe);
-                setLoaded(universe);
-            }
-            catch (IOException ioe) {
-                throw new RuntimeException(ioe);
-            }
-            catch (InterruptedException ie) {
-                throw new RuntimeException(ie);
-            }
+        });
         }
     }
 
-    private void setMapCache(MapImageImpl mapImage) {
-        this.mapCache.put(getActiveType(), mapImage);
+    private void updateImageOnThread(ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        LOG_SYNC.debug("Awaiting currentImageSync");
+        try {
+            synchronized (currentImageSync) {
+                LOG_SYNC.debug("Received currentImageSync");
+                Rectangle visible = getVisible();
+                double requiredScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
+                                                viewPortSize.getHeight() / visible.getHeight());
+                final OSMapType mapType = OSMapType.getMapType(requiredScale);
+                final Point geoTopleft = new Point(visible.x, visible.y + visible.height);
+                final BufferedImage bufferedImage =
+                        new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB);
+                final MapImageImpl mapImage = new MapImageImpl(bufferedImage, geoTopleft, mapType);
+                try {
+                    if (SwingUtilities.isEventDispatchThread()) {
+                        setCurrentImage(mapImage);
+                    }
+                    else {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                LOG_SYNC.debug("Awaiting currentImageSync");
+                                try {
+                                    synchronized (currentImageSync) {
+                                        LOG_SYNC.debug("Received currentImageSync");
+                                        setCurrentImage(mapImage);
+                                        currentImageSync.notify();
+                                    }
+                                }
+                                finally {
+                                    LOG_SYNC.debug("Released currentImageSync");
+                                }
+                            }
+                        });
+                        LOG_SYNC.debug("Released currentImageSync");
+                        LOG_SYNC.debug("Awaiting currentImageSync");
+                        currentImageSync.wait();
+                        LOG_SYNC.debug("Received currentImageSync");
+                    }
+                    paintMapImage(mapImage, mapType, visible, progressTracker, imageObserver);
+                }
+                catch (IOException ioe) {
+                    throw new RuntimeException(ioe);
+                }
+                catch (InterruptedException ie) {
+                    throw new RuntimeException(ie);
+                }
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released currentImageSync");
+        }
     }
 
-    private void setLoaded(Rectangle universe) {
-        this.loaded.put(getActiveType(), universe);
-    }
-
-    private Rectangle getLoaded() {
-        return this.loaded.get(getActiveType());
-    }
-
-    private void setUniverse(Rectangle universe) {
-        this.universe.put(getActiveType(), universe);
+    private void setCurrentImage(MapImageImpl currentImage) {
+        LOG_SYNC.debug("Awaiting currentImageSync");
+        try {
+            synchronized (currentImageSync) {
+                LOG_SYNC.debug("Received currentImageSync");
+                this.currentImage = currentImage;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released currentImageSync");
+        }
     }
 
     private OSMapType getActiveType() {
@@ -183,32 +241,50 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         this.activeType = mapType;
     }
 
-    private BufferedImage buildMapImage(OSMapType mapType, Rectangle universe, ProgressTracker progressTracker) throws IOException, InterruptedException {
-        BufferedImage universeImage = new BufferedImage(
-                (int)(universe.width * mapType.getScale()),
-                (int)(universe.height * mapType.getScale()),
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D imageGraphics = (Graphics2D)universeImage.getGraphics();
-        Set<OSMap> maps = osMapLocator.getMaps(mapType, universe);
-        if (progressTracker != null) {
-            progressTracker.startSubsection(maps.size());
-        }
+    private void paintMapImage(MapImageImpl mapImage, OSMapType mapType, Rectangle visible,
+                                        ProgressTracker progressTracker, MapImageObserver mapImageObserver)
+            throws IOException, InterruptedException {
+        LOG.debug("size of mapImage.getMap(): {} x {}", mapImage.getMap().getWidth(), mapImage.getMap().getHeight());
+        LOG.debug("paintMapImage({}, {}, {})", new Object[] {mapType, visible, viewPortSize});
+        Graphics2D imageGraphics = (Graphics2D)mapImage.getMap().getGraphics();
+        Set<OSMap> maps = osMapLocator.getMaps(mapType, visible);
+        progressTracker.startSubsection(maps.size());
         Dimension imageSize = osMapLocator.getImageSize(mapType);
+        LOG.debug("imageSize: {}", imageSize);
+        double imageScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
+                viewPortSize.getHeight() / visible.getHeight()) / mapType.getScale();
+        imageGraphics.setTransform(AffineTransform.getScaleInstance(imageScale, imageScale));
+        LOG.debug("imageScale: {}", imageScale);
         for (OSMap map : maps) {
-            if (progressTracker != null) {
-                progressTracker.setMessage(String.format("Loading %s", map.getMapName()));
-            }
-            LOG.debug("{}", map);
+            if (getMapImage() != mapImage) return;
+            progressTracker.setMessage(String.format("Loading %s", map.getMapName()));
+            LOG_EACH_MAP.debug("{}", map);
             Point mapBottomLeft = osMapLocator.getBottomLeftMapCoordinate(map);
-            int x = (int)((mapBottomLeft.x - universe.x) * mapType.getScale());
-            int y = (int)((universe.y + universe.height - mapBottomLeft.y) * mapType.getScale()) - imageSize.height;
-            BufferedImage mapImage = osMapLoader.loadMap(map);
-            imageGraphics.drawImage(mapImage, x, y, imageSize.width, imageSize.height, null);
-            if (progressTracker != null) {
-                progressTracker.increment();
+            LOG.debug("mapBottomLeft: {}", mapBottomLeft);
+            int x = (int)((mapBottomLeft.x - visible.x) * mapType.getScale());
+            int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapType.getScale()) - imageSize.height;
+            LOG.debug("(x, y): ({}, {})", x, y);
+            BufferedImage loadedMap = osMapLoader.loadMap(map);
+            try {
+                LOG_SYNC.debug("Awaiting mapImage.getMap()");
+                synchronized (mapImage.getMap()) {
+                    LOG_SYNC.debug("Received mapImage.getMap()");
+                    imageGraphics.drawImage(loadedMap, x, y, imageSize.width, imageSize.height, null);
+                }
             }
+            finally {
+                LOG_SYNC.debug("Released mapImage.getMap()");
+            }
+            if (mapImageObserver != null) {
+                mapImageObserver.imageUpdated(mapImage, RectangleExtensions.getScaleInstance(
+                        new Rectangle(x, y, imageSize.width, imageSize.height), new Point(0, 0), imageScale), false);
+            }
+            progressTracker.increment();
         }
-        return universeImage;
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(mapImage, new Rectangle(0, 0,
+                    mapImage.getMap().getWidth(), mapImage.getMap().getHeight()), true);
+        }
     }
 
     @Override
@@ -227,46 +303,55 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     }
 
     @Override
-    public boolean scaleToFitRectangle(Rectangle rectangeToFit) {
+    public boolean scaleToFitRectangle(Rectangle rectangeToFit, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         if (viewPortSize == null) {
             throw new NullPointerException("One cannot set scale to fit when the view port size is not set");
         }
-        boolean dirty = setGeoCenter(new Point(rectangeToFit.x + rectangeToFit.width / 2, rectangeToFit.y + rectangeToFit.height / 2));
-        dirty &= setScale(Math.min(viewPortSize.getWidth() / rectangeToFit.getWidth(), viewPortSize.getHeight() / rectangeToFit.getHeight()));
+        double requiredScale = Math.min(
+                viewPortSize.getWidth() / rectangeToFit.getWidth(),
+                viewPortSize.getHeight() / rectangeToFit.getHeight());
+        Point desiredGeoCentre = RectangleExtensions.getCenter(rectangeToFit);
+        boolean dirty = setGeoCenter(desiredGeoCentre, false, progressTracker, imageObserver);
+        dirty &= setScale(requiredScale, false, progressTracker, imageObserver);
+        if (dirty) {
+            updateImage(progressTracker, imageObserver);
+        }
         return dirty;
     }
 
     @Override
-    public Rectangle getUniverse() {
-        return this.universe.get(getActiveType());
+    public boolean setScaleAndCenter(double newScale, Point newGeoCenter, ProgressTracker progressTracker,
+                                     MapImageObserver imageObserver) {
+        boolean updateImage = setScale(newScale, false, progressTracker, imageObserver);
+        updateImage |= setGeoCenter(newGeoCenter, progressTracker, imageObserver);
+        if (updateImage) {
+            updateImage(progressTracker, imageObserver);
+        }
+        return updateImage;
     }
 
     @Override
     public MapView getView() {
-        MapImage mapImage = getMapImage();
-        LOG.debug("mapImage: {} x {}", mapImage.getMap().getWidth(), mapImage.getMap().getHeight());
-        if (mapImage == null) return null;
-        BufferedImage bufferedImage = new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D)bufferedImage.getGraphics();
-        AffineTransform scaleTransform = AffineTransform.getScaleInstance(scale, scale);
-        g.setTransform(scaleTransform);
-        MapView mapView = new MapViewImpl(bufferedImage, geoCenter, viewPortSize, scale, locationFactory, mapLabelFactory);
-        Point drawFromUnscaled = mapView.getImageLocation(mapImage.getGeoTopLeft());
-        Point drawFrom = new Point((int)(drawFromUnscaled.x / scale), (int)(drawFromUnscaled.y / scale));
-        Rectangle fillAround = scaleTransform.createTransformedShape(
-                new Rectangle(drawFrom.x, drawFrom.y,
-                        (int)(mapImage.getMap().getWidth() / getActiveType().getScale()),
-                        (int)(mapImage.getMap().getHeight() / getActiveType().getScale()))).getBounds();
-        g.drawImage(mapImage.getMap(), drawFrom.x, drawFrom.y,
-                (int)(mapImage.getMap().getWidth() / getActiveType().getScale()),
-                (int)(mapImage.getMap().getHeight() / getActiveType().getScale()), null);
-        g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
-        g.setColor(Color.WHITE);
-        for (Rectangle r : getRectanglesToClear(new Rectangle(viewPortSize), fillAround)) {
-            LOG.debug("Filling White Rectangle: {}", r);
-            g.fill(r);
+        BufferedImage snapshotImage = getSnapshotImage();
+        if (currentImage == null) return null;
+        LOG.debug("mapImage: {} x {}", currentImage.getMap().getWidth(), currentImage.getMap().getHeight());
+        return new MapViewImpl(snapshotImage, geoCenter, viewPortSize, scale, locationFactory, mapLabelFactory);
+    }
+
+    private BufferedImage getSnapshotImage() {
+        LOG_SYNC.debug("Awaiting currentImage.getMap()");
+        final BufferedImage map = currentImage.getMap();
+        try {
+            synchronized (map) {
+                LOG_SYNC.debug("Received currentImage.getMap()");
+                BufferedImage snapshot = new BufferedImage(map.getWidth(), map.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                snapshot.getGraphics().drawImage(map, 0, 0, null);
+                return snapshot;
+            }
         }
-        return mapView;
+        finally {
+            LOG_SYNC.debug("Released currentImage.getMap()");
+        }
     }
 
     static List<Rectangle> getRectanglesToClear(Rectangle base, Rectangle fillAround) {
@@ -288,5 +373,20 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     base.height + base.y - fillAround.height - fillAround.y));
         }
         return rectangles;
+    }
+
+    public Rectangle getVisible() {
+        Dimension scaledViewport = getScaledViewPortSize();
+        Point geoCentre = getGeoCenter();
+        if (scaledViewport == null || geoCentre == null) return null;
+        return new Rectangle(geoCentre.x - scaledViewport.width / 2, geoCentre.y - scaledViewport.height / 2,
+                scaledViewport.width, scaledViewport.height);
+    }
+
+    private Dimension getScaledViewPortSize() {
+        Dimension viewport = getViewPortSize();
+        if (viewport == null) return null;
+        double scale = getScale();
+        return new Dimension((int)(viewport.getWidth() / scale), (int)(viewport.getHeight() / scale));
     }
 }

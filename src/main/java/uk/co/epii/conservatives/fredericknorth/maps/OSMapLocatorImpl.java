@@ -51,7 +51,11 @@ class OSMapLocatorImpl implements OSMapLocator {
     @Override
     public OSMap getMap(OSMapType osMapType, Point p) {
         String largeSquare = calculateLargeSquare(p);
-        if (largeSquare == null) return null;
+        if (largeSquare == null) {
+            int mod = getMod(osMapType);
+            Point bottomLeft = new Point(p.x - mod(p.x, mod), p.y - mod(p.y, mod));
+            return new SeaMapImpl(osMapType, bottomLeft);
+        }
         if (osMapType == OSMapType.MINI) {
             return new OSMapImpl(OSMapType.MINI, largeSquare, null, null, null, null);
         }
@@ -67,36 +71,42 @@ class OSMapLocatorImpl implements OSMapLocator {
                 int quadrantHundredth = calculateQuadrantHundredth(p);
                 return new OSMapImpl(OSMapType.STREET_VIEW, largeSquare, square, quadrant, null, quadrantHundredth);
         }
-        throw new RuntimeException("Some how you have fallend out of a case statement that hit every possible combination of values");
+        throw new RuntimeException("Some how you have fallen out of a case statement that hit every possible combination of values");
     }
 
     private String calculateQuadrant(Point p) {
-        boolean westernHalf = (p.x % 10000) < 5000;
-        boolean southernHalf = (p.y % 10000) < 5000;
+        boolean westernHalf = mod(p.x, 10000) < 5000;
+        boolean southernHalf = mod(p.y, 10000) < 5000;
         return (southernHalf ? "s" : "n") + (westernHalf ? "w" : "e");
     }
 
     private int calcuateSquareHundredth(Point p) {
-        int x = (p.x % 10000) / 1000;
-        int y = (p.y % 10000) / 1000;
+        int x = mod(p.x, 10000) / 1000;
+        int y = mod(p.y, 10000) / 1000;
         return x * 10 + y;
     }
 
     private int calculateQuadrantHundredth(Point p) {
-        int x = (p.x % 5000) / 500;
-        int y = (p.y % 5000) / 500;
+        int x = mod(p.x, 5000) / 500;
+        int y = mod(p.y, 5000) / 500;
         return x * 10 + y;
     }
 
     private String calculateLargeSquare(Point p) {
+        if (p.x < 0 || p.y < 0) return null;
         int x = p.x / 100000;
         int y = p.y / 100000;
-        return squares[y][x];
+        if (y < squares.length && x < squares[y].length) {
+            return squares[y][x];
+        }
+        else {
+            return null;
+        }
     }
 
     private int calculateSquare(Point p) {
-        int x = (p.x % 100000) / 10000;
-        int y = (p.y % 100000) / 10000;
+        int x = mod(p.x, 100000) / 10000;
+        int y = mod(p.y, 100000) / 10000;
         return x * 10 + y;
     }
 
@@ -120,22 +130,25 @@ class OSMapLocatorImpl implements OSMapLocator {
 
     @Override
     public Point getBottomLeftMapCoordinate(OSMap map) {
+        if (map instanceof SeaMapImpl) {
+            return ((SeaMapImpl)map).getBottomLeftMapCoordinate();
+        }
         Point bottomLeft = new Point(largeSquareBottomLefts.get(map.getLargeSquare()));
         if (map.getOSMapType() == OSMapType.MINI) {
             return bottomLeft;
         }
         bottomLeft.x += (map.getSquare() / 10) * 10000;
-        bottomLeft.y += (map.getSquare() % 10) * 10000;
+        bottomLeft.y += mod(map.getSquare(), 10) * 10000;
         switch (map.getOSMapType()) {
             case VECTOR_MAP:
                 bottomLeft.x += (map.getSquareHundredth() / 10) * 1000;
-                bottomLeft.y += (map.getSquareHundredth() % 10) * 1000;
+                bottomLeft.y += mod(map.getSquareHundredth(), 10) * 1000;
                 break;
             case STREET_VIEW:
                 bottomLeft.x += map.getQuadrant().charAt(1) == 'e' ? 5000 : 0;
                 bottomLeft.y += map.getQuadrant().charAt(0) == 'n' ? 5000 : 0;
                 bottomLeft.x += (map.getQuadrantHundredth() / 10) * 500;
-                bottomLeft.y += (map.getQuadrantHundredth() % 10) * 500;
+                bottomLeft.y += mod(map.getQuadrantHundredth(), 10) * 500;
         }
         return bottomLeft;
     }
@@ -148,5 +161,26 @@ class OSMapLocatorImpl implements OSMapLocator {
     @Override
     public Dimension getRepresentedSize(OSMapType osMapType) {
         return representedMapDimensions.get(osMapType);
+    }
+
+    private static int mod(int n, int mod) {
+        int remainder = n % mod;
+        if (remainder < 0) remainder += mod;
+        return remainder;
+    }
+
+    private static int getMod(OSMapType type) {
+        switch (type) {
+            case STREET_VIEW:
+                return 500;
+            case VECTOR_MAP:
+                return 1000;
+            case RASTER:
+                return 10000;
+            case MINI:
+                return 100000;
+        }
+        throw new IllegalArgumentException("Some how you have fallen out of a case statement that hit every possible " +
+                "combination of values");
     }
 }

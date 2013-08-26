@@ -3,6 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionPanel;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
@@ -64,6 +66,7 @@ public class RouteBuilderMapFrame extends JFrame {
     private final FileFilter routeMapFilesFilter;
     private final LogarithmicJSlider targetSizeSlider;
     private final JTextField targetSizeField;
+    private final MapImageObserver mapImageObserver;
 
     public RouteBuilderMapFrame(RouteBuilderMapFrameModel RouteBuilderMapFrameModel, ApplicationContext applicationContext) throws HeadlessException {
         progressTracker = new ProgressTrackerJProgressBar(1);
@@ -81,17 +84,9 @@ public class RouteBuilderMapFrame extends JFrame {
         routedAndUnroutedToolTipFrame = new RoutedAndUnroutedToolTipFrame(
                 routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel(), dwellingCountColumnWidth);
         workingDirectory = createWorkingDirectory(applicationContext);
+        mapImageObserver = createMapImageObserver();
+        routeBuilderMapFrameModel.getMapPanelModel().setMapImageObserver(mapImageObserver);
         this.routeBuilderMapFrameModel.getMapPanelModel().addMapPanelDataListener(new MapPanelDataListener() {
-            @Override
-            public void universeChanged(MapPanelDataEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        routeBuilderMapFrameModel.getMapPanelModel().zoomToFitUniverse(mapPanel.getSize());
-                        setEnabled(true);
-                    }
-                });
-            }
             @Override
             public void mapChanged(MapPanelDataEvent e) {
                 mapPanel.repaint();
@@ -172,20 +167,6 @@ public class RouteBuilderMapFrame extends JFrame {
                 }
             }
         });
-        routeBuilderMapFrameModel.getMapPanelModel().addMapPanelDataListener(new MapPanelDataAdapter() {
-            @Override
-            public void universeChanged(MapPanelDataEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        routeBuilderMapFrameModel.getMapPanelModel().zoomToFitUniverse(mapPanel.getSize());
-                        mapPanel.repaint();
-                        progressTracker.finish();
-                        setEnabled(true);
-                    }
-                });
-            }
-        });
         targetSizeSlider = new LogarithmicJSlider(50, 1000);
         targetSizeField = new JTextField(4);
         fileChooser = new JFileChooser(workingDirectory);
@@ -217,6 +198,23 @@ public class RouteBuilderMapFrame extends JFrame {
         updateInOutButtonsEnabledState();
         routeBuilderMapFrameModel.updateOverlays();
         setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+    }
+
+    private MapImageObserver createMapImageObserver() {
+        return new MapImageObserver() {
+            @Override
+            public void imageUpdated(MapImage mapImage, Rectangle update, final boolean completed) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapPanel.repaint();
+                        if (completed) {
+                            setEnabled(true);
+                        }
+                    }
+                });
+            }
+        };
     }
 
     private File createWorkingDirectory(ApplicationContext applicationContext) {

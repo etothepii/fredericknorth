@@ -14,6 +14,7 @@ import java.util.List;
 class RoutedAndUnroutedToolTipModel {
 
     private static final Logger LOG = Logger.getLogger(RoutedAndUnroutedToolTipModel.class);
+    private static final Logger LOG_SYNC = Logger.getLogger(RoutedAndUnroutedToolTipModel.class.getName().concat("_sync"));
 
     private RouteBuilderMapFrameModel routeBuilderMapFrameModel;
     private DwellingGroupModel dwellingGroupModel;
@@ -44,26 +45,47 @@ class RoutedAndUnroutedToolTipModel {
 
     public void addRoutedAndUnroutedToolTipDwellingGroupsUpdatedListener(
             RoutedAndUnroutedToolTipDwellingGroupsUpdatedListener l) {
-        synchronized (routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
-            routedAndUnroutedToolTipDwellingGroupsUpdatedListeners.add(l);
+        LOG_SYNC.debug("Awaiting routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
+        try {
+            synchronized (routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
+                LOG_SYNC.debug("Received routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
+                routedAndUnroutedToolTipDwellingGroupsUpdatedListeners.add(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
         }
     }
 
     public void removeRoutedAndUnroutedToolTipDwellingGroupsUpdatedListener(
             RoutedAndUnroutedToolTipDwellingGroupsUpdatedListener l) {
-        synchronized (routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
-            routedAndUnroutedToolTipDwellingGroupsUpdatedListeners.remove(l);
+        try {
+            LOG_SYNC.debug("Awaiting routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
+            synchronized (routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
+                LOG_SYNC.debug("Received routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
+                routedAndUnroutedToolTipDwellingGroupsUpdatedListeners.remove(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
         }
     }
 
     protected void fireDwellingGroupsUpdated() {
         RoutedAndUnroutedToolTipDwellingGroupsUpdatedEvent e =
                 new RoutedAndUnroutedToolTipDwellingGroupsUpdatedEvent(this);
-        synchronized (routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
-            for (RoutedAndUnroutedToolTipDwellingGroupsUpdatedListener l :
-                    routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
-                l.routedAndUnroutedToolTipDataChanged(e);
+        LOG_SYNC.debug("Awaiting routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
+        try {
+            synchronized (routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
+                LOG_SYNC.debug("Received routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
+                for (RoutedAndUnroutedToolTipDwellingGroupsUpdatedListener l :
+                        routedAndUnroutedToolTipDwellingGroupsUpdatedListeners) {
+                    l.routedAndUnroutedToolTipDataChanged(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released routedAndUnroutedToolTipDwellingGroupsUpdatedListeners");
         }
     }
 

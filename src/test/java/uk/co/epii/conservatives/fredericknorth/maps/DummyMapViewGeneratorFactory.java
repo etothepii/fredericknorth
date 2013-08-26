@@ -10,7 +10,7 @@ import java.util.EnumMap;
  * Time: 16:36
  */
 public class DummyMapViewGeneratorFactory {
-    public static MapViewGenerator getDummyInstance(Rectangle coverage) {
+    public static MapViewGenerator getDummyInstance(OSMapType osMapType, Rectangle coverage) {
         EnumMap<OSMapType, MapImage> mapCache = new EnumMap<OSMapType, MapImage>(OSMapType.class);
         mapCache.put(OSMapType.MINI,
                 new MapImageImpl(
@@ -18,7 +18,7 @@ public class DummyMapViewGeneratorFactory {
                                 coverage.width,
                                 coverage.height,
                                 BufferedImage.TYPE_INT_ARGB),
-                        coverage.getLocation()));
+                        coverage.getLocation(), osMapType));
         return new MapViewGeneratorImpl(mapCache, null, null);
     }
 }
