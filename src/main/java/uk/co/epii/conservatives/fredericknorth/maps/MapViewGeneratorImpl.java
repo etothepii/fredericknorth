@@ -171,7 +171,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 final MapImageImpl mapImage = new MapImageImpl(
                         new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB),
                         geoTopleft, mapType, requiredScale);
-                loadPreviousMapIntoNewMap(previousMapImage, mapImage);
+                Rectangle clean = loadPreviousMapIntoNewMapAndReportCleanGeoRect(previousMapImage, mapImage);
                 try {
                     if (SwingUtilities.isEventDispatchThread()) {
                         setCurrentImage(mapImage);
@@ -204,7 +204,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                                 new Rectangle(0, 0, currentImage.getMap().getWidth(), currentImage.getMap().getHeight()),
                                 false);
                     }
-                    paintMapImage(previousMapImage, mapImage, mapType, visible, progressTracker, imageObserver);
+                    paintMapImage(clean, mapImage, visible, progressTracker, imageObserver);
                 }
                 catch (IOException ioe) {
                     throw new RuntimeException(ioe);
@@ -219,7 +219,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
     }
 
-    private void loadPreviousMapIntoNewMap(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
+    private Rectangle loadPreviousMapIntoNewMapAndReportCleanGeoRect(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
         BufferedImage map = newMapImage.getMap();
         Graphics2D g = (Graphics2D)map.getGraphics();
         g.setColor(OSMapLoaderImpl.getSeaColor(newMapImage.getOSMapType()));
@@ -235,6 +235,17 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                         newMapImage.getScale() / previousMapImage.getScale());
             }
             g.drawImage(previousMapImage.getMap(), drawFrom.x, drawFrom.y, size.width, size.height, null);
+            if (previousMapImage.getOSMapType() == newMapImage.getOSMapType() &&
+                    newMapImage.getScale() < 1.01 * previousMapImage.getScale()) {
+                return new Rectangle(previousMapImage.getGeoLocation(new Point(0, previousMapImage.getSize().height)),
+                        DimensionExtensions.scale(previousMapImage.getSize(), 1d / previousMapImage.getScale()));
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
         }
     }
 
@@ -272,18 +283,31 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         this.activeType = mapType;
     }
 
-    private void paintMapImage(MapImageImpl previousMapImage, MapImageImpl mapImage, OSMapType mapType, Rectangle visible,
+    private void paintMapImage(Rectangle clean, MapImageImpl mapImage, Rectangle visible,
                                         ProgressTracker progressTracker, MapImageObserver mapImageObserver)
             throws IOException, InterruptedException {
         LOG.debug("size of mapImage.getMap(): {} x {}", mapImage.getMap().getWidth(), mapImage.getMap().getHeight());
-        LOG.debug("paintMapImage({}, {}, {})", new Object[] {mapType, visible, viewPortSize});
+        LOG.debug("paintMapImage({}, {}, {})", new Object[] {clean, visible, viewPortSize});
         Graphics2D imageGraphics = (Graphics2D)mapImage.getMap().getGraphics();
-        Set<OSMap> maps = osMapLocator.getMaps(mapType, visible);
+        Set<OSMap> maps;
+        if (clean == null) {
+            maps = osMapLocator.getMaps(mapImage.getOSMapType(), visible);
+        }
+        else {
+            maps = new HashSet<OSMap>();
+            for (Rectangle dirty : getRectanglesToClear(visible, clean)) {
+                 maps.addAll(osMapLocator.getMaps(mapImage.getOSMapType(), dirty));
+            }
+        }
+        if (maps.isEmpty()) {
+            LOG.warn("Some how there are not any maps to draw, this should be investigated");
+            return;
+        }
         progressTracker.startSubsection(maps.size());
-        Dimension imageSize = osMapLocator.getImageSize(mapType);
+        Dimension imageSize = osMapLocator.getImageSize(mapImage.getOSMapType());
         LOG.debug("imageSize: {}", imageSize);
         double imageScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
-                viewPortSize.getHeight() / visible.getHeight()) / mapType.getScale();
+                viewPortSize.getHeight() / visible.getHeight()) / mapImage.getOSMapType().getScale();
         imageGraphics.setTransform(AffineTransform.getScaleInstance(imageScale, imageScale));
         Dimension targetSize = DimensionExtensions.scale(imageSize, imageScale);
         LOG.debug("imageScale: {}", imageScale);
@@ -293,8 +317,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
             LOG_EACH_MAP.debug("{}", map);
             Point mapBottomLeft = osMapLocator.getBottomLeftMapCoordinate(map);
             LOG.debug("mapBottomLeft: {}", mapBottomLeft);
-            int x = (int)((mapBottomLeft.x - visible.x) * mapType.getScale());
-            int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapType.getScale()) - imageSize.height;
+            int x = (int)((mapBottomLeft.x - visible.x) * mapImage.getOSMapType().getScale());
+            int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapImage.getOSMapType().getScale()) - imageSize.height;
             LOG.debug("(x, y): ({}, {})", x, y);
             BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize);
             try {
