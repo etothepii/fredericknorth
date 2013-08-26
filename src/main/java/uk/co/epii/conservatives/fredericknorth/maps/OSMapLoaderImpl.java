@@ -118,16 +118,16 @@ public class OSMapLoaderImpl implements OSMapLoader {
         return bufferedImage;
     }
 
-    private Color getSeaColor(OSMapType osMapType) {
+    static Color getSeaColor(OSMapType osMapType) {
         switch (osMapType) {
             case STREET_VIEW:
-                return new Color(231, 247 ,255);
+                return new Color(230, 246 ,255);
             case VECTOR_MAP:
-                return new Color(214, 245, 249);
+                return new Color(213, 244, 248);
             case RASTER:
-                return new Color(229, 241, 255);
+                return new Color(228, 240, 254);
             case MINI:
-                return new Color(190, 235, 250);
+                return new Color(195, 230, 250);
         }
         return null;
     }
