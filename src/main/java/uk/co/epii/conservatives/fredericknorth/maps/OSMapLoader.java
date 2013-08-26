@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -9,6 +10,6 @@ import java.awt.image.BufferedImage;
  */
 public interface OSMapLoader {
 
-    public BufferedImage loadMap(OSMap map);
+    public BufferedImage loadMap(OSMap map, Dimension targetSize);
 
 }

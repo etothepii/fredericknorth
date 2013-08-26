@@ -10,6 +10,6 @@ import java.awt.image.BufferedImage;
  */
 public interface MapImageFactory {
 
-    public MapImage getInstance(BufferedImage image, Point geoTopLeft, OSMapType osMapType);
+    public MapImage getInstance(BufferedImage image, Point geoTopLeft, OSMapType osMapType, double scale);
 
 }

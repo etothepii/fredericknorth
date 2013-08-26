@@ -77,7 +77,7 @@ public class MapViewGeneratorTest {
     public void scaleToFitRectangleTest() {
         MapImage mapImage = new MapImageImpl(
                 new BufferedImage(100, 150, BufferedImage.TYPE_INT_ARGB),
-                new Point(20, 30), OSMapType.STREET_VIEW);
+                new Point(20, 30), OSMapType.STREET_VIEW, 1d);
         EnumMap<OSMapType, MapImage> mapCache = new EnumMap<OSMapType, MapImage>(OSMapType.class);
         mapCache.put(OSMapType.MINI, mapImage);
         MapViewGenerator mapViewGenerator = new MapViewGeneratorImpl(mapCache, null, null);
