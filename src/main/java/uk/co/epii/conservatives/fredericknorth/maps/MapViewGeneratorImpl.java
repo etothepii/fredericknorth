@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 import com.sun.istack.internal.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.DimensionExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
@@ -254,6 +255,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         double imageScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
                 viewPortSize.getHeight() / visible.getHeight()) / mapType.getScale();
         imageGraphics.setTransform(AffineTransform.getScaleInstance(imageScale, imageScale));
+        Dimension targetSize = DimensionExtensions.scale(imageSize, imageScale);
         LOG.debug("imageScale: {}", imageScale);
         for (OSMap map : maps) {
             if (getMapImage() != mapImage) return;
@@ -264,7 +266,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
             int x = (int)((mapBottomLeft.x - visible.x) * mapType.getScale());
             int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapType.getScale()) - imageSize.height;
             LOG.debug("(x, y): ({}, {})", x, y);
-            BufferedImage loadedMap = osMapLoader.loadMap(map);
+            BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize);
             try {
                 LOG_SYNC.debug("Awaiting mapImage.getMap()");
                 synchronized (mapImage.getMap()) {
