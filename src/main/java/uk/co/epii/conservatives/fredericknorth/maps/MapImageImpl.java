@@ -43,6 +43,7 @@ class MapImageImpl implements MapImage {
                 (int)(geoTopLeft.y - size.height / osMapType.getScale() / 2));
     }
 
+    @Override
     public Dimension getSize() {
         return size;
     }
@@ -62,6 +63,7 @@ class MapImageImpl implements MapImage {
         this.completelyLoaded = completelyLoaded;
     }
 
+    @Override
     public double getScale() {
         return scale;
     }
@@ -86,5 +88,10 @@ class MapImageImpl implements MapImage {
         AffineTransform transform = AffineTransform.getTranslateInstance(-geoTopLeft.x, -geoTopLeft.y);
         transform.scale(scale, scale);
         return transform;
+    }
+
+    @Override
+    public OSMapType getOSMapType() {
+        return osMapType;
     }
 }

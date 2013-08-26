@@ -16,4 +16,6 @@ public interface MapImage extends ImageAndGeoPointTranslator {
     public Dimension getSize();
     public Point getGeoBottomLeft();
     public double getScale();
+
+    OSMapType getOSMapType();
 }
