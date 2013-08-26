@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 /**
@@ -63,5 +64,27 @@ class MapImageImpl implements MapImage {
 
     public double getScale() {
         return scale;
+    }
+
+    @Override
+    public Point getGeoLocation(Point imageLocation) {
+        if (geoTopLeft == null || size == null || imageLocation == null) return null;
+        double x = geoTopLeft.x + imageLocation.x / scale;
+        double y = geoTopLeft.y - imageLocation.y / scale;
+        return new Point((int)x, (int)y);
+    }
+
+    @Override
+    public Point getImageLocation(Point geoLocation) {
+        double x = (geoLocation.x - geoTopLeft.x) * scale;
+        double y = (geoTopLeft.y - geoLocation.y) * scale;
+        return new Point((int)x, (int)y);
+    }
+
+    @Override
+    public AffineTransform getGeoTransform() {
+        AffineTransform transform = AffineTransform.getTranslateInstance(-geoTopLeft.x, -geoTopLeft.y);
+        transform.scale(scale, scale);
+        return transform;
     }
 }

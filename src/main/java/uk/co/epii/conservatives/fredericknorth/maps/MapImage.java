@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
  * Date: 29/06/2013
  * Time: 21:44
  */
-public interface MapImage {
+public interface MapImage extends ImageAndGeoPointTranslator {
 
     public BufferedImage getMap();
     public Point getGeoTopLeft();
