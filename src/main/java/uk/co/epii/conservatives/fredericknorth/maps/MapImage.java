@@ -12,10 +12,8 @@ public interface MapImage extends ImageAndGeoPointTranslator {
 
     public BufferedImage getMap();
     public Point getGeoTopLeft();
-    public Point getGeoCenter();
     public Dimension getSize();
-    public Point getGeoBottomLeft();
     public double getScale();
+    public OSMapType getOSMapType();
 
-    OSMapType getOSMapType();
 }

@@ -37,22 +37,8 @@ class MapImageImpl implements MapImage {
     }
 
     @Override
-    public Point getGeoCenter() {
-        return new Point(
-                (int)(geoTopLeft.x + size.width / osMapType.getScale() / 2),
-                (int)(geoTopLeft.y - size.height / osMapType.getScale() / 2));
-    }
-
-    @Override
     public Dimension getSize() {
         return size;
-    }
-
-    @Override
-    public Point getGeoBottomLeft() {
-        return new Point(
-                (int)(geoTopLeft.x + size.width / osMapType.getScale() / 2),
-                (int)(geoTopLeft.y - size.height / osMapType.getScale()));
     }
 
     public boolean isCompletelyLoaded() {
