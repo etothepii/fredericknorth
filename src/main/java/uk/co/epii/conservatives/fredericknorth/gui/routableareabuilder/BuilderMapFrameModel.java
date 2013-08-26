@@ -36,6 +36,7 @@ import java.util.concurrent.Executors;
 public class BuilderMapFrameModel {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuilderMapFrameModel.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(BuilderMapFrameModel.class.getName().concat("_sync"));
 
     private MapPanelModel mapPanelModel;
     private BoundedAreaSelectionModel boundedAreaSelectionModel;
@@ -84,15 +85,22 @@ public class BuilderMapFrameModel {
         if (changedTo != null &&
                 changedTo.getBoundedAreaType() == boundedAreaSelectionModel.getMasterSelectedType()) {
             final Rectangle bounds = changedTo.getArea().getBounds();
-            synchronized (enabledSync) {
-                disable();
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
-                    }
-                });
+            LOG_SYNC.debug("Awaiting enabledSync");
+            try {
+                synchronized (enabledSync) {
+                    LOG_SYNC.debug("Received enabledSync");
+                    disable();
+                    executor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            mapPanelModel.display(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
+                                    bounds.width * 6 / 5, bounds.height * 6 / 5));
+                        }
+                    });
+                }
+            }
+            finally {
+                LOG_SYNC.debug("Released enabledSync");
             }
         }
         updateOverlays();
@@ -116,48 +124,90 @@ public class BuilderMapFrameModel {
     }
 
     public void disable() {
-        synchronized (enabledSync) {
-            if (enabled) {
-                enabled = false;
-                fireEnabledStateChanged();
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                if (enabled) {
+                    enabled = false;
+                    fireEnabledStateChanged();
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledSync");
         }
     }
 
     public void enable() {
-        synchronized (enabledSync) {
-            if (!enabled) {
-                enabled = true;
-                fireEnabledStateChanged();
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                if (!enabled) {
+                    enabled = true;
+                    fireEnabledStateChanged();
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledSync");
         }
     }
 
     private void fireEnabledStateChanged() {
-        synchronized (enabledStateChangedListeners) {
-            EnabledStateChangedEvent<BuilderMapFrameModel> e =
-                    new EnabledStateChangedEvent<BuilderMapFrameModel>(this, isEnabled());
-            for (EnabledStateChangedListener l : enabledStateChangedListeners) {
-                l.enabledStateChanged(e);
+        LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
+        try {
+            synchronized (enabledStateChangedListeners) {
+                LOG_SYNC.debug("Received enabledStateChangedListeners");
+                EnabledStateChangedEvent<BuilderMapFrameModel> e =
+                        new EnabledStateChangedEvent<BuilderMapFrameModel>(this, isEnabled());
+                for (EnabledStateChangedListener l : enabledStateChangedListeners) {
+                    l.enabledStateChanged(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledStateChangedListeners");
         }
     }
 
     public void addEnableStateChangedListener(EnabledStateChangedListener<BuilderMapFrameModel> l) {
-        synchronized (enabledStateChangedListeners) {
-            enabledStateChangedListeners.add(l);
+        LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
+        try {
+            synchronized (enabledStateChangedListeners) {
+                LOG_SYNC.debug("Received enabledStateChangedListeners");
+                enabledStateChangedListeners.add(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledStateChangedListeners");
         }
     }
 
     public void removeEnableStateChangedListener(EnabledStateChangedListener<BuilderMapFrameModel> l) {
-        synchronized (enabledStateChangedListeners) {
-            enabledStateChangedListeners.remove(l);
+        LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
+        try {
+            synchronized (enabledStateChangedListeners) {
+                LOG_SYNC.debug("Received enabledStateChangedListeners");
+                enabledStateChangedListeners.remove(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledStateChangedListeners");
         }
     }
 
     public boolean isEnabled() {
-        synchronized (enabledSync) {
-            return enabled;
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                return enabled;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledSync");
         }
     }
 
@@ -167,6 +217,7 @@ public class BuilderMapFrameModel {
 
     public void setProgressTracker(ProgressTracker progressTracker) {
         this.progressTracker = progressTracker;
+        this.mapPanelModel.setProgressTracker(this.progressTracker);
     }
 
     private Map<BoundedAreaType, Integer> createPriorities() {

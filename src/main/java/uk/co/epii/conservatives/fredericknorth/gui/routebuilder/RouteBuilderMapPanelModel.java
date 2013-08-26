@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.AbstractMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelMouseTracker;
@@ -15,6 +17,9 @@ import java.awt.event.MouseEvent;
  * Time: 09:39
  */
 class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
+
+    private static final Logger LOG_SYNC =
+            LoggerFactory.getLogger(RouteBuilderMapPanelModel.class.getName().concat("_sync"));
 
     private Point multiSelectionSquareDrawnFrom = null;
     private Point stablePoint = null;
@@ -37,8 +42,15 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
 
     private void selectedAreaExtendedTo(Point point) {
         ImageAndGeoPointTranslator imageAndGeoPointTranslator;
-        synchronized (this) {
-            imageAndGeoPointTranslator = getCurrentMapView();
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                imageAndGeoPointTranslator = getCurrentMapView();
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         Point multiSelectionSquareDrawnFromInPanel = multiSelectionSquareDrawnFrom;
         Point geoPoint = imageAndGeoPointTranslator.getGeoLocation(point);
@@ -55,10 +67,17 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
 
     void mouseStablized(Point stablePoint) {
         super.mouseMovedTo(stablePoint);
-        synchronized (this) {
-            if (this.stablePoint != null && this.stablePoint.equals(stablePoint))
-                return;
-            this.stablePoint = stablePoint;
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                if (this.stablePoint != null && this.stablePoint.equals(stablePoint))
+                    return;
+                this.stablePoint = stablePoint;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         fireOverlaysMouseOverChanged();
     }

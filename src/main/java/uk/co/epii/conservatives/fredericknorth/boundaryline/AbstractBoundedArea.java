@@ -3,8 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.boundaryline;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import uk.co.epii.conservatives.fredericknorth.extensions.NearestPoint;
-import uk.co.epii.conservatives.fredericknorth.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 
 import javax.xml.parsers.DocumentBuilder;

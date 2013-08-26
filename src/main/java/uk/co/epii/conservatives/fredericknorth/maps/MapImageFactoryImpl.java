@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
 public class MapImageFactoryImpl implements MapImageFactory {
 
     @Override
-    public MapImage getInstance(BufferedImage image, Point geoTopLeft) {
-            return new MapImageImpl(image, geoTopLeft);
+    public MapImage getInstance(BufferedImage image, Point geoTopLeft, OSMapType osMapType) {
+            return new MapImageImpl(image, geoTopLeft, osMapType);
     }
 }

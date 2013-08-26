@@ -1,10 +1,12 @@
 package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
+import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.image.ImageObserver;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +44,7 @@ public interface MapPanelModel {
     public Shape getSelectedArea();
     public boolean isMouseOverItems();
     public void cancel();
-    public void setUniverse(Rectangle rectangle);
-    public void setUniverse(Rectangle rectangle, ProgressTracker progressTracker);
-    public Rectangle getUniverse();
-    public void zoomToFitUniverse(Dimension size);
+    public void setProgressTracker(ProgressTracker progressTracker);
+    public void display(Rectangle rectangle);
+    public void setMapImageObserver(MapImageObserver mapImageObserver);
 }

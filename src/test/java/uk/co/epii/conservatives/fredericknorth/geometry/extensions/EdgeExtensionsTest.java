@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
  * Date: 25/07/2013
  * Time: 13:24
  */
-public class EdgeExtentionsTest {
+public class EdgeExtensionsTest {
 
     private Edge edge;
 

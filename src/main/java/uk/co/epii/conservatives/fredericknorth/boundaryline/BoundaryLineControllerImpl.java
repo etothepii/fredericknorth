@@ -6,7 +6,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.epii.conservatives.fredericknorth.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -22,6 +22,7 @@ import java.util.List;
 public class BoundaryLineControllerImpl implements BoundaryLineController {
 
     private static final Logger LOG = LoggerFactory.getLogger(BoundaryLineControllerImpl.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(BoundaryLineControllerImpl.class.getName().concat("_sync"));
 
     private final Map<BoundedAreaType, DataSet> dataSets;
     private final Map<BoundedAreaType, SimpleFeatureCollection> simpleFeatureCollections;
@@ -47,17 +48,24 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
     }
 
     private SimpleFeatureCollection loadSimpleFeatureCollection(BoundedAreaType type, DataSet dataSet) {
-        synchronized (simpleFeatureCollections) {
-            SimpleFeatureCollection simpleFeatureCollection = simpleFeatureCollections.get(type);
-            if (simpleFeatureCollection != null) return simpleFeatureCollection;
-            try {
-                simpleFeatureCollection = dataSet.getFeatureSource().getFeatures();
-                simpleFeatureCollections.put(type, simpleFeatureCollection);
-                return simpleFeatureCollection;
+        LOG_SYNC.debug("Awaiting simpleFeatureCollections");
+        try {
+            synchronized (simpleFeatureCollections) {
+                LOG_SYNC.debug("Received simpleFeatureCollections");
+                SimpleFeatureCollection simpleFeatureCollection = simpleFeatureCollections.get(type);
+                if (simpleFeatureCollection != null) return simpleFeatureCollection;
+                try {
+                    simpleFeatureCollection = dataSet.getFeatureSource().getFeatures();
+                    simpleFeatureCollections.put(type, simpleFeatureCollection);
+                    return simpleFeatureCollection;
+                }
+                catch (IOException ioe) {
+                    throw new RuntimeException(ioe);
+                }
             }
-            catch (IOException ioe) {
-                throw new RuntimeException(ioe);
-            }
+        }
+        finally {
+            LOG_SYNC.debug("Released simpleFeatureCollections");
         }
     }
 
@@ -71,19 +79,26 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
     }
 
     private List<LazyLoadingBoundaryLineFeature> loadLazyBoundaryLineFeatureList(BoundedAreaType type) {
-        synchronized (lazyBoundaryLineFeatureLists) {
-            List<LazyLoadingBoundaryLineFeature> lazyBoundaryLineFeatureList = lazyBoundaryLineFeatureLists.get(type);
-            if (lazyBoundaryLineFeatureList != null) {
+        LOG_SYNC.debug("Awaiting lazyBoundaryLineFeatureLists");
+        try {
+            synchronized (lazyBoundaryLineFeatureLists) {
+                LOG_SYNC.debug("Received lazyBoundaryLineFeatureLists");
+                List<LazyLoadingBoundaryLineFeature> lazyBoundaryLineFeatureList = lazyBoundaryLineFeatureLists.get(type);
+                if (lazyBoundaryLineFeatureList != null) {
+                    return lazyBoundaryLineFeatureList;
+                }
+                SimpleFeatureCollection allOSKnownBoundedAreas = getAllOSKnownBoundedAreas(type);
+                lazyBoundaryLineFeatureList = new ArrayList<LazyLoadingBoundaryLineFeature>(allOSKnownBoundedAreas.size());
+                SimpleFeatureIterator simpleFeatureIterator = allOSKnownBoundedAreas.features();
+                while (simpleFeatureIterator.hasNext()) {
+                    lazyBoundaryLineFeatureList.add(new LazyLoadingBoundaryLineFeature(this, simpleFeatureIterator.next(), type));
+                }
+                lazyBoundaryLineFeatureLists.put(type, lazyBoundaryLineFeatureList);
                 return lazyBoundaryLineFeatureList;
             }
-            SimpleFeatureCollection allOSKnownBoundedAreas = getAllOSKnownBoundedAreas(type);
-            lazyBoundaryLineFeatureList = new ArrayList<LazyLoadingBoundaryLineFeature>(allOSKnownBoundedAreas.size());
-            SimpleFeatureIterator simpleFeatureIterator = allOSKnownBoundedAreas.features();
-            while (simpleFeatureIterator.hasNext()) {
-                lazyBoundaryLineFeatureList.add(new LazyLoadingBoundaryLineFeature(this, simpleFeatureIterator.next(), type));
-            }
-            lazyBoundaryLineFeatureLists.put(type, lazyBoundaryLineFeatureList);
-            return lazyBoundaryLineFeatureList;
+        }
+        finally {
+            LOG_SYNC.debug("Released lazyBoundaryLineFeatureLists");
         }
     }
 

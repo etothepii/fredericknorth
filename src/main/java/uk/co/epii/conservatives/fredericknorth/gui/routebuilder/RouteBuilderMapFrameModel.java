@@ -37,6 +37,8 @@ import java.util.concurrent.Executors;
 public class RouteBuilderMapFrameModel {
 
     private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderMapFrameModel.class);
+    private static final Logger LOG_SYNC =
+            LoggerFactory.getLogger(RouteBuilderMapFrameModel.class.getName().concat("_sync"));
 
     private static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
 
@@ -173,8 +175,8 @@ public class RouteBuilderMapFrameModel {
                         }
                         Rectangle bounds = routableArea.getBoundedArea().getArea().getBounds();
                         LOG.debug("Setting universe");
-                        mapPanelModel.setUniverse(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                bounds.width * 6 / 5, bounds.height * 6 / 5), progressTracker);
+                        mapPanelModel.display(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
+                                bounds.width * 6 / 5, bounds.height * 6 / 5));
                         LOG.debug("Set universe");
                     }
                 });
@@ -184,54 +186,90 @@ public class RouteBuilderMapFrameModel {
     }
 
     public void disable() {
-        LOG.debug("Awaiting enabled sync");
-        synchronized (enabledSync) {
-            LOG.debug("Received enabled sync");
-            if (enabled) {
-                enabled = false;
-                fireEnabledStateChanged();
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                if (enabled) {
+                    enabled = false;
+                    fireEnabledStateChanged();
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Realeased enabledSync");
         }
     }
 
     private void fireEnabledStateChanged() {
-        synchronized (enabledStateChangedListeners) {
-            EnabledStateChangedEvent<RouteBuilderMapFrameModel> e =
-                    new EnabledStateChangedEvent<RouteBuilderMapFrameModel>(this, isEnabled());
-            for (EnabledStateChangedListener l : enabledStateChangedListeners) {
-                l.enabledStateChanged(e);
+        LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
+        try {
+            synchronized (enabledStateChangedListeners) {
+                LOG_SYNC.debug("Received enabledStateChangedListeners");
+                EnabledStateChangedEvent<RouteBuilderMapFrameModel> e =
+                        new EnabledStateChangedEvent<RouteBuilderMapFrameModel>(this, isEnabled());
+                for (EnabledStateChangedListener l : enabledStateChangedListeners) {
+                    l.enabledStateChanged(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Realeased enabledStateChangedListeners");
         }
     }
 
     public boolean isEnabled() {
-        LOG.debug("Awaiting enabled sync");
-        synchronized (enabledSync) {
-            LOG.debug("Received enabled sync");
-            return enabled;
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                return enabled;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Realeased enabledSync");
         }
     }
 
     public void addEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderMapFrameModel> l) {
-        synchronized (enabledStateChangedListeners) {
-            enabledStateChangedListeners.add(l);
+        LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
+        try {
+            synchronized (enabledStateChangedListeners) {
+                LOG_SYNC.debug("Received enabledStateChangedListeners");
+                enabledStateChangedListeners.add(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledStateChangedListeners");
         }
     }
 
     public void removeEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderMapFrameModel> l) {
-        synchronized (enabledStateChangedListeners) {
-            enabledStateChangedListeners.remove(l);
+        LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
+        try {
+            synchronized (enabledStateChangedListeners) {
+                LOG_SYNC.debug("Received enabledStateChangedListeners");
+                enabledStateChangedListeners.remove(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledStateChangedListeners");
         }
     }
 
     public void enable() {
-        LOG.debug("Awaiting enabled sync");
-        synchronized (enabledSync) {
-            LOG.debug("Received enabled sync");
-            if (!enabled) {
-                enabled = true;
-                fireEnabledStateChanged();
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                if (!enabled) {
+                    enabled = true;
+                    fireEnabledStateChanged();
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledSync");
         }
     }
 
@@ -429,13 +467,19 @@ public class RouteBuilderMapFrameModel {
 
     public void setProgressTracker(ProgressTracker progressTracker) {
         this.progressTracker = progressTracker;
+        this.mapPanelModel.setProgressTracker(progressTracker);
     }
 
     public void setEnabled(boolean enabled) {
-        LOG.debug("Awaiting enabled sync");
-        synchronized (enabledSync) {
-            LOG.debug("Received enabled sync");
-            this.enabled = enabled;
+        LOG_SYNC.debug("Awaiting enabledSync");
+        try {
+            synchronized (enabledSync) {
+                LOG_SYNC.debug("Received enabledSync");
+                this.enabled = enabled;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released enabledSync");
         }
     }
 }

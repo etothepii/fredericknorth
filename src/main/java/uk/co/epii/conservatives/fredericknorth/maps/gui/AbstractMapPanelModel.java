@@ -2,8 +2,10 @@ package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
+import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
@@ -19,6 +21,7 @@ import java.util.List;
 public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractMapPanelModel.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(AbstractMapPanelModel.class.getName().concat("_sync"));
 
     private final SortedSet<OverlayItem> overlays;
     private final Set<MapPanelDataListener> mapPanelDataListeners;
@@ -29,21 +32,37 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     private Point geoDragFrom;
     private Point mouseAt;
     private Shape selected;
+    private ProgressTracker progressTracker;
     private final Object selectionChangingSync = new Object();
+    private MapImageObserver mapImageObserver;
 
     protected AbstractMapPanelModel(MapViewGenerator mapViewGenerator) {
+        this.progressTracker = NullProgressTracker.NULL;
         this.overlays = new TreeSet<OverlayItem>();
         this.mapPanelDataListeners = new HashSet<MapPanelDataListener>();
         mapViewIsDirty = true;
         overlayRenderers = new HashMap<Class<?>, OverlayRenderer>();
         this.mapViewGenerator = mapViewGenerator;
+        mapImageObserver = null;
+    }
+
+    @Override
+    public void setMapImageObserver(MapImageObserver mapImageObserver) {
+        this.mapImageObserver = mapImageObserver;
     }
 
     @Override
     public void addOverlay(OverlayItem overlayItem) {
         boolean fireOverlaysChanged;
-        synchronized (overlays) {
-            fireOverlaysChanged = overlays.add(overlayItem);
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                fireOverlaysChanged = overlays.add(overlayItem);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         if (fireOverlaysChanged) {
             fireOverlaysChanged();
@@ -53,8 +72,15 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void removeOverlay(OverlayItem overlayItem) {
         boolean fireOverlaysChanged;
-        synchronized (overlays) {
-            fireOverlaysChanged = overlays.remove(overlayItem);
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                fireOverlaysChanged = overlays.remove(overlayItem);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         if (fireOverlaysChanged) {
             fireOverlaysChanged();
@@ -66,8 +92,15 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
         if (overlays.isEmpty()) {
             return;
         }
-        synchronized (overlays) {
-            overlays.clear();
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                overlays.clear();
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         fireOverlaysChanged();
     }
@@ -75,10 +108,17 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void addAllOverlay(Collection<? extends OverlayItem> overlayItems) {
         boolean fireOverlaysChanged = false;
-        synchronized (overlays) {
-            for (OverlayItem overlayItem : overlayItems) {
-                fireOverlaysChanged |= overlays.add(overlayItem);
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                for (OverlayItem overlayItem : overlayItems) {
+                    fireOverlaysChanged |= overlays.add(overlayItem);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         if (fireOverlaysChanged) {
             fireOverlaysChanged();
@@ -88,10 +128,17 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void removeAllOverlay(Collection<? extends OverlayItem> overlayItems) {
         boolean fireOverlaysChanged = false;
-        synchronized (overlays) {
-            for (OverlayItem overlayItem : overlayItems) {
-                fireOverlaysChanged |= overlays.remove(overlayItem);
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                for (OverlayItem overlayItem : overlayItems) {
+                    fireOverlaysChanged |= overlays.remove(overlayItem);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         if (fireOverlaysChanged) {
             fireOverlaysChanged();
@@ -123,10 +170,17 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     protected void fireOverlaysChanged() {
         MapPanelDataEvent e = new MapPanelDataEvent(this);
-        synchronized (mapPanelDataListeners) {
-            for (MapPanelDataListener l : mapPanelDataListeners) {
-                l.overlaysChanged(e);
+        LOG_SYNC.debug("Awaiting mapPanelDataListeners");
+        try {
+            synchronized (mapPanelDataListeners) {
+                LOG_SYNC.debug("Received mapPanelDataListeners");
+                for (MapPanelDataListener l : mapPanelDataListeners) {
+                    l.overlaysChanged(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released mapPanelDataListeners");
         }
     }
 
@@ -137,40 +191,51 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     protected void fireMapChanged() {
         MapPanelDataEvent e = new MapPanelDataEvent(this);
-        synchronized (mapPanelDataListeners) {
-            for (MapPanelDataListener l : mapPanelDataListeners) {
-                l.mapChanged(e);
+        LOG_SYNC.debug("Awaiting mapPanelDataListeners");
+        try {
+            synchronized (mapPanelDataListeners) {
+                LOG_SYNC.debug("Received mapPanelDataListeners");
+                for (MapPanelDataListener l : mapPanelDataListeners) {
+                    l.mapChanged(e);
+                }
             }
         }
-    }
-
-    protected void fireUniverseChanged() {
-        MapPanelDataEvent e = new MapPanelDataEvent(this);
-        synchronized (mapPanelDataListeners) {
-            LOG.debug("Informing {} Listeners that universe has changed", mapPanelDataListeners.size());
-            for (MapPanelDataListener l : mapPanelDataListeners) {
-                l.universeChanged(e);
-            }
+        finally {
+            LOG_SYNC.debug("Released mapPanelDataListeners");
         }
     }
 
     protected void fireOverlaysMouseOverChanged() {
         MapPanelDataEvent e = new MapPanelDataEvent(this);
-        synchronized (mapPanelDataListeners) {
-            for (MapPanelDataListener l : mapPanelDataListeners) {
-                l.overlaysMouseOverChanged(e);
+        LOG_SYNC.debug("Awaiting mapPanelDataListeners");
+        try {
+            synchronized (mapPanelDataListeners) {
+                LOG_SYNC.debug("Received mapPanelDataListeners");
+                for (MapPanelDataListener l : mapPanelDataListeners) {
+                    l.overlaysMouseOverChanged(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released mapPanelDataListeners");
         }
     }
 
     @Override
     public void setOverlays(Collection<? extends OverlayItem> overlayItems) {
-        synchronized (overlays) {
-            if (collectionsEqual(overlayItems, overlays)) {
-                return;
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                if (collectionsEqual(overlayItems, overlays)) {
+                    return;
+                }
+                overlays.clear();
+                overlays.addAll(overlayItems);
             }
-            overlays.clear();
-            overlays.addAll(overlayItems);
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         fireOverlaysChanged();
     }
@@ -187,19 +252,33 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     @Override
     public MapView getCurrentMapView() {
-        synchronized (this) {
-            if (mapViewIsDirty) {
-                currentMapView = mapViewGenerator.getView();
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+//                if (mapViewIsDirty) {
+                    currentMapView = mapViewGenerator.getView();
+//                }
+                mapViewIsDirty = false;
             }
-            mapViewIsDirty = false;
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         return currentMapView;
     }
 
     @Override
     public List<OverlayItem> getImmutableOverlayItems() {
-        synchronized (overlays) {
-            return new ArrayList<OverlayItem>(overlays);
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                return new ArrayList<OverlayItem>(overlays);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
     }
 
@@ -207,9 +286,16 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void setViewportSize(Dimension size) {
         boolean fireMapChange;
-        synchronized (this) {
-            mapViewIsDirty |= mapViewGenerator.setViewPortSize(size);
-            fireMapChange = mapViewIsDirty;
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                mapViewIsDirty |= mapViewGenerator.setViewPortSize(size, progressTracker, mapImageObserver);
+                fireMapChange = mapViewIsDirty;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         if (fireMapChange) {
             fireMapChanged();
@@ -217,11 +303,23 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     }
 
     @Override
+    public void setProgressTracker(ProgressTracker progressTracker) {
+        this.progressTracker = progressTracker;
+    }
+
+    @Override
     public void setScale(double scale) {
         boolean fireMapChange;
-        synchronized (this) {
-            mapViewIsDirty |= mapViewGenerator.setScale(scale);
-            fireMapChange = mapViewIsDirty;
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                mapViewIsDirty |= mapViewGenerator.setScale(scale, progressTracker, mapImageObserver);
+                fireMapChange = mapViewIsDirty;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         if (fireMapChange) {
             fireMapChanged();
@@ -232,9 +330,16 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void setGeoCenter(Point geoCenter) {
         boolean fireMapChange;
-        synchronized (this) {
-            mapViewIsDirty |= mapViewGenerator.setGeoCenter(geoCenter);
-            fireMapChange = mapViewIsDirty;
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                mapViewIsDirty |= mapViewGenerator.setGeoCenter(geoCenter, progressTracker, mapImageObserver);
+                fireMapChange = mapViewIsDirty;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         if (fireMapChange) {
             fireMapChanged();
@@ -244,12 +349,18 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public void zoomIn(Point zoomAt, double zoomBy) {
         boolean fireMapChange;
-        synchronized (this) {
-            double newScale = mapViewGenerator.getScale() * zoomBy;
-            Point newGeoCenter = currentMapView.getNewGeoCenter(zoomAt, newScale);
-            mapViewIsDirty |= mapViewGenerator.setGeoCenter(newGeoCenter);
-            mapViewIsDirty |= mapViewGenerator.setScale(newScale);
-            fireMapChange = mapViewIsDirty;
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                double newScale = mapViewGenerator.getScale() * zoomBy;
+                Point newGeoCenter = currentMapView.getNewGeoCenter(zoomAt, newScale);
+                mapViewIsDirty |= mapViewGenerator.setScaleAndCenter(newScale, newGeoCenter, progressTracker, mapImageObserver);
+                fireMapChange = mapViewIsDirty;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         if (fireMapChange) {
             fireMapChanged();
@@ -265,12 +376,18 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     public void moveDraggedFrom(Point draggedTo) {
         Point newGeoCenter = currentMapView.getNewGeoCenter(geoDragFrom, draggedTo);
         boolean fireMapChange;
-        synchronized (this) {
-            mapViewIsDirty |= mapViewGenerator.setGeoCenter(newGeoCenter);
-            fireMapChange = mapViewIsDirty;
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                mapViewIsDirty |= mapViewGenerator.setGeoCenter(newGeoCenter, progressTracker, mapImageObserver);
+                fireMapChange = mapViewIsDirty;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         if (fireMapChange) {
-            fireMapChanged();
         }
     }
 
@@ -285,17 +402,24 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public Map<OverlayItem, MouseLocation> getImmutableOverlaysMouseOver() {
         Map<OverlayItem, MouseLocation> overlaysMouseOver;
-        synchronized (overlays) {
-            overlaysMouseOver = new HashMap<OverlayItem, MouseLocation>(overlays.size());
-            for (OverlayItem overlayItem : overlays) {
-                if (overlayItem.getItem() == null) {
-                    continue;
-                }
-                MouseLocation mouseOverAt = mouseOverAt(overlayItem);
-                if (mouseOverAt != null) {
-                    overlaysMouseOver.put(overlayItem, mouseOverAt);
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                overlaysMouseOver = new HashMap<OverlayItem, MouseLocation>(overlays.size());
+                for (OverlayItem overlayItem : overlays) {
+                    if (overlayItem.getItem() == null) {
+                        continue;
+                    }
+                    MouseLocation mouseOverAt = mouseOverAt(overlayItem);
+                    if (mouseOverAt != null) {
+                        overlaysMouseOver.put(overlayItem, mouseOverAt);
+                    }
                 }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         return overlaysMouseOver;
     }
@@ -303,27 +427,28 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     @Override
     public boolean isMouseOverItems() {
         Map<OverlayItem, MouseLocation> overlaysMouseOver;
-        synchronized (overlays) {
-            for (OverlayItem overlayItem : overlays) {
-                MouseLocation mouseOverAt = mouseOverAt(overlayItem);
-                if (mouseOverAt != null) {
-                    return true;
+        LOG_SYNC.debug("Awaiting overlays");
+        try {
+            synchronized (overlays) {
+                LOG_SYNC.debug("Received overlays");
+                for (OverlayItem overlayItem : overlays) {
+                    MouseLocation mouseOverAt = mouseOverAt(overlayItem);
+                    if (mouseOverAt != null) {
+                        return true;
+                    }
                 }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released overlays");
         }
         return false;
     }
 
     @Override
-    public void setUniverse(Rectangle rectangle) {
-        setUniverse(rectangle, null);
-    }
-
-    @Override
-    public void setUniverse(Rectangle rectangle, ProgressTracker progressTracker) {
-        mapViewGenerator.loadUniverse(rectangle, progressTracker);
+    public void display(Rectangle rectangle) {
+        mapViewGenerator.scaleToFitRectangle(rectangle, progressTracker, mapImageObserver);
         LOG.debug("Universe loading complete");
-        fireUniverseChanged();
     }
 
     private MouseLocation mouseOverAt(OverlayItem overlayItem) {
@@ -339,8 +464,15 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     @Override
     public Shape getSelectedArea() {
-        synchronized (selectionChangingSync) {
-            return selected;
+        LOG_SYNC.debug("Awaiting selectionChangingSync");
+        try {
+            synchronized (selectionChangingSync) {
+                LOG_SYNC.debug("Received selectionChangingSync");
+                return selected;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released selectionChangingSync");
         }
     }
 
@@ -348,8 +480,15 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     public abstract void clicked(MouseEvent e);
 
     public void setSelected(Shape selected) {
-        synchronized (selectionChangingSync) {
-            this.selected = selected;
+        LOG_SYNC.debug("Awaiting selectionChangingSync");
+        try {
+            synchronized (selectionChangingSync) {
+                LOG_SYNC.debug("Received selectionChangingSync");
+                this.selected = selected;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released selectionChangingSync");
         }
     }
 
@@ -370,19 +509,6 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
             }
         }
        return true;
-    }
-
-    @Override
-    public void zoomToFitUniverse(Dimension size) {
-        Rectangle universe = getUniverse();
-        double scale = Math.min(size.getWidth() / universe.getWidth(), size.getHeight() / universe.getHeight());
-        setGeoCenter(new Point(universe.x + universe.width / 2, universe.y + universe.height / 2));
-        setScale(scale);
-    }
-
-    @Override
-    public Rectangle getUniverse() {
-        return mapViewGenerator.getUniverse();
     }
 
     private class MouseLocationImpl implements MouseLocation  {

@@ -15,8 +15,4 @@ public class MapPanelDataAdapter implements MapPanelDataListener {
 
     @Override
     public void overlaysMouseOverChanged(MapPanelDataEvent e) {}
-
-    @Override
-    public void universeChanged(MapPanelDataEvent e) {}
-
 }

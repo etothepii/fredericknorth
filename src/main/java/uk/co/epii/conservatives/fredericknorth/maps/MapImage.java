@@ -12,6 +12,7 @@ public interface MapImage {
 
     public BufferedImage getMap();
     public Point getGeoTopLeft();
+    public Point getGeoCenter();
     public Dimension getSize();
-
+    public Point getGeoBottomLeft();
 }

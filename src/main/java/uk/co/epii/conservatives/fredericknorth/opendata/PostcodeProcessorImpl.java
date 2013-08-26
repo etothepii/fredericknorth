@@ -1,6 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
-import uk.co.epii.conservatives.fredericknorth.extensions.PointExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMap;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapLocator;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;

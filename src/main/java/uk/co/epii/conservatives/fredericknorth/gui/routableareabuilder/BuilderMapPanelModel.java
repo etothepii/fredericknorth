@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.extensions.PointExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.AbstractMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MouseLocation;

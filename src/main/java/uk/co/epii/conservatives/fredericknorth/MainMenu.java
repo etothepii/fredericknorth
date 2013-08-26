@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BuilderMapFrame;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BuilderMapFrameModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapFrame;
@@ -16,6 +18,8 @@ import java.awt.event.*;
  * Time: 10:34
  */
 public class MainMenu extends JFrame {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MainMenu.class);
 
     private ApplicationContext applicationContext;
     private BuilderMapFrame routableAreaBuilderMapFrame;
@@ -46,6 +50,7 @@ public class MainMenu extends JFrame {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 openRoutableAreaBuilderMapFrame();
+                LOG.debug("Opened Routable Area Builder Map Frame");
             }
         });
         routeBuilder.addActionListener(new ActionListener() {

@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 public final class DefaultApplicationContext implements ApplicationContext {
 
     private static Logger LOG = Logger.getLogger(DefaultApplicationContext.class);
+    private static Logger LOG_SYNC = Logger.getLogger(DefaultApplicationContext.class.getName().concat("_sync"));
 
     private static final String FilenamePropertyRegexKey = "FilenamePropertyRegex";
 
@@ -103,11 +104,18 @@ public final class DefaultApplicationContext implements ApplicationContext {
 
     @Override
     public <T> void registerDefaultInstance(Class<T> clazz, T toRegister) {
-        synchronized (registeredInstances) {
-            if (registeredInstances.containsKey(clazz)) {
-                throw new IllegalArgumentException("An item has already been registered of class: " + clazz.toString());
+        LOG_SYNC.debug("Awaiting registeredInstances");
+        try {
+            synchronized (registeredInstances) {
+                LOG_SYNC.debug("Received registeredInstances");
+                if (registeredInstances.containsKey(clazz)) {
+                    throw new IllegalArgumentException("An item has already been registered of class: " + clazz.toString());
+                }
+                registeredInstances.put(clazz, toRegister);
             }
-            registeredInstances.put(clazz, toRegister);
+        }
+        finally {
+            LOG_SYNC.debug("Released registeredInstances");
         }
     }
 

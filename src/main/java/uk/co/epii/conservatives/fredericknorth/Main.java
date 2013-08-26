@@ -32,7 +32,7 @@ public class Main
 	public static void main(final String[] args) throws Exception
 	{
         progressTracker = new ProgressTrackerFrame(
-                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 19);
+                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 21);
         progressTracker.setVisible(true);
         progress("Loading Config");
         ApplicationContext applicationContext =
@@ -61,8 +61,8 @@ public class Main
             progress("Loading OS Map Loader");
             OSMapLoaderRegistrar.registerToContext(applicationContext);
             progress("Loading Map View Generators");
-            MapViewGeneratorRegistrar.registerToContext(applicationContext);
-            MapViewGeneratorRegistrar.registerNamedToContext(applicationContext, Keys.PDF_GENERATOR);
+            MapViewGeneratorRegistrar.registerToContext(applicationContext, progressTracker);
+            MapViewGeneratorRegistrar.registerNamedToContext(applicationContext, Keys.PDF_GENERATOR, progressTracker);
             progress("Loading Map Image Factory");
             MapImageFactoryRegistrar.registerToContext(applicationContext);
             progress("Loading PDF Renderer");
