@@ -7,12 +7,15 @@ import sun.util.LocaleServiceProviderPool;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -30,6 +33,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
     private final Map<OSMapType, String> mapLocationFormatStrings;
     private final Map<OSMapType, Dimension> mapDimensions;
     private final GraphicsConfiguration configuration;
+    private final ImageReader imageReader;
 
     private String mapImagesRoot;
     private String mapImagesURLRoot;
@@ -39,7 +43,8 @@ public class OSMapLoaderImpl implements OSMapLoader {
     public OSMapLoaderImpl(String mapImagesRoot, String mapImagesURLRoot,
                            Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions,
                            String urlEncodingFormat) {
-         configuration = GraphicsEnvironment.
+        imageReader = (ImageReader)ImageIO.getImageReadersBySuffix("tif").next();
+        configuration = GraphicsEnvironment.
                 getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         this.mapImagesRoot = mapImagesRoot;
         this.mapImagesURLRoot = mapImagesURLRoot;
@@ -49,32 +54,57 @@ public class OSMapLoaderImpl implements OSMapLoader {
     }
 
     @Override
-    public BufferedImage loadMap(OSMap map) {
-        try {
-            if (map instanceof SeaMapImpl) {
-                return getDummyImage(map);
-            }
-            File file = getMapFile(map);
-            LOG.debug("Loading ... {}", file);
-            if (file != null) {
-                BufferedImage image = ImageIO.read(file);
-                LOG.debug("Converting to compatible image");
-                BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
-                        image.getHeight());
-                LOG.debug("Converted to compatible image");
-                Graphics g = compatibleImage.getGraphics();
-                LOG.debug("Creating graphics");
-                g.drawImage(image, 0, 0, null);
-                LOG.debug("Drawing Image");
-                g.dispose();
-                LOG.debug("Converted to compatible image");
-                return compatibleImage;
-            }
+    public BufferedImage loadMap(OSMap map, Dimension targetSize) {
+        if (map instanceof SeaMapImpl) {
             return getDummyImage(map);
         }
-        catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        File file = getMapFile(map);
+        LOG.debug("Loading ... {}", file);
+        if (file != null) {
+            BufferedImage image = readFile(file, targetSize);
+            LOG.debug("Converting to compatible image");
+            BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
+                    image.getHeight());
+            LOG.debug("Converted to compatible image");
+            Graphics g = compatibleImage.getGraphics();
+            LOG.debug("Creating graphics");
+            g.drawImage(image, 0, 0, null);
+            LOG.debug("Drawing Image");
+            g.dispose();
+            LOG.debug("Converted to compatible image");
+            return compatibleImage;
         }
+        return getDummyImage(map);
+    }
+
+    private BufferedImage readFile(File file, Dimension targetSize) {
+        FileInputStream fin = null;
+        try {
+            fin = new FileInputStream(file);
+            ImageInputStream iis = ImageIO.createImageInputStream(fin);
+            imageReader.setInput(iis, false);
+            int sourceXSubSampling = targetSize == null ? 1 : imageReader.getWidth(0) / targetSize.width;
+            int sourceYSubSampling = targetSize == null ? 1 : imageReader.getHeight(0) / targetSize.height;
+            ImageReadParam subSamplingParam = new ImageReadParam();
+            subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
+            return imageReader.read(0, subSamplingParam);
+        }
+        catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        finally {
+            if (fin != null) {
+                try {
+                    fin.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
     }
 
     private BufferedImage getDummyImage(OSMap map) {
@@ -85,22 +115,19 @@ public class OSMapLoaderImpl implements OSMapLoader {
         g.setFont(new Font(font.getName(), font.getStyle(), 24));
         g.setColor(getSeaColor(map.getOSMapType()));
         g.fillRect(0, 0, size.width, size.height);
-        g.setColor(Color.BLACK);
-        FontRenderContext frc = g.getFontRenderContext();
-        drawCenteredString(g, frc, size, map.getMapName(), 0, 0);
         return bufferedImage;
     }
 
-    private Color getSeaColor(OSMapType osMapType) {
+    static Color getSeaColor(OSMapType osMapType) {
         switch (osMapType) {
             case STREET_VIEW:
-                return new Color(231, 247 ,255);
+                return new Color(230, 246 ,255);
             case VECTOR_MAP:
-                return new Color(214, 245, 249);
+                return new Color(213, 244, 248);
             case RASTER:
-                return new Color(229, 241, 255);
+                return new Color(228, 240, 254);
             case MINI:
-                return new Color(190, 240, 247);
+                return new Color(195, 230, 250);
         }
         return null;
     }
