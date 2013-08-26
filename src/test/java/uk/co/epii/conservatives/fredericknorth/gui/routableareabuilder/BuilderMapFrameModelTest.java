@@ -10,6 +10,7 @@ import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
+import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 
 import java.awt.*;
 import java.io.File;
@@ -41,7 +42,7 @@ public class BuilderMapFrameModelTest {
         LOG.info("Loading OS Map Loader");
         OSMapLoaderRegistrar.registerToContext(applicationContext);
         LOG.info("Loading Map View Generators");
-        MapViewGeneratorRegistrar.registerToContext(applicationContext);
+        MapViewGeneratorRegistrar.registerToContext(applicationContext, NullProgressTracker.NULL);
         LOG.info("Loading Bounded Area Factory");
         BoundedAreaFactoryRegistrar.registerToContext(applicationContext);
         LOG.info("Setup Complete");

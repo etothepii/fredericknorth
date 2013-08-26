@@ -25,19 +25,22 @@ import java.util.Map;
  * Time: 22:56
  */
 public class OSMapLoaderImpl implements OSMapLoader {
-
     private static final Logger LOG = LoggerFactory.getLogger(OSMapLoaderImpl.class);
 
     private final Map<OSMapType, String> mapLocationFormatStrings;
     private final Map<OSMapType, Dimension> mapDimensions;
+    private final GraphicsConfiguration configuration;
 
     private String mapImagesRoot;
     private String mapImagesURLRoot;
     private String urlEncodingFormat;
 
+
     public OSMapLoaderImpl(String mapImagesRoot, String mapImagesURLRoot,
                            Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions,
                            String urlEncodingFormat) {
+         configuration = GraphicsEnvironment.
+                getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         this.mapImagesRoot = mapImagesRoot;
         this.mapImagesURLRoot = mapImagesURLRoot;
         this.mapLocationFormatStrings = mapLocationFormatStrings;
@@ -48,10 +51,24 @@ public class OSMapLoaderImpl implements OSMapLoader {
     @Override
     public BufferedImage loadMap(OSMap map) {
         try {
+            if (map instanceof SeaMapImpl) {
+                return getDummyImage(map);
+            }
             File file = getMapFile(map);
             LOG.debug("Loading ... {}", file);
             if (file != null) {
-                return ImageIO.read(file);
+                BufferedImage image = ImageIO.read(file);
+                LOG.debug("Converting to compatible image");
+                BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
+                        image.getHeight());
+                LOG.debug("Converted to compatible image");
+                Graphics g = compatibleImage.getGraphics();
+                LOG.debug("Creating graphics");
+                g.drawImage(image, 0, 0, null);
+                LOG.debug("Drawing Image");
+                g.dispose();
+                LOG.debug("Converted to compatible image");
+                return compatibleImage;
             }
             return getDummyImage(map);
         }
@@ -66,14 +83,26 @@ public class OSMapLoaderImpl implements OSMapLoader {
         Graphics2D g = bufferedImage.createGraphics();
         Font font = g.getFont();
         g.setFont(new Font(font.getName(), font.getStyle(), 24));
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(getSeaColor(map.getOSMapType()));
         g.fillRect(0, 0, size.width, size.height);
         g.setColor(Color.BLACK);
-        g.drawRect(0, 0, size.width, size.height);
         FontRenderContext frc = g.getFontRenderContext();
-        drawCenteredString(g, frc, size, "Unable to locate", 0, -12);
-        drawCenteredString(g, frc, size, map.getMapName(), 0, 12);
+        drawCenteredString(g, frc, size, map.getMapName(), 0, 0);
         return bufferedImage;
+    }
+
+    private Color getSeaColor(OSMapType osMapType) {
+        switch (osMapType) {
+            case STREET_VIEW:
+                return new Color(231, 247 ,255);
+            case VECTOR_MAP:
+                return new Color(214, 245, 249);
+            case RASTER:
+                return new Color(229, 241, 255);
+            case MINI:
+                return new Color(192, 235, 253);
+        }
+        return null;
     }
 
     private void drawCenteredString(Graphics g, FontRenderContext frc, Dimension canvasSize,
@@ -123,14 +152,27 @@ public class OSMapLoaderImpl implements OSMapLoader {
         try {
             URL url = new URL(stringBuilder.toString());
             new File(mapFile.getParent()).mkdirs();
-            FileUtils.copyURLToFile(url, mapFile);
+            LOG.debug("Loading from: {}", url.toString());
+            BufferedImage image = ImageIO.read(url);
+            LOG.debug("Converting to compatible image");
+            BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
+                    image.getHeight());
+            LOG.debug("Converted to compatible image");
+            Graphics g = compatibleImage.getGraphics();
+            LOG.debug("Creating graphics");
+            g.drawImage(image, 0, 0, null);
+            LOG.debug("Drawing Image");
+            g.dispose();
+            LOG.debug("Converted to compatible image");
+            ImageIO.write(compatibleImage, "tif", mapFile);
+            LOG.debug("Saved to: {}", url.toString());
             return true;
         }
         catch (MalformedURLException mue) {
             throw new RuntimeException(mue);
         }
         catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            LOG.debug(e.getMessage());
             return false;
         }
     }

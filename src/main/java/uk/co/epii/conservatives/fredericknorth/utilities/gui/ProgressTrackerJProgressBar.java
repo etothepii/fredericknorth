@@ -18,13 +18,17 @@ import java.util.List;
 public class ProgressTrackerJProgressBar extends JPanel implements ProgressTracker {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProgressTrackerJProgressBar.class);
-    private static final Logger LOG_INCREMENT = LoggerFactory.getLogger(ProgressTrackerJProgressBar.class.toString().concat(".increment"));
-    private static final Logger LOG_PAINT = LoggerFactory.getLogger(ProgressTrackerJProgressBar.class.toString().concat(".paint"));
+    private static final Logger LOG_INCREMENT = LoggerFactory.getLogger(
+            ProgressTrackerJProgressBar.class.getName().concat("_increment"));
+    private static final Logger LOG_PAINT = LoggerFactory.getLogger(
+            ProgressTrackerJProgressBar.class.getName().concat("_paint"));
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(
+            ProgressTrackerJProgressBar.class.getName().concat("_sync"));
 
     private final Object sync = new Object();
     private final JProgressBar progressBar;
-    private final List<Integer> subsectionSizes = new ArrayList<Integer>();
-    private final List<Integer> subsectionCounts = new ArrayList<Integer>();
+    private final List<Integer> _subsectionSizes = new ArrayList<Integer>();
+    private final List<Integer> _subsectionCounts = new ArrayList<Integer>();
     private String message;
 
     public ProgressTrackerJProgressBar(int steps) {
@@ -40,61 +44,102 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         return g.getFont().createGlyphVector(frc, message).getPixelBounds(frc, 0, 0);
     }
 
+    private void addSubsection(int steps) {
+        _subsectionSizes.add(0, steps);
+        _subsectionCounts.add(0, 0);
+    }
+
     @Override
     public void startSubsection(int steps) {
         LOG.debug("startSubsection({})", steps);
-        synchronized (sync) {
-            if (progressBar.getValue() == progressBar.getMaximum()) {
-                finish();
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                if (progressBar.getValue() == progressBar.getMaximum()) {
+                    finish();
+                }
+                addSubsection(steps);
+                LOG.debug("from progressBar.getValue(): {}", progressBar.getValue());
+                LOG.debug("from progressBar.getMaximum(): {}", progressBar.getMaximum());
+                int value = progressBar.getValue();
+                int maximum = progressBar.getMaximum();
+                progressBar.setMaximum(maximum * steps);
+                progressBar.setValue(value * steps);
+                LOG.debug("to progressBar.getValue(): {}", progressBar.getValue());
+                LOG.debug("to progressBar.getMaximum(): {}", progressBar.getMaximum());
             }
-            subsectionSizes.add(0, steps);
-            subsectionCounts.add(0, 0);
-            LOG.debug("progressBar.getValue(): {}", progressBar.getValue());
-            LOG.debug("progressBar.getMaximum(): {}", progressBar.getMaximum());
-            LOG.debug("progressBar.isIndeterminate(): {}", progressBar.isIndeterminate());
-            int value = progressBar.getValue();
-            int maximum = progressBar.getMaximum();
-            progressBar.setMaximum(maximum * steps);
-            progressBar.setValue(value * steps);
         }
+        finally {
+            LOG_SYNC.debug("Released sync");
+        }
+    }
+
+    private void incrementSubsection(int n) {
+        if (_subsectionCounts.isEmpty() || _subsectionSizes.isEmpty()) {
+            throw new RuntimeException("No Active Subsection");
+        }
+        _subsectionCounts.set(0, _subsectionCounts.get(0) + n);
+    }
+
+    private boolean isActiveSubsectionFinished() {
+        return _subsectionCounts.get(0) >= _subsectionSizes.get(0);
+    }
+
+    private boolean hasActiveSubsection() {
+        return !_subsectionCounts.isEmpty();
     }
 
     @Override
     public void increment(String message, int n) {
         LOG_INCREMENT.debug("increment({}, {})", new Object[] {message, n});
-        synchronized (sync) {
-            progressBar.setValue(progressBar.getValue() + n);
-            this.message = message;
-            subsectionCounts.set(0, subsectionCounts.get(0) + n);
-            if (!subsectionSizes.isEmpty() && subsectionCounts.get(0) >= subsectionSizes.get(0)) {
-                subsectionEnded();
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                progressBar.setValue(progressBar.getValue() + n);
+                this.message = message;
+                incrementSubsection(n);
+                if (isActiveSubsectionFinished()) {
+                    subsectionEnded();
+                }
             }
-            if (progressBar.getValue() == progressBar.getMaximum()) {
-                LOG.debug("Maximum reached");
-                progressBar.setIndeterminate(true);
-            }
+        }
+        finally {
+            LOG_SYNC.debug("Released sync");
         }
         progressBar.repaint();
     }
 
+    private int removeActiveSubsection() {
+        _subsectionCounts.remove(0);
+        return  _subsectionSizes.remove(0);
+    }
+
     private void subsectionEnded() {
         LOG.debug("subsectionEnded()");
-        synchronized (sync) {
-            int subsectionSize = subsectionSizes.remove(0);
-            subsectionCounts.remove(0);
-            int value = progressBar.getValue();
-            int maximum = progressBar.getMaximum();
-            progressBar.setMaximum(maximum / subsectionSize);
-            progressBar.setValue(value / subsectionSize);
-            if (subsectionCounts.isEmpty()) {
-                finish();
-            }
-            else {
-                subsectionCounts.set(0, subsectionCounts.get(0) + 1);
-                if (subsectionCounts.get(0) >= subsectionSizes.get(0)) {
-                    subsectionEnded();
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                int subsectionSize = removeActiveSubsection();
+                int value = progressBar.getValue();
+                int maximum = progressBar.getMaximum();
+                progressBar.setMaximum(maximum / subsectionSize);
+                progressBar.setValue(value / subsectionSize);
+                if (hasActiveSubsection()) {
+                    incrementSubsection(1);
+                    if (isActiveSubsectionFinished()) {
+                        subsectionEnded();
+                    }
+                }
+                else {
+                    finish();
                 }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released sync");
         }
         repaint();
     }
@@ -120,8 +165,15 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     @Override
     public void setMessage(String message) {
         LOG_INCREMENT.debug("setMessage({})", new Object[] {message});
-        synchronized (sync) {
-            this.message = message;
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                this.message = message;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released sync");
         }
         repaint();
     }
@@ -135,10 +187,18 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     @Override
     public void finish() {
         LOG.debug("finish()");
-        subsectionSizes.clear();
+        clearSubsections();
         progressBar.setMaximum(1);
         progressBar.setValue(0);
         progressBar.setIndeterminate(false);
+    }
+
+    private void clearSubsections() {
+        if (!_subsectionCounts.isEmpty() || !_subsectionSizes.isEmpty()) {
+            LOG.warn("Clearing ({}, {}) subsections", _subsectionCounts.size(), _subsectionSizes.size());
+        }
+        _subsectionCounts.clear();
+        _subsectionSizes.clear();
     }
 
     @Override
@@ -149,16 +209,23 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
 
     public void paint(Graphics g) {
         LOG_PAINT.debug("paint(Graphics g)");
-        synchronized (sync) {
-            super.paint(g);
-            if (message == null) {
-                return;
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                super.paint(g);
+                if (message == null) {
+                    return;
+                }
+                Rectangle messageBounds = getMessageBounds((Graphics2D)g);
+                Dimension size = getSize();
+                int x = (size.width - messageBounds.width) / 2 + messageBounds.x;
+                int y = (size.height - messageBounds.height) / 2 - messageBounds.y;
+                g.drawString(message, x, y);
             }
-            Rectangle messageBounds = getMessageBounds((Graphics2D)g);
-            Dimension size = getSize();
-            int x = (size.width - messageBounds.width) / 2 + messageBounds.x;
-            int y = (size.height - messageBounds.height) / 2 - messageBounds.y;
-            g.drawString(message, x, y);
+        }
+        finally {
+            LOG_SYNC.debug("Released sync");
         }
     }
 }

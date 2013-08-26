@@ -4,12 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -58,11 +61,11 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
         this.colours = colours;
         rectangles.clear();
         Rectangle masterAreaBounds = masterArea.getArea().getBounds();
-        mapViewGenerator.setGeoCenter(new Point(masterAreaBounds.x + masterAreaBounds.width / 2,
-                masterAreaBounds.y + masterAreaBounds.height / 2));
+        mapViewGenerator.setGeoCenter(RectangleExtensions.getCenter(masterAreaBounds), NullProgressTracker.NULL, null);
         mapViewGenerator.setViewPortSize(
-                new Dimension((int)(masterAreaBounds.width * 1.2), (int)(masterAreaBounds.height * 1.2)));
-        mapViewGenerator.setScale(1d);
+                new Dimension((int)(masterAreaBounds.width * 1.2), (int)(masterAreaBounds.height * 1.2)),
+                NullProgressTracker.NULL, null);
+        mapViewGenerator.setScale(1d, NullProgressTracker.NULL, null);
         MapView mapView = mapViewGenerator.getView();
         Map<Polygon, Integer> identifiers =
                 new HashMap<Polygon, Integer>(boundedAreas.size());

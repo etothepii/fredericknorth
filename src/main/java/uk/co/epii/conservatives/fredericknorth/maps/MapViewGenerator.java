@@ -4,6 +4,7 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 
 /**
  * User: James Robinson
@@ -12,15 +13,18 @@ import java.awt.image.BufferedImage;
  */
 public interface MapViewGenerator {
 
-    public void loadUniverse(Rectangle rectangle);
-    public void loadUniverse(Rectangle rectangle, ProgressTracker progressTracker);
     public Point getGeoCenter();
-    public boolean setGeoCenter(Point geoCenter);
+    public boolean setGeoCenter(Point geoCenter,
+                                ProgressTracker progressTracker, MapImageObserver imageObserver);
     public Dimension getViewPortSize();
-    public boolean setViewPortSize(Dimension viewPortSize);
+    public boolean setViewPortSize(Dimension viewPortSize,
+                                   ProgressTracker progressTracker, MapImageObserver imageObserver);
     public double getScale();
-    public boolean setScale(double scale);
+    public boolean setScale(double scale,
+                            ProgressTracker progressTracker, MapImageObserver imageObserver);
     public MapView getView();
-    public boolean scaleToFitRectangle(Rectangle rectangeToFit);
-    public Rectangle getUniverse();
+    public boolean scaleToFitRectangle(Rectangle rectangeToFit,
+                                       ProgressTracker progressTracker, MapImageObserver imageObserver);
+    public boolean setScaleAndCenter(double newScale, Point newGeoCenter,
+                                     ProgressTracker progressTracker, MapImageObserver imageObserver);
 }

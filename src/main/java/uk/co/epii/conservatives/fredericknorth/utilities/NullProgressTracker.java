@@ -7,6 +7,8 @@ package uk.co.epii.conservatives.fredericknorth.utilities;
  */
 public class NullProgressTracker implements ProgressTracker {
 
+    public static final NullProgressTracker NULL = new NullProgressTracker();
+
     private final Object sync = new Object();
 
     @Override

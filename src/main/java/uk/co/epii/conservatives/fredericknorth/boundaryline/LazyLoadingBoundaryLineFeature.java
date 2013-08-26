@@ -3,6 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.boundaryline;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import org.opengis.feature.simple.SimpleFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.List;
@@ -13,6 +15,9 @@ import java.util.List;
  * Time: 19:49
  */
 public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
+
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(
+            LazyLoadingBoundaryLineFeature.class.getName().concat("_sync"));
 
     private final SimpleFeature boundaryLineFeature;
     private final BoundaryLineController boundaryLineController;
@@ -36,15 +41,22 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
     }
 
     private void loadPoints() {
-        synchronized (super.getPoints()) {
-            if (loadedPoints) return;
-            MultiPolygon multiPolygon = (MultiPolygon)this.boundaryLineFeature.getAttribute("the_geom");
-            Coordinate[] coordinates = multiPolygon.getBoundary().getCoordinates();
-            List<Point> points = super.getPoints();
-            for (int i = 0; i < coordinates.length; i++) {
-                points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+        LOG_SYNC.debug("Awaiting super.getPoints()");
+        try {
+            synchronized (super.getPoints()) {
+                LOG_SYNC.debug("Received super.getPoints()");
+                if (loadedPoints) return;
+                MultiPolygon multiPolygon = (MultiPolygon)this.boundaryLineFeature.getAttribute("the_geom");
+                Coordinate[] coordinates = multiPolygon.getBoundary().getCoordinates();
+                List<Point> points = super.getPoints();
+                for (int i = 0; i < coordinates.length; i++) {
+                    points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+                }
+                loadedPoints = true;
             }
-            loadedPoints = true;
+        }
+        finally {
+            LOG_SYNC.debug("Released super.getPoints()");
         }
     }
 
@@ -57,10 +69,17 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
     }
 
     private void loadChildren() {
-        synchronized (super.getChildrenList()) {
-            if (loadedChildren) return;
-            List<BoundedArea> children = super.getChildrenList();
-            children.addAll(boundaryLineController.getKnownDescendents(this, getBoundedAreaType().getChildType()));
+        LOG_SYNC.debug("Awaiting super.getChildrenList()");
+        try {
+            synchronized (super.getChildrenList()) {
+                LOG_SYNC.debug("Received super.getChildrenList()");
+                if (loadedChildren) return;
+                List<BoundedArea> children = super.getChildrenList();
+                children.addAll(boundaryLineController.getKnownDescendents(this, getBoundedAreaType().getChildType()));
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released super.getChildrenList()");
         }
     }
 

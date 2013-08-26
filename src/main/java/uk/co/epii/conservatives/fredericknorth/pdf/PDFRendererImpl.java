@@ -17,6 +17,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
+import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.williampittjr.LogoGenerator;
 
 import java.awt.*;
@@ -342,9 +343,9 @@ class PDFRendererImpl implements PDFRenderer {
         if (meetingPoint != null) {
             geoLocations.add(meetingPoint);
         }
-        mapViewGenerator.setViewPortSize(new Dimension(640, 480));
+        mapViewGenerator.setViewPortSize(new Dimension(640, 480), new NullProgressTracker(), null);
         Rectangle mapRectangle = locationFactory.calculatePaddedRectangle(geoLocations);
-        mapViewGenerator.scaleToFitRectangle(mapRectangle);
+        mapViewGenerator.scaleToFitRectangle(mapRectangle, new NullProgressTracker(), null);
         MapView mapView = mapViewGenerator.getView();
         List<Location> imageLocations = new ArrayList<Location>();
         for (Location location : geoLocations) {

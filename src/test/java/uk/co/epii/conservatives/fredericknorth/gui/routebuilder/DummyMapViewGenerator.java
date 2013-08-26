@@ -1,10 +1,12 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
+import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
+import java.awt.image.ImageObserver;
 
 /**
  * User: James Robinson
@@ -19,22 +21,12 @@ public class DummyMapViewGenerator implements MapViewGenerator {
     private MapView mapView;
 
     @Override
-    public void loadUniverse(Rectangle rectangle) {
-        loadUniverse(rectangle, null);
-    }
-
-    @Override
-    public void loadUniverse(Rectangle rectangle, ProgressTracker progressTracker) {
-        throw new UnsupportedOperationException("This operation is not supported in the dummy generator");
-    }
-
-    @Override
     public Point getGeoCenter() {
         return geoCenter;
     }
 
     @Override
-    public boolean setGeoCenter(Point geoCenter) {
+    public boolean setGeoCenter(Point geoCenter, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         this.geoCenter = geoCenter;
         return true;
     }
@@ -45,7 +37,7 @@ public class DummyMapViewGenerator implements MapViewGenerator {
     }
 
     @Override
-    public boolean setViewPortSize(Dimension viewPortSize) {
+    public boolean setViewPortSize(Dimension viewPortSize, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         this.viewPortSize = viewPortSize;
         return true;
     }
@@ -56,7 +48,7 @@ public class DummyMapViewGenerator implements MapViewGenerator {
     }
 
     @Override
-    public boolean setScale(double scale) {
+    public boolean setScale(double scale, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         this.scale = scale;
         return true;
     }
@@ -71,12 +63,14 @@ public class DummyMapViewGenerator implements MapViewGenerator {
     }
 
     @Override
-    public boolean scaleToFitRectangle(Rectangle rectangeToFit) {
+    public boolean scaleToFitRectangle(Rectangle rectangeToFit, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         throw new UnsupportedOperationException("This operation is not supported in the dummy generator");
     }
 
     @Override
-    public Rectangle getUniverse() {
-        throw new UnsupportedOperationException("This operation is not supported in the dummy generator");
+    public boolean setScaleAndCenter(double newScale, Point newGeoCenter, ProgressTracker progressTracker, MapImageObserver imageObserver) {
+        setScale(newScale, progressTracker, imageObserver);
+        setGeoCenter(newGeoCenter, progressTracker, imageObserver);
+        return true;
     }
 }

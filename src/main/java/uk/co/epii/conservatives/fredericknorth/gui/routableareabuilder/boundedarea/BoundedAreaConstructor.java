@@ -3,9 +3,9 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundeda
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
-import uk.co.epii.conservatives.fredericknorth.extensions.NearestPoint;
-import uk.co.epii.conservatives.fredericknorth.extensions.PolygonExtensions;
-import uk.co.epii.conservatives.fredericknorth.extensions.VertexExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.VertexExtensions;
 
 import java.awt.*;
 import java.awt.geom.Point2D;

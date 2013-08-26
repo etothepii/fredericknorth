@@ -5,7 +5,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.extensions.NearestPoint;
+import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 
 import java.awt.*;

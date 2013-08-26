@@ -1,5 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -10,6 +13,8 @@ import java.util.ArrayList;
  */
 public class MapPanelMouseTracker {
 
+    private static final Logger LOG_SYNC =
+            LoggerFactory.getLogger(MapPanelMouseTracker.class.getName().concat("_sync"));
 
     private final Object sync;
     private Point lastSeenAt;
@@ -28,9 +33,16 @@ public class MapPanelMouseTracker {
                 while (!Thread.interrupted()) {
                     long sleepFor;
                     Point stablePoint;
-                    synchronized (sync) {
-                        sleepFor = consideredStableAt - System.currentTimeMillis();
-                        stablePoint = lastSeenAt;
+                    LOG_SYNC.debug("Awaiting sync");
+                    try {
+                        synchronized (sync) {
+                            LOG_SYNC.debug("Received sync");
+                            sleepFor = consideredStableAt - System.currentTimeMillis();
+                            stablePoint = lastSeenAt;
+                        }
+                    }
+                    finally {
+                        LOG_SYNC.debug("Released sync");
                     }
                     if (sleepFor > 0) {
                         try {
@@ -44,13 +56,20 @@ public class MapPanelMouseTracker {
                         if (stablePoint != null) {
                             mouseStable(stablePoint);
                         }
-                        synchronized (sync) {
-                            try {
-                                sync.wait();
+                        LOG_SYNC.debug("Awaiting sync");
+                        try {
+                            synchronized (sync) {
+                                LOG_SYNC.debug("Received sync");
+                                try {
+                                    sync.wait();
+                                }
+                                catch (InterruptedException ie) {
+                                    break;
+                                }
                             }
-                            catch (InterruptedException ie) {
-                                break;
-                            }
+                        }
+                        finally {
+                            LOG_SYNC.debug("Released sync");
                         }
                     }
                 }
@@ -68,39 +87,74 @@ public class MapPanelMouseTracker {
 
     private void mouseStable(Point stablePoint) {
         MouseStableEvent e = new MouseStableEvent(this, stablePoint);
-        synchronized (listeners) {
-            for (MouseStableListener listener : listeners) {
-                listener.mouseStable(e);
+        LOG_SYNC.debug("Awaiting listeners");
+        try {
+            synchronized (listeners) {
+                LOG_SYNC.debug("Received listeners");
+                for (MouseStableListener listener : listeners) {
+                    listener.mouseStable(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released listeners");
         }
     }
 
     public void addMouseStableListener(MouseStableListener l) {
-        synchronized (listeners) {
-            listeners.add(l);
+        LOG_SYNC.debug("Awaiting listeners");
+        try {
+            synchronized (listeners) {
+                LOG_SYNC.debug("Received listeners");
+                listeners.add(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released listeners");
         }
     }
 
     public void removeMouseStableListener(MouseStableListener l) {
-        synchronized (listeners) {
-            listeners.remove(l);
+        LOG_SYNC.debug("Awaiting listeners");
+        try {
+            synchronized (listeners) {
+                LOG_SYNC.debug("Received listeners");
+                listeners.remove(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released listeners");
         }
     }
 
     public void setMouseLocation(Point point) {
-        synchronized (sync) {
-            if (lastSeenAt != null && lastSeenAt.equals(point)) {
-                return;
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                if (lastSeenAt != null && lastSeenAt.equals(point)) {
+                    return;
+                }
+                lastSeenAt = point;
+                consideredStableAt = System.currentTimeMillis() + stationaryMouseRequirement;
+                sync.notify();
             }
-            lastSeenAt = point;
-            consideredStableAt = System.currentTimeMillis() + stationaryMouseRequirement;
-            sync.notify();
+        }
+        finally {
+            LOG_SYNC.debug("Released sync");
         }
     }
 
     public long getConsideredStableAt() {
-        synchronized (sync) {
-            return consideredStableAt;
+        LOG_SYNC.debug("Awaiting sync");
+        try {
+            synchronized (sync) {
+                LOG_SYNC.debug("Received sync");
+                return consideredStableAt;
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released sync");
         }
     }
 }

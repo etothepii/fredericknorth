@@ -1,7 +1,9 @@
-package uk.co.epii.conservatives.fredericknorth.extensions;
+package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
 import org.junit.Before;
 import org.junit.Test;
+import uk.co.epii.conservatives.fredericknorth.geometry.Edge;
+import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -13,7 +15,7 @@ import static org.junit.Assert.assertEquals;
  * Date: 25/07/2013
  * Time: 13:24
  */
-public class EdgeExtentionsTest {
+public class EdgeExtensionsTest {
 
     private Edge edge;
 

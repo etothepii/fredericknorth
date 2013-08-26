@@ -3,6 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaConstructor;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
@@ -52,6 +54,7 @@ public class BuilderMapFrame extends JFrame {
     private final File workingDirectory;
     private final FileFilter boundedAreaReportCSVFilesFilter;
     private final FileFilter boundedAreaReportMapFilesFilter;
+    private final MapImageObserver imageObserver;
 
     public BuilderMapFrame(ApplicationContext applicationContext,
                            BuilderMapFrameModel builderMapFrameModeL) {
@@ -71,20 +74,8 @@ public class BuilderMapFrame extends JFrame {
                 builderMapFrameModel.getBoundedAreaSelectionModel());
         double zoomRate = Double.parseDouble(applicationContext.getProperty(ZoomRateKey));
         this.mapPanel = new MapPanel(this.builderMapFrameModel.getMapPanelModel(), zoomRate);
-        builderMapFrameModel.getMapPanelModel().addMapPanelDataListener(new MapPanelDataAdapter() {
-            @Override
-            public void universeChanged(MapPanelDataEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        builderMapFrameModel.getMapPanelModel().zoomToFitUniverse(mapPanel.getSize());
-                        mapPanel.repaint();
-                        progressTracker.finish();
-                        setEnabled(true);
-                    }
-                });
-            }
-        });
+        imageObserver = createMapImageObserver();
+        builderMapFrameModel.getMapPanelModel().setMapImageObserver(imageObserver);
         builderMapFrameModel.addEnableStateChangedListener(new EnabledStateChangedListener<BuilderMapFrameModel>() {
             @Override
             public void enabledStateChanged(final EnabledStateChangedEvent<BuilderMapFrameModel> e) {
@@ -116,13 +107,17 @@ public class BuilderMapFrame extends JFrame {
         progressTracker = new ProgressTrackerJProgressBar(1);
         builderMapFrameModel.setProgressTracker(progressTracker);
         workingDirectory = createWorkingDirectory(applicationContext);
+        LOG.debug("Initiating layout");
         initateLayout();
+        LOG.debug("Maximizing layout");
         setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+        LOG.debug("Adding listners");
         addListeners(this);
         addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
                 if (propertyChangeEvent.getPropertyName().equals("enabled")) {
+                    LOG.debug("Enabled set to: {}", propertyChangeEvent.getNewValue());
                     boolean enabled = (Boolean)propertyChangeEvent.getNewValue();
                     mapPanel.setEnabled(enabled);
                     boundedAreaSelectionPanel.setEnabled(enabled);
@@ -133,6 +128,24 @@ public class BuilderMapFrame extends JFrame {
                 }
             }
         });
+        LOG.debug("Construction complete");
+    }
+
+    private MapImageObserver createMapImageObserver() {
+        return new MapImageObserver() {
+            @Override
+            public void imageUpdated(MapImage mapImage, Rectangle update, final boolean completed) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapPanel.repaint();
+                        if (completed) {
+                            setEnabled(true);
+                        }
+                    }
+                });
+            }
+        };
     }
 
     private void addListeners(final BuilderMapFrame builderMapFrame) {
@@ -291,6 +304,7 @@ public class BuilderMapFrame extends JFrame {
         LOG.debug(String.format("Creating directory: %s", workingDirectoryString));
         File workingDirectory = new File(workingDirectoryString);
         workingDirectory.mkdirs();
+        LOG.debug(String.format("Created directory: %s", workingDirectoryString));
         return workingDirectory;
     }
 

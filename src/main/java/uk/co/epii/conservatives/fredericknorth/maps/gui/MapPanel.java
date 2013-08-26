@@ -16,6 +16,8 @@ import java.awt.geom.AffineTransform;
 public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionListener, MouseListener, KeyListener {
 
     private static final Logger LOG = Logger.getLogger(MapPanel.class);
+    private static final Logger LOG_SYNC = Logger.getLogger(MapPanel.class.getName().concat("_sync"));
+    private static final Logger LOG_PAINT = Logger.getLogger(MapPanel.class.getName().concat("_paint"));
 
     private final MapPanelModel mapPanelModel;
     private final double zoomRate;
@@ -40,11 +42,13 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
     }
 
     public void paint(Graphics2D g) {
-        LOG.debug("Painting");
+        LOG_PAINT.debug("Painting");
         mapPanelModel.setViewportSize(getSize());
-        LOG.debug("Drawing map");
+        LOG_PAINT.debug("Drawing map");
         MapView currentMapView = mapPanelModel.getCurrentMapView();
+        LOG_PAINT.debug("Got currentMapView");
         g.drawImage(currentMapView.getMap(), 0, 0, this);
+        LOG_PAINT.debug("Drawn Image");
         for(OverlayItem overlayItem : mapPanelModel.getImmutableOverlayItems()) {
             if (overlayItem.getItem() == null) {
                 continue;
@@ -57,6 +61,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
                     drawFrom.y + renderedOverlay.getLocation().y);
             renderedOverlay.paint(g.create(drawFrom.x, drawFrom.y, renderedSize.width, renderedSize.height));
         }
+        LOG_PAINT.debug("Drawn Overlays");
         Shape selected = mapPanelModel.getSelectedArea();
         if (selected != null) {
             g.setTransform(mapPanelModel.getCurrentMapView().getGeoTransform());
@@ -66,14 +71,22 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             g.draw(selected);
             g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
         }
+        LOG_PAINT.debug("Drawn Selected");
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
         if (!isEnabled()) return;
         if (e.getButton() == MouseEvent.BUTTON1) {
-            synchronized (this) {
-                mapPanelModel.moveDraggedFrom(e.getPoint());
+            LOG_SYNC.debug("Awaiting this");
+            try {
+                synchronized (this) {
+                    LOG_SYNC.debug("Received this");
+                    mapPanelModel.moveDraggedFrom(e.getPoint());
+                }
+            }
+            finally {
+                LOG_SYNC.debug("Released this");
             }
             repaint();
         }
@@ -89,8 +102,15 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         if (!isEnabled()) return;
-        synchronized (this) {
-            mapPanelModel.zoomIn(e.getPoint(), Math.pow(zoomRate, e.getUnitsToScroll()));
+        LOG_SYNC.debug("Awaiting this");
+        try {
+            synchronized (this) {
+                LOG_SYNC.debug("Received this");
+                mapPanelModel.zoomIn(e.getPoint(), Math.pow(zoomRate, e.getUnitsToScroll()));
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released this");
         }
         repaint();
     }
@@ -99,15 +119,22 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
     public void mouseClicked(MouseEvent e) {
         if (!isEnabled()) return;
         if (e.getButton() == MouseEvent.BUTTON1) {
-            synchronized (this) {
-                switch (e.getClickCount()) {
-                    case 1:
-                        mapPanelModel.clicked(e);
-                        break;
-                    case 2:
-                        mapPanelModel.doubleClicked(e);
-                        break;
+            LOG_SYNC.debug("Awaiting this");
+            try {
+                synchronized (this) {
+                    LOG_SYNC.debug("Received this");
+                    switch (e.getClickCount()) {
+                        case 1:
+                            mapPanelModel.clicked(e);
+                            break;
+                        case 2:
+                            mapPanelModel.doubleClicked(e);
+                            break;
+                    }
                 }
+            }
+            finally {
+                LOG_SYNC.debug("Released this");
             }
             repaint();
         }
@@ -118,8 +145,15 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
         if (!isEnabled()) return;
         requestFocus();
         if (e.getButton() == MouseEvent.BUTTON1) {
-            synchronized (this) {
-                mapPanelModel.setDragFrom(e.getPoint());
+            LOG_SYNC.debug("Awaiting this");
+            try {
+                synchronized (this) {
+                    LOG_SYNC.debug("Received this");
+                    mapPanelModel.setDragFrom(e.getPoint());
+                }
+            }
+            finally {
+                LOG_SYNC.debug("Released this");
             }
             repaint();
         }

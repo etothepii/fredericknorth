@@ -29,6 +29,7 @@ public class DataSet {
     public enum FileType {DBF, PRJ, SHP, SHX}
 
     private static final Logger LOG = LoggerFactory.getLogger(DataSet.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(DataSet.class.getName().concat("_sync"));
 
     public final static EnumMap<FileType, String> EXTENSIONS;
     static {
@@ -55,18 +56,25 @@ public class DataSet {
 
     public DBF getDatabase() {
         if (dbf == null) {
-            synchronized (this) {
-                if (dbf == null) {
-                    try {
-                        dbf = new DBF(getFile(FileType.DBF).toString());
-                    }
-                    catch (xBaseJException e) {
-                        throw new RuntimeException(e);
-                    }
-                    catch (IOException e) {
-                        throw new RuntimeException(e);
+            LOG_SYNC.debug("Awaiting this");
+            try {
+                synchronized (this) {
+                    LOG_SYNC.debug("Received this");
+                    if (dbf == null) {
+                        try {
+                            dbf = new DBF(getFile(FileType.DBF).toString());
+                        }
+                        catch (xBaseJException e) {
+                            throw new RuntimeException(e);
+                        }
+                        catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
+            }
+            finally {
+                LOG_SYNC.debug("Released this");
             }
         }
         return dbf;
@@ -74,16 +82,23 @@ public class DataSet {
 
     public SimpleFeatureSource getFeatureSource() {
         if (featureSource == null) {
-            synchronized (this) {
-                if (featureSource == null) {
-                    try {
-                        FileDataStore store = FileDataStoreFinder.getDataStore(getFile(FileType.SHP));
-                        featureSource = store.getFeatureSource();
-                    }
-                    catch (IOException e) {
-                        throw new RuntimeException(e);
+            LOG_SYNC.debug("Awaiting this");
+            try {
+                synchronized (this) {
+                    LOG_SYNC.debug("Received this");
+                    if (featureSource == null) {
+                        try {
+                            FileDataStore store = FileDataStoreFinder.getDataStore(getFile(FileType.SHP));
+                            featureSource = store.getFeatureSource();
+                        }
+                        catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
+            }
+            finally {
+                LOG_SYNC.debug("Released this");
             }
         }
         return featureSource;

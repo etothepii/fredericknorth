@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedListener;
@@ -14,6 +16,9 @@ import java.util.*;
  * Time: 23:40
  */
 class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements BoundedAreaComboBoxModel {
+
+    private static final Logger LOG_SYNC =
+            LoggerFactory.getLogger(BoundedAreaComboBoxModelImpl.class.getName().concat("_sync"));
 
     private final Comparator<BoundedArea> alphabeticalComparator = new Comparator<BoundedArea>() {
         @Override
@@ -88,10 +93,17 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
 
     private void fireSelectedBoundedAreaChanged() {
         SelectedBoundedAreaChangedEvent e = new SelectedBoundedAreaChangedEvent(this, getSelectedItem());
-        synchronized (selectedBoundedAreaChangedListeners) {
-            for (SelectedBoundedAreaChangedListener listener : selectedBoundedAreaChangedListeners) {
-                listener.selectionChanged(e);
+        LOG_SYNC.debug("Awaiting selectedBoundedAreaChangedListeners");
+        try {
+            synchronized (selectedBoundedAreaChangedListeners) {
+                LOG_SYNC.debug("Received selectedBoundedAreaChangedListeners");
+                for (SelectedBoundedAreaChangedListener listener : selectedBoundedAreaChangedListeners) {
+                    listener.selectionChanged(e);
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released selectedBoundedAreaChangedListeners");
         }
     }
 
@@ -102,15 +114,29 @@ class BoundedAreaComboBoxModelImpl extends DefaultComboBoxModel implements Bound
 
     @Override
     public void addSelectedBoundedAreaChangedListener(SelectedBoundedAreaChangedListener l) {
-        synchronized (selectedBoundedAreaChangedListeners) {
-            selectedBoundedAreaChangedListeners.add(l);
+        LOG_SYNC.debug("Awaiting selectedBoundedAreaChangedListeners");
+        try {
+            synchronized (selectedBoundedAreaChangedListeners) {
+                LOG_SYNC.debug("Received selectedBoundedAreaChangedListeners");
+                selectedBoundedAreaChangedListeners.add(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released selectedBoundedAreaChangedListeners");
         }
     }
 
     @Override
     public void removeSelectedBoundedAreaChangedListener(SelectedBoundedAreaChangedListener l) {
-        synchronized (selectedBoundedAreaChangedListeners) {
-            selectedBoundedAreaChangedListeners.remove(l);
+        LOG_SYNC.debug("Awaiting selectedBoundedAreaChangedListeners");
+        try {
+            synchronized (selectedBoundedAreaChangedListeners) {
+                LOG_SYNC.debug("Received selectedBoundedAreaChangedListeners");
+                selectedBoundedAreaChangedListeners.remove(l);
+            }
+        }
+        finally {
+            LOG_SYNC.debug("Released selectedBoundedAreaChangedListeners");
         }
     }
 
