@@ -100,7 +100,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
             case RASTER:
                 return new Color(229, 241, 255);
             case MINI:
-                return new Color(192, 235, 253);
+                return new Color(190, 240, 247);
         }
         return null;
     }

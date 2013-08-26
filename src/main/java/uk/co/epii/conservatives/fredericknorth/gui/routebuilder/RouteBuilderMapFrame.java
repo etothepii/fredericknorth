@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionPanel;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
@@ -203,11 +204,11 @@ public class RouteBuilderMapFrame extends JFrame {
     private MapImageObserver createMapImageObserver() {
         return new MapImageObserver() {
             @Override
-            public void imageUpdated(MapImage mapImage, Rectangle update, final boolean completed) {
+            public void imageUpdated(MapImage mapImage, final Rectangle update, final boolean completed) {
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        mapPanel.repaint();
+                        mapPanel.repaint(RectangleExtensions.grow(update, 1));
                         if (completed) {
                             setEnabled(true);
                         }
