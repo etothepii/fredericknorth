@@ -168,8 +168,10 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 final OSMapType mapType = OSMapType.getMapType(requiredScale);
                 final Point geoTopleft = new Point(visible.x, visible.y + visible.height);
                 MapImageImpl previousMapImage = getCurrentImage();
-                final BufferedImage bufferedImage = startWithWhatWorksFromBefore(previousMapImage, requiredScale, geoTopleft);
-                final MapImageImpl mapImage = new MapImageImpl(bufferedImage, geoTopleft, mapType, requiredScale);
+                final MapImageImpl mapImage = new MapImageImpl(
+                        new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB),
+                        geoTopleft, mapType, requiredScale);
+                loadPreviousMapIntoNewMap(previousMapImage, mapImage);
                 try {
                     if (SwingUtilities.isEventDispatchThread()) {
                         setCurrentImage(mapImage);
@@ -217,13 +219,23 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
     }
 
-    private BufferedImage startWithWhatWorksFromBefore(MapImageImpl previousMapImage, double newScale, Point newGeoTopleft) {
-        BufferedImage bufferedImage =
-                new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D)bufferedImage.getGraphics();
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
-        return bufferedImage;
+    private void loadPreviousMapIntoNewMap(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
+        BufferedImage map = newMapImage.getMap();
+        Graphics2D g = (Graphics2D)map.getGraphics();
+        g.setColor(OSMapLoaderImpl.getSeaColor(newMapImage.getOSMapType()));
+        g.fillRect(0, 0, map.getWidth(), map.getHeight());
+        if (previousMapImage != null) {
+            Point drawFrom = newMapImage.getImageLocation(previousMapImage.getGeoTopLeft());
+            Dimension size;
+            if (newMapImage.getScale() == previousMapImage.getScale()) {
+                size = previousMapImage.getSize();
+            }
+            else {
+                size = DimensionExtensions.scale(previousMapImage.getSize(),
+                        newMapImage.getScale() / previousMapImage.getScale());
+            }
+            g.drawImage(previousMapImage.getMap(), drawFrom.x, drawFrom.y, size.width, size.height, null);
+        }
     }
 
     private void setCurrentImage(MapImageImpl currentImage) {
