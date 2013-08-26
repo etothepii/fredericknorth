@@ -18,4 +18,9 @@ public class RectangleExtensions {
         int y = (int)(point.y + scale * (rectangle.y - point.y));
         return new Rectangle(x, y, (int)(rectangle.width * scale), (int)(rectangle.height * scale));
     }
+
+    public static Rectangle grow(Rectangle rectangle, int growBy) {
+        return new Rectangle(rectangle.x - growBy, rectangle.y - growBy,
+                rectangle.width + growBy * 2, rectangle.height + growBy * 2);
+    }
 }
