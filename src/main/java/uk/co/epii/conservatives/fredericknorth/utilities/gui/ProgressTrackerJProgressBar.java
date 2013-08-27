@@ -207,6 +207,11 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         return progressBar.getMaximum() == progressBar.getValue();
     }
 
+    @Override
+    public void endSubsection() {
+        increment(_subsectionSizes.get(0) - _subsectionCounts.get(0));
+    }
+
     public void paint(Graphics g) {
         LOG_PAINT.debug("paint(Graphics g)");
         LOG_SYNC.debug("Awaiting sync");

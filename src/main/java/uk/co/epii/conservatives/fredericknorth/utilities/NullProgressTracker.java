@@ -41,4 +41,7 @@ public class NullProgressTracker implements ProgressTracker {
     public boolean isAtEnd() {
         return false;
     }
+
+    @Override
+    public void endSubsection() {}
 }
