@@ -29,6 +29,7 @@ import java.util.Map;
  */
 public class OSMapLoaderImpl implements OSMapLoader {
     private static final Logger LOG = LoggerFactory.getLogger(OSMapLoaderImpl.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(OSMapLoaderImpl.class.getName().concat("_sync"));
 
     private final Map<OSMapType, String> mapLocationFormatStrings;
     private final Map<OSMapType, Dimension> mapDimensions;
@@ -43,7 +44,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
     public OSMapLoaderImpl(String mapImagesRoot, String mapImagesURLRoot,
                            Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions,
                            String urlEncodingFormat) {
-        imageReader = (ImageReader)ImageIO.getImageReadersBySuffix("tif").next();
+        imageReader = ImageIO.getImageReadersBySuffix("tif").next();
         configuration = GraphicsEnvironment.
                 getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         this.mapImagesRoot = mapImagesRoot;
@@ -78,31 +79,40 @@ public class OSMapLoaderImpl implements OSMapLoader {
     }
 
     private BufferedImage readFile(File file, Dimension targetSize) {
-        FileInputStream fin = null;
         try {
-            fin = new FileInputStream(file);
-            ImageInputStream iis = ImageIO.createImageInputStream(fin);
-            imageReader.setInput(iis, false);
-            int sourceXSubSampling = targetSize == null ? 1 : imageReader.getWidth(0) / targetSize.width;
-            int sourceYSubSampling = targetSize == null ? 1 : imageReader.getHeight(0) / targetSize.height;
-            ImageReadParam subSamplingParam = new ImageReadParam();
-            subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
-            return imageReader.read(0, subSamplingParam);
-        }
-        catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        finally {
-            if (fin != null) {
+            LOG_SYNC.debug("Awaiting imageReader");
+            synchronized (imageReader) {
+                LOG_SYNC.debug("Received imageReader");
+                FileInputStream fin = null;
                 try {
-                    fin.close();
-                } catch (IOException e) {
+                    fin = new FileInputStream(file);
+                    ImageInputStream iis = ImageIO.createImageInputStream(fin);
+                    imageReader.setInput(iis, false);
+                    int sourceXSubSampling = targetSize == null ? 1 : imageReader.getWidth(0) / targetSize.width;
+                    int sourceYSubSampling = targetSize == null ? 1 : imageReader.getHeight(0) / targetSize.height;
+                    ImageReadParam subSamplingParam = new ImageReadParam();
+                    subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
+                    return imageReader.read(0, subSamplingParam);
+                }
+                catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                finally {
+                    if (fin != null) {
+                        try {
+                            fin.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
             }
+        }
+        finally {
+            LOG_SYNC.debug("Released imageReader");
         }
 
     }
