@@ -73,6 +73,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
             }
             LOG_SYNC.debug("Received an imageReader");
             try {
+
                 fin = new FileInputStream(file);
                 iis = ImageIO.createImageInputStream(fin);
                 imageReader.setInput(iis, false);

@@ -321,7 +321,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     LOG.warn("Some how there are not any maps to draw, this should be investigated");
                     return;
                 }
-                progressTracker.startSubsection(maps.size());
+                progressTracker.startSubsection(maps.size() * 1000);
                 Dimension imageSize = osMapLocator.getImageSize(mapImage.getOSMapType());
                 LOG.debug("imageSize: {}", imageSize);
                 double imageScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
@@ -356,7 +356,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                         mapImageObserver.imageUpdated(mapImage, RectangleExtensions.getScaleInstance(
                                 new Rectangle(x, y, imageSize.width, imageSize.height), new Point(0, 0), imageScale), false);
                     }
-                    progressTracker.increment();
+                    progressTracker.increment(1000);
                 }
                 if (mapImageObserver != null) {
                     mapImageObserver.imageUpdated(mapImage, new Rectangle(0, 0,
