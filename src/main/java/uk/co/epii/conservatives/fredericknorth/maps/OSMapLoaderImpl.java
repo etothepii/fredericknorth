@@ -1,26 +1,20 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.util.LocaleServiceProviderPool;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
-import javax.imageio.spi.IIORegistry;
-import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User: James Robinson
@@ -28,23 +22,22 @@ import java.util.Map;
  * Time: 22:56
  */
 public class OSMapLoaderImpl implements OSMapLoader {
+
     private static final Logger LOG = LoggerFactory.getLogger(OSMapLoaderImpl.class);
     private static final Logger LOG_SYNC = LoggerFactory.getLogger(OSMapLoaderImpl.class.getName().concat("_sync"));
+    private static final Logger LOG_FILES = LoggerFactory.getLogger(OSMapLoaderImpl.class.getName().concat("_files"));
 
     private final Map<OSMapType, String> mapLocationFormatStrings;
     private final Map<OSMapType, Dimension> mapDimensions;
     private final GraphicsConfiguration configuration;
-    private final ImageReader imageReader;
 
     private String mapImagesRoot;
     private String mapImagesURLRoot;
     private String urlEncodingFormat;
 
-
     public OSMapLoaderImpl(String mapImagesRoot, String mapImagesURLRoot,
                            Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions,
                            String urlEncodingFormat) {
-        imageReader = ImageIO.getImageReadersBySuffix("tif").next();
         configuration = GraphicsEnvironment.
                 getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         this.mapImagesRoot = mapImagesRoot;
@@ -55,66 +48,74 @@ public class OSMapLoaderImpl implements OSMapLoader {
     }
 
     @Override
-    public BufferedImage loadMap(OSMap map, Dimension targetSize) {
+    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker) {
         if (map instanceof SeaMapImpl) {
             return getDummyImage(map);
         }
         File file = getMapFile(map);
-        LOG.debug("Loading ... {}", file);
+        LOG_FILES.debug("Loading ... {} => {} at {} x {}", new Object[] {
+                map.getMapName(), file, targetSize.width, targetSize.height
+        });
         if (file != null) {
-            BufferedImage image = readFile(file, targetSize);
-            LOG.debug("Converting to compatible image");
-            BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
-                    image.getHeight());
-            LOG.debug("Converted to compatible image");
-            Graphics g = compatibleImage.getGraphics();
-            LOG.debug("Creating graphics");
-            g.drawImage(image, 0, 0, null);
-            LOG.debug("Drawing Image");
-            g.dispose();
-            LOG.debug("Converted to compatible image");
-            return compatibleImage;
+            return readFile(file, targetSize, progressTracker);
         }
         return getDummyImage(map);
     }
 
-    private BufferedImage readFile(File file, Dimension targetSize) {
+    private BufferedImage readFile(File file, Dimension targetSize, ProgressTracker progressTracker) {
+        ImageReader imageReader = null;
+        ImageInputStream iis = null;
+        FileInputStream fin = null;
         try {
-            LOG_SYNC.debug("Awaiting imageReader");
-            synchronized (imageReader) {
-                LOG_SYNC.debug("Received imageReader");
-                FileInputStream fin = null;
-                try {
-                    fin = new FileInputStream(file);
-                    ImageInputStream iis = ImageIO.createImageInputStream(fin);
-                    imageReader.setInput(iis, false);
-                    int sourceXSubSampling = targetSize == null ? 1 : imageReader.getWidth(0) / targetSize.width;
-                    int sourceYSubSampling = targetSize == null ? 1 : imageReader.getHeight(0) / targetSize.height;
-                    ImageReadParam subSamplingParam = new ImageReadParam();
-                    subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
-                    return imageReader.read(0, subSamplingParam);
+            LOG_SYNC.debug("Waiting to receive an imageReader");
+            synchronized (configuration) {
+                imageReader = ImageIO.getImageReadersBySuffix("tif").next();
+            }
+            LOG_SYNC.debug("Received an imageReader");
+            try {
+                fin = new FileInputStream(file);
+                iis = ImageIO.createImageInputStream(fin);
+                imageReader.setInput(iis, false);
+                int sourceXSubSampling = targetSize == null ?
+                        1 : Math.max(1, imageReader.getWidth(0) / targetSize.width);
+                int sourceYSubSampling = targetSize == null ?
+                        1 : Math.max(1, imageReader.getHeight(0) / targetSize.height);
+                ImageReadParam subSamplingParam = new ImageReadParam();
+                subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
+                return imageReader.read(0, subSamplingParam);
+            }
+            catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            finally {
+                if (fin != null) {
+                    try {
+                        fin.close();
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-                catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-                catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                finally {
-                    if (fin != null) {
-                        try {
-                            fin.close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                if (iis != null) {
+                    try {
+                        iis.flush();
+                        iis.close();
+                    }
+                    catch (IOException ioe) {
+                        throw new RuntimeException(ioe);
                     }
                 }
             }
         }
         finally {
-            LOG_SYNC.debug("Released imageReader");
+            if (imageReader != null) {
+                imageReader.dispose();
+                LOG_SYNC.debug("Returned an imageReader");
+            }
         }
-
     }
 
     private BufferedImage getDummyImage(OSMap map) {
@@ -140,14 +141,6 @@ public class OSMapLoaderImpl implements OSMapLoader {
                 return new Color(195, 230, 250);
         }
         return null;
-    }
-
-    private void drawCenteredString(Graphics g, FontRenderContext frc, Dimension canvasSize,
-                                    String string, int xOffset, int yOffset) {
-        Rectangle bounds = g.getFont().createGlyphVector(frc, string).getPixelBounds(frc, 0, 0);
-        int x = (canvasSize.width - bounds.width) / 2 - bounds.x + xOffset;
-        int y = (canvasSize.height - bounds.height) / 2 - bounds.y + yOffset;
-        g.drawString(string, x, y);
     }
 
     private File getMapFile(OSMap map) {
@@ -192,8 +185,11 @@ public class OSMapLoaderImpl implements OSMapLoader {
             LOG.debug("Loading from: {}", url.toString());
             BufferedImage image = ImageIO.read(url);
             LOG.debug("Converting to compatible image");
-            BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
-                    image.getHeight());
+            BufferedImage compatibleImage;
+            synchronized (configuration) {
+                compatibleImage = configuration.createCompatibleImage(image.getWidth(),
+                        image.getHeight());
+            }
             LOG.debug("Converted to compatible image");
             Graphics g = compatibleImage.getGraphics();
             LOG.debug("Creating graphics");
@@ -220,4 +216,5 @@ public class OSMapLoaderImpl implements OSMapLoader {
                 map.getQuadrant() == null ? null : map.getQuadrant().toLowerCase(),
                 map.getSquareHundredth(), map.getQuadrantHundredth());
     }
+
 }

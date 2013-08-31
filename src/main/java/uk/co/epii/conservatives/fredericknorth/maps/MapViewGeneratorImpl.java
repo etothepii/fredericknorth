@@ -341,7 +341,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     int x = (int)((mapBottomLeft.x - visible.x) * mapImage.getOSMapType().getScale());
                     int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapImage.getOSMapType().getScale()) - imageSize.height;
                     LOG.debug("(x, y): ({}, {})", x, y);
-                    BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize);
+                    BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize, progressTracker);
                     try {
                         LOG_SYNC.debug("Awaiting mapImage.getMap()");
                         synchronized (mapImage.getMap()) {
