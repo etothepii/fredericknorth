@@ -76,6 +76,7 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     }
 
     private void incrementSubsection(int n) {
+        if (n == 0) return;
         if (_subsectionCounts.isEmpty() || _subsectionSizes.isEmpty()) {
             throw new RuntimeException("No Active Subsection");
         }
@@ -98,7 +99,9 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
             synchronized (sync) {
                 LOG_SYNC.debug("Received sync");
                 progressBar.setValue(progressBar.getValue() + n);
-                this.message = message;
+                if (message != null) {
+                    this.message = message;
+                }
                 incrementSubsection(n);
                 if (isActiveSubsectionFinished()) {
                     subsectionEnded();
