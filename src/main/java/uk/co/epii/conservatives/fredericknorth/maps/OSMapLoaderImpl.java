@@ -50,7 +50,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
     @Override
     public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad) {
         if (map instanceof SeaMapImpl) {
-            return getDummyImage(map, progressTracker, incrementsForImageLoad);
+            return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad);
         }
         File file = getMapFile(map, progressTracker, incrementsForImageLoad / 2);
         LOG_FILES.debug("Loading ... {} => {} at {} x {}", new Object[] {
@@ -59,7 +59,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
         if (file != null) {
             return readFile(file, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2);
         }
-        return getDummyImage(map, progressTracker, incrementsForImageLoad);
+        return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad);
     }
 
     private BufferedImage readFile(File file, Dimension targetSize, ProgressTracker progressTracker,
@@ -123,13 +123,11 @@ public class OSMapLoaderImpl implements OSMapLoader {
         }
     }
 
-    private BufferedImage getDummyImage(OSMap map, ProgressTracker progressTracker, int incrementsForImageLoad) {
-        Dimension size = mapDimensions.get(map.getOSMapType());
+    private BufferedImage getDummyImage(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad) {
+        Dimension size = targetSize == null ? mapDimensions.get(map.getOSMapType()) : targetSize;
         BufferedImage bufferedImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
         progressTracker.increment(incrementsForImageLoad / 2);
         Graphics2D g = bufferedImage.createGraphics();
-        Font font = g.getFont();
-        g.setFont(new Font(font.getName(), font.getStyle(), 24));
         g.setColor(getSeaColor(map.getOSMapType()));
         g.fillRect(0, 0, size.width, size.height);
         progressTracker.increment(incrementsForImageLoad - (incrementsForImageLoad / 2));
