@@ -59,7 +59,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
         if (file != null) {
             return readFile(file, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2);
         }
-        return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad);
+        return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2);
     }
 
     private BufferedImage readFile(File file, Dimension targetSize, ProgressTracker progressTracker,
