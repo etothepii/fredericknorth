@@ -48,6 +48,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private double maxScale = 5;
     private double minScale = 0.001;
     private boolean imageDueUpdate = false;
+    private int incrementsPerImage = 1000;
+    private int incrementsForImageLoad = 800;
 
     MapViewGeneratorImpl(Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
         this(null, null, locationFactory, mapLabelFactory, NullProgressTracker.NULL);
@@ -321,7 +323,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     LOG.warn("Some how there are not any maps to draw, this should be investigated");
                     return;
                 }
-                progressTracker.startSubsection(maps.size() * 1000);
+                progressTracker.startSubsection(maps.size() * incrementsPerImage);
                 Dimension imageSize = osMapLocator.getImageSize(mapImage.getOSMapType());
                 LOG.debug("imageSize: {}", imageSize);
                 double imageScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
@@ -341,7 +343,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     int x = (int)((mapBottomLeft.x - visible.x) * mapImage.getOSMapType().getScale());
                     int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapImage.getOSMapType().getScale()) - imageSize.height;
                     LOG.debug("(x, y): ({}, {})", x, y);
-                    BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize, progressTracker);
+                    BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize, progressTracker,
+                            incrementsForImageLoad);
                     try {
                         LOG_SYNC.debug("Awaiting mapImage.getMap()");
                         synchronized (mapImage.getMap()) {
@@ -356,7 +359,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                         mapImageObserver.imageUpdated(mapImage, RectangleExtensions.getScaleInstance(
                                 new Rectangle(x, y, imageSize.width, imageSize.height), new Point(0, 0), imageScale), false);
                     }
-                    progressTracker.increment(1000);
+                    progressTracker.increment(incrementsPerImage - incrementsForImageLoad);
                 }
                 if (mapImageObserver != null) {
                     mapImageObserver.imageUpdated(mapImage, new Rectangle(0, 0,

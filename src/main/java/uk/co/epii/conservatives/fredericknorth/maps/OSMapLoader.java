@@ -12,6 +12,6 @@ import java.awt.image.BufferedImage;
  */
 public interface OSMapLoader {
 
-    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker);
+    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad);
 
 }
