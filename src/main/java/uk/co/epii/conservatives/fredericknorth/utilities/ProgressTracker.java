@@ -17,5 +17,7 @@ public interface ProgressTracker {
     public void finish();
     public boolean isAtEnd();
     public void endSubsection();
-
+    public int getMaximum();
+    public int getValue();
+    public boolean isIndeterminate();
 }

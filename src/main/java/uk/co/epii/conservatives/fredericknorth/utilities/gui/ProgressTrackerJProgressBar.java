@@ -76,7 +76,6 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     }
 
     private void incrementSubsection(int n) {
-        if (n == 0) return;
         if (_subsectionCounts.isEmpty() || _subsectionSizes.isEmpty()) {
             throw new RuntimeException("No Active Subsection");
         }
@@ -93,7 +92,12 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
 
     @Override
     public void increment(String message, int n) {
+        if (n == 0) return;
+        if (n < 0) {
+            throw new IllegalArgumentException("Cannot decrement with a progress tracker n = ".concat(n + ""));
+        }
         LOG_INCREMENT.debug("increment({}, {})", new Object[] {message, n});
+        LOG_INCREMENT.debug("increment start max: {} value: {}", getMaximum(), getValue());
         LOG_SYNC.debug("Awaiting sync");
         try {
             synchronized (sync) {
@@ -112,6 +116,7 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
             LOG_SYNC.debug("Released sync");
         }
         progressBar.repaint();
+        LOG_INCREMENT.debug("increment end max: {} value: {}", getMaximum(), getValue());
     }
 
     private int removeActiveSubsection() {
@@ -213,6 +218,21 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     @Override
     public void endSubsection() {
         increment(_subsectionSizes.get(0) - _subsectionCounts.get(0));
+    }
+
+    @Override
+    public int getMaximum() {
+        return progressBar.getMaximum();
+    }
+
+    @Override
+    public int getValue() {
+        return progressBar.getValue();
+    }
+
+    @Override
+    public boolean isIndeterminate() {
+        return progressBar.isIndeterminate();
     }
 
     public void paint(Graphics g) {
