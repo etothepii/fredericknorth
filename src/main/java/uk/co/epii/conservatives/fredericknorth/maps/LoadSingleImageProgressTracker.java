@@ -40,7 +40,7 @@ public class LoadSingleImageProgressTracker implements IIOReadProgressListener {
     @Override
     public void imageProgress(ImageReader source, float percentageDone) {
         LOG.debug("Image progress: {}", percentageDone);
-        complete = percentageDone;
+        complete = percentageDone / 100f;
         int targetRemaining = (int)((1 - complete) * increments);
         int delta = remaining - targetRemaining;
         if (delta > 0) {
