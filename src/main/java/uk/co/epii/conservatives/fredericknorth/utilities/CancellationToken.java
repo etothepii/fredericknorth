@@ -9,7 +9,7 @@ import java.util.ArrayList;
  */
 public class CancellationToken {
 
-    private boolean cancelled = true;
+    private boolean cancelled = false;
     private final ArrayList<Runnable> toRun = new ArrayList<Runnable>();
 
     public boolean isCancelled() {
