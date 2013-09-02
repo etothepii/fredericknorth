@@ -82,8 +82,7 @@ public class BuilderMapFrameModel {
     }
 
     private void updateAfterSelectionChange(BoundedArea changedTo) {
-        if (changedTo != null &&
-                changedTo.getBoundedAreaType() == boundedAreaSelectionModel.getMasterSelectedType()) {
+        if (changedTo != null) {
             final Rectangle bounds = changedTo.getArea().getBounds();
             LOG_SYNC.debug("Awaiting enabledSync");
             try {
