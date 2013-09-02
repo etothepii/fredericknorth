@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
+import uk.co.epii.conservatives.fredericknorth.utilities.CancellationToken;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
@@ -12,6 +13,7 @@ import java.awt.image.BufferedImage;
  */
 public interface OSMapLoader {
 
-    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad);
+    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker,
+                                 int incrementsForImageLoad, CancellationToken cancellationToken);
 
 }

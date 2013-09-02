@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.DimensionExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
+import uk.co.epii.conservatives.fredericknorth.utilities.CancellationToken;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
@@ -42,12 +43,13 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private Point geoCenter;
     private Dimension viewPortSize;
     private double scale;
+    private CancellationToken cancellationToken;
+    private Object cancellationTokenSync;
     private MapImageImpl currentImage;
     private final Object currentImageSync = new Object();
     private final Object paintImageSync = new Object();
     private double maxScale = 5;
     private double minScale = 0.001;
-    private boolean imageDueUpdate = false;
     private int incrementsPerImage = 1000;
     private int incrementsForImageLoad = 800;
 
@@ -141,47 +143,28 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     }
 
     private void updateImage(final ProgressTracker progressTracker, final MapImageObserver imageObserver) {
-        setImageDueUpdate(true);
+        synchronized (cancellationTokenSync) {
+            if (cancellationToken != null) {
+                cancellationToken.cancel();
+            }
+            final CancellationToken cancellationToken = new CancellationToken();
+            this.cancellationToken = cancellationToken;
+        }
         if (imageObserver == null) {
-            updateImageOnThread(progressTracker, imageObserver);
+            updateImageOnThread(progressTracker, imageObserver, cancellationToken);
         }
         else {
             initializer.execute(new Runnable() {
                 @Override
                 public void run() {
-                    updateImageOnThread(progressTracker, imageObserver);
+                    updateImageOnThread(progressTracker, imageObserver, cancellationToken);
                 }
             });
         }
     }
 
-    private void setImageDueUpdate(boolean imageDueUpdate) {
-        LOG_SYNC.debug("Awaiting currentImageSync");
-        try {
-            synchronized (currentImageSync) {
-                LOG_SYNC.debug("Received currentImageSync");
-                this.imageDueUpdate = imageDueUpdate;
-            }
-        }
-        finally {
-            LOG_SYNC.debug("Released currentImageSync");
-        }
-    }
-
-    private boolean isImageDueUpdate() {
-        LOG_SYNC.debug("Awaiting currentImageSync");
-        try {
-            synchronized (currentImageSync) {
-                LOG_SYNC.debug("Received currentImageSync");
-                return imageDueUpdate;
-            }
-        }
-        finally {
-            LOG_SYNC.debug("Released currentImageSync");
-        }
-    }
-
-    private void updateImageOnThread(final ProgressTracker progressTracker, final MapImageObserver imageObserver) {
+    private void updateImageOnThread(final ProgressTracker progressTracker, final MapImageObserver imageObserver,
+                                     CancellationToken cancellationToken) {
         final Rectangle clean;
         final MapImageImpl mapImage;
         final Rectangle visible;
@@ -198,7 +181,6 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 mapImage = new MapImageImpl(
                         new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB),
                         geoTopleft, mapType, requiredScale);
-                setImageDueUpdate(false);
                 clean = loadPreviousMapIntoNewMapAndReportCleanGeoRect(previousMapImage, mapImage);
                 try {
                     if (SwingUtilities.isEventDispatchThread()) {
@@ -241,7 +223,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         finally {
             LOG_SYNC.debug("Released currentImageSync");
         }
-        paintMapImage(clean, mapImage, visible, progressTracker, imageObserver);
+        paintMapImage(clean, mapImage, visible, progressTracker, imageObserver, cancellationToken);
     }
 
     private Rectangle loadPreviousMapIntoNewMapAndReportCleanGeoRect(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
@@ -301,7 +283,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     }
 
     private void paintMapImage(Rectangle clean, MapImageImpl mapImage, Rectangle visible,
-                                        ProgressTracker progressTracker, MapImageObserver mapImageObserver) {
+                                        ProgressTracker progressTracker, MapImageObserver mapImageObserver,
+                                        CancellationToken cancellationToken) {
         LOG_SYNC.debug("Awaiting paintImageSync");
         try {
             synchronized (paintImageSync) {
@@ -332,7 +315,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 Dimension targetSize = DimensionExtensions.scale(imageSize, imageScale);
                 LOG.debug("imageScale: {}", imageScale);
                 for (OSMap map : maps) {
-                    if (isImageDueUpdate()) {
+                    if (cancellationToken.isCancelled()) {
                         progressTracker.endSubsection();
                         return;
                     }
@@ -344,7 +327,11 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapImage.getOSMapType().getScale()) - imageSize.height;
                     LOG.debug("(x, y): ({}, {})", x, y);
                     BufferedImage loadedMap = osMapLoader.loadMap(map, targetSize, progressTracker,
-                            incrementsForImageLoad);
+                            incrementsForImageLoad, cancellationToken);
+                    if (cancellationToken.isCancelled()) {
+                        progressTracker.endSubsection();
+                        return;
+                    }
                     try {
                         LOG_SYNC.debug("Awaiting mapImage.getMap()");
                         synchronized (mapImage.getMap()) {

@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.utilities.CancellationToken;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.imageio.ImageIO;
@@ -48,7 +49,8 @@ public class OSMapLoaderImpl implements OSMapLoader {
     }
 
     @Override
-    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad) {
+    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad,
+                                 CancellationToken cancellationToken) {
         if (map instanceof SeaMapImpl) {
             return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad);
         }
@@ -57,22 +59,32 @@ public class OSMapLoaderImpl implements OSMapLoader {
                 map.getMapName(), file, targetSize.width, targetSize.height
         });
         if (file != null) {
-            return readFile(file, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2);
+            return readFile(file, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2,
+                    cancellationToken);
         }
         return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2);
     }
 
     private BufferedImage readFile(File file, Dimension targetSize, ProgressTracker progressTracker,
-                                   int incrementsForFileRead) {
-        ImageReader imageReader = null;
+                                   int incrementsForFileRead, CancellationToken cancellationToken) {
+        final ImageReader imageReader = ImageIO.getImageReadersBySuffix("tif").next();
+        Runnable cancel = new Runnable() {
+            @Override
+            public void run() {
+                imageReader.abort();
+            }
+        };
         ImageInputStream iis = null;
         FileInputStream fin = null;
         LoadSingleImageProgressTracker imageLoadProgressTracker = new LoadSingleImageProgressTracker(progressTracker, incrementsForFileRead);
         try {
             LOG_SYNC.debug("Waiting to receive an imageReader");
             synchronized (configuration) {
-                imageReader = ImageIO.getImageReadersBySuffix("tif").next();
                 imageReader.addIIOReadProgressListener(imageLoadProgressTracker);
+                cancellationToken.register(cancel);
+                if (cancellationToken.isCancelled()) {
+                    return null;
+                }
             }
             LOG_SYNC.debug("Received an imageReader");
             try {
@@ -115,10 +127,8 @@ public class OSMapLoaderImpl implements OSMapLoader {
             }
         }
         finally {
-            if (imageReader != null) {
-                imageReader.dispose();
-                LOG_SYNC.debug("Returned an imageReader");
-            }
+            cancellationToken.unregister(cancel);
+            imageReader.dispose();
             progressTracker.increment(imageLoadProgressTracker.getRemaining());
         }
     }
