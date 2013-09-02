@@ -44,7 +44,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private Dimension viewPortSize;
     private double scale;
     private CancellationToken cancellationToken;
-    private Object cancellationTokenSync;
+    private final Object cancellationTokenSync = new Object();
     private MapImageImpl currentImage;
     private final Object currentImageSync = new Object();
     private final Object paintImageSync = new Object();
