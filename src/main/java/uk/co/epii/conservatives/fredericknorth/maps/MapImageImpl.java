@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 /**
  * User: James Robinson
@@ -13,15 +14,19 @@ class MapImageImpl implements MapImage {
 
     private final OSMapType osMapType;
     private final BufferedImage map;
+    private final Rectangle geoCoverage;
     private final Point geoTopLeft;
     private final Dimension size;
     private final double scale;
+    private final ArrayList<Rectangle> clean;
     private boolean completelyLoaded;
 
-    MapImageImpl(BufferedImage map, Point geoTopLeft, OSMapType osMapType, double scale) {
+    MapImageImpl(BufferedImage map, Rectangle geoCoverage, OSMapType osMapType, double scale) {
+        clean = new ArrayList<Rectangle>();
         this.map = map;
         this.osMapType = osMapType;
-        this.geoTopLeft = geoTopLeft;
+        this.geoCoverage = geoCoverage;
+        geoTopLeft = new Point(geoCoverage.x, geoCoverage.y + geoCoverage.height);
         this.size = new Dimension(map.getWidth(), map.getHeight());
         this.scale = scale;
     }
@@ -79,5 +84,16 @@ class MapImageImpl implements MapImage {
     @Override
     public OSMapType getOSMapType() {
         return osMapType;
+    }
+
+    public void reportDrawn(Rectangle rectangle) {
+        Rectangle intersection = geoCoverage.intersection(rectangle);
+        if (intersection.width * intersection.height > 0) {
+            clean.add(intersection);
+        }
+    }
+
+    public ArrayList<Rectangle> getCleanRectangles() {
+        return clean;
     }
 }

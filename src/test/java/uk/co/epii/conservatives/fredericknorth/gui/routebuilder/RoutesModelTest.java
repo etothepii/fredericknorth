@@ -4,6 +4,7 @@ import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.DummyMapViewGeneratorFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapLoaderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyRoutableArea;
 
@@ -21,6 +22,7 @@ public class RoutesModelTest {
     @Test
     public void addingRoutesEndUpInAlphabeticalOrder() {
         TestApplicationContext applicationContext = new TestApplicationContext();
+        OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(1, 1, 1, 1)));
         DummyRoutableArea dummyRoutableArea = new DummyRoutableArea(null, null, "A Ward", "A");

@@ -18,7 +18,7 @@ public class MapImageImplTest {
     public void checkGeoLocationToImageLocationCalculationTest1() {
         MapImageImpl mapImage = new MapImageImpl(
                 new BufferedImage(300, 400, BufferedImage.TYPE_INT_ARGB),
-                new Point(100, 200),
+                new Rectangle(100, -200, 300, 400),
                 OSMapType.STREET_VIEW, 0.333333333333333333333);
         Point geoLocation = new Point(400, -100);
         Point expected = new Point(100, 100);
@@ -30,7 +30,7 @@ public class MapImageImplTest {
     public void checkGeoLocationToImageLocationCalculationTest2() {
         MapImageImpl mapImage = new MapImageImpl(
                 new BufferedImage(300, 400, BufferedImage.TYPE_INT_ARGB),
-                new Point(100, 200),
+                new Rectangle(100, -200, 300, 400),
                 OSMapType.STREET_VIEW, 0.333333333333333333333);
         Point geoLocation = new Point(400, -100);
         Point expected = new Point(100, 100);
@@ -42,7 +42,7 @@ public class MapImageImplTest {
     public void checkImageLocationToGeoLocationCalculationTest1() {
         MapImageImpl mapImage = new MapImageImpl(
                 new BufferedImage(300, 400, BufferedImage.TYPE_INT_ARGB),
-                new Point(100, 200),
+                new Rectangle(100, -200, 300, 400),
                 OSMapType.STREET_VIEW, 0.333333333333333333333);
         Point expected = new Point(400, -100);
         Point imageLocation = new Point(100, 100);
@@ -54,7 +54,7 @@ public class MapImageImplTest {
     public void checkImageLocationToGeoLocationCalculationTest2() {
         MapImageImpl mapImage = new MapImageImpl(
                 new BufferedImage(300, 400, BufferedImage.TYPE_INT_ARGB),
-                new Point(100, 200),
+                new Rectangle(100, -200, 300, 400),
                 OSMapType.STREET_VIEW, 0.333333333333333333333);
         Point expected = new Point(400, -100);
         Point imageLocation = new Point(100, 100);

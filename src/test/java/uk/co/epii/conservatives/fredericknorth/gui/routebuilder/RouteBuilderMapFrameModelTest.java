@@ -5,6 +5,7 @@ import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.DummyBoundedArea;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapLoaderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
@@ -66,6 +67,7 @@ public class RouteBuilderMapFrameModelTest {
         dummyRoute.addDwellingGroup(cStreet);
         dummyRoutableArea.addRoute(dummyRoute);
         ApplicationContext applicationContext = new TestApplicationContext();
+        OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(0, 0, 100, 100)));
         DotFactoryRegistrar.registerToContext(applicationContext);

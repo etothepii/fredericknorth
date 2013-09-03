@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.DimensionExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.CancellationToken;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
@@ -53,15 +54,17 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private int incrementsPerImage = 1000;
     private int incrementsForImageLoad = 800;
 
-    MapViewGeneratorImpl(Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
-        this(null, null, locationFactory, mapLabelFactory, NullProgressTracker.NULL);
+    MapViewGeneratorImpl(ApplicationContext applicationContext,
+                         Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
+        this(null, applicationContext.getDefaultInstance(OSMapLocator.class),
+                locationFactory, mapLabelFactory, NullProgressTracker.NULL);
     }
 
     public MapViewGeneratorImpl(OSMapLoader osMapLoader, OSMapLocator osMapLocator, LocationFactory locationFactory,
                                 MapLabelFactory mapLabelFactory, ProgressTracker progressTracker) {
         Rectangle initial = new Rectangle(new Dimension(700000, 1300000));
         currentImage = new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB),
-                new Point(0, 0), OSMapType.STREET_VIEW, 1d);
+                new Rectangle(0, 0, 1, 1), OSMapType.STREET_VIEW, 1d);
         initializer = Executors.newSingleThreadExecutor();
         this.osMapLoader = osMapLoader;
         this.osMapLocator = osMapLocator;
@@ -147,8 +150,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
             if (cancellationToken != null) {
                 cancellationToken.cancel();
             }
-            final CancellationToken cancellationToken = new CancellationToken();
-            this.cancellationToken = cancellationToken;
+            cancellationToken = new CancellationToken();
         }
         if (imageObserver == null) {
             updateImageOnThread(progressTracker, imageObserver, cancellationToken);
@@ -165,7 +167,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     private void updateImageOnThread(final ProgressTracker progressTracker, final MapImageObserver imageObserver,
                                      CancellationToken cancellationToken) {
-        final Rectangle clean;
+        final List<Rectangle> dirty;
         final MapImageImpl mapImage;
         final Rectangle visible;
         LOG_SYNC.debug("Awaiting currentImageSync");
@@ -176,12 +178,11 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 double requiredScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
                         viewPortSize.getHeight() / visible.getHeight());
                 final OSMapType mapType = OSMapType.getMapType(requiredScale);
-                final Point geoTopleft = new Point(visible.x, visible.y + visible.height);
                 MapImageImpl previousMapImage = getCurrentImage();
                 mapImage = new MapImageImpl(
                         new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB),
-                        geoTopleft, mapType, requiredScale);
-                clean = loadPreviousMapIntoNewMapAndReportCleanGeoRect(previousMapImage, mapImage);
+                        visible, mapType, requiredScale);
+                dirty = loadPreviousMapIntoNewMapAndReportCleanGeoRect(previousMapImage, mapImage);
                 try {
                     if (SwingUtilities.isEventDispatchThread()) {
                         setCurrentImage(mapImage);
@@ -223,10 +224,10 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         finally {
             LOG_SYNC.debug("Released currentImageSync");
         }
-        paintMapImage(clean, mapImage, visible, progressTracker, imageObserver, cancellationToken);
+        paintMapImage(dirty, mapImage, visible, progressTracker, imageObserver, cancellationToken);
     }
 
-    private Rectangle loadPreviousMapIntoNewMapAndReportCleanGeoRect(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
+    private List<Rectangle> loadPreviousMapIntoNewMapAndReportCleanGeoRect(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
         BufferedImage map = newMapImage.getMap();
         Graphics2D g = (Graphics2D)map.getGraphics();
         g.setColor(OSMapLoaderImpl.getSeaColor(newMapImage.getOSMapType()));
@@ -244,8 +245,9 @@ class MapViewGeneratorImpl implements MapViewGenerator {
             g.drawImage(previousMapImage.getMap(), drawFrom.x, drawFrom.y, size.width, size.height, null);
             if (previousMapImage.getOSMapType() == newMapImage.getOSMapType() &&
                     newMapImage.getScale() < 1.01 * previousMapImage.getScale()) {
-                return new Rectangle(previousMapImage.getGeoLocation(new Point(0, previousMapImage.getSize().height)),
-                        DimensionExtensions.scale(previousMapImage.getSize(), 1d / previousMapImage.getScale()));
+                return RectangleExtensions.getSurrounding(
+                        new Rectangle(newMapImage.getGeoLocation(new Point(0, newMapImage.getSize().height)),
+                                DimensionExtensions.scale(newMapImage.getSize(), 1d / newMapImage.getScale())), previousMapImage.getCleanRectangles());
             }
             else {
                 return null;
@@ -282,24 +284,25 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
     }
 
-    private void paintMapImage(Rectangle clean, MapImageImpl mapImage, Rectangle visible,
+    private void paintMapImage(List<Rectangle> dirty, MapImageImpl mapImage, Rectangle visible,
                                         ProgressTracker progressTracker, MapImageObserver mapImageObserver,
                                         CancellationToken cancellationToken) {
+        if (osMapLoader == null || osMapLocator == null) return;
         LOG_SYNC.debug("Awaiting paintImageSync");
         try {
             synchronized (paintImageSync) {
                 LOG_SYNC.debug("Received paintImageSync");
                 LOG.debug("size of mapImage.getMap(): {} x {}", mapImage.getMap().getWidth(), mapImage.getMap().getHeight());
-                LOG.debug("paintMapImage({}, {}, {})", new Object[] {clean, visible, viewPortSize});
+                LOG.debug("paintMapImage({}, {})", new Object[] {visible, viewPortSize});
                 Graphics2D imageGraphics = (Graphics2D)mapImage.getMap().getGraphics();
                 Set<OSMap> maps;
-                if (clean == null) {
+                if (dirty == null) {
                     maps = osMapLocator.getMaps(mapImage.getOSMapType(), visible);
                 }
                 else {
                     maps = new HashSet<OSMap>();
-                    for (Rectangle dirty : getRectanglesToClear(visible, clean)) {
-                         maps.addAll(osMapLocator.getMaps(mapImage.getOSMapType(), dirty));
+                    for (Rectangle rectangle : dirty) {
+                         maps.addAll(osMapLocator.getMaps(mapImage.getOSMapType(), rectangle));
                     }
                 }
                 if (maps.isEmpty()) {
@@ -308,6 +311,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 }
                 progressTracker.startSubsection(maps.size() * incrementsPerImage);
                 Dimension imageSize = osMapLocator.getImageSize(mapImage.getOSMapType());
+                Dimension geoSize = osMapLocator.getRepresentedSize(mapImage.getOSMapType());
                 LOG.debug("imageSize: {}", imageSize);
                 double imageScale = Math.min(viewPortSize.getWidth() / visible.getWidth(),
                         viewPortSize.getHeight() / visible.getHeight()) / mapImage.getOSMapType().getScale();
@@ -323,6 +327,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                     LOG_EACH_MAP.debug("{}", map);
                     Point mapBottomLeft = osMapLocator.getBottomLeftMapCoordinate(map);
                     LOG.debug("mapBottomLeft: {}", mapBottomLeft);
+                    Rectangle geoRectangle = new Rectangle(mapBottomLeft, geoSize);
                     int x = (int)((mapBottomLeft.x - visible.x) * mapImage.getOSMapType().getScale());
                     int y = (int)((visible.y + visible.height - mapBottomLeft.y) * mapImage.getOSMapType().getScale()) - imageSize.height;
                     LOG.debug("(x, y): ({}, {})", x, y);
@@ -337,6 +342,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                         synchronized (mapImage.getMap()) {
                             LOG_SYNC.debug("Received mapImage.getMap()");
                             imageGraphics.drawImage(loadedMap, x, y, imageSize.width, imageSize.height, null);
+                            mapImage.reportDrawn(geoRectangle);
                         }
                     }
                     finally {
@@ -443,27 +449,6 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         finally {
             LOG_SYNC.debug("Released currentImage.getMap()");
         }
-    }
-
-    static List<Rectangle> getRectanglesToClear(Rectangle base, Rectangle fillAround) {
-        LOG.debug("base: {}", base);
-        LOG.debug("fillAround: {}", fillAround);
-        List<Rectangle> rectangles = new ArrayList<Rectangle>(4);
-        if (fillAround.x > base.x) {
-            rectangles.add(new Rectangle(base.x, base.y, fillAround.x - base.x, base.height));
-        }
-        if (fillAround.y > base.y) {
-            rectangles.add(new Rectangle(base.x, base.y, base.width, fillAround.y - base.y));
-        }
-        if (base.width + base.x > fillAround.width + fillAround.x) {
-            rectangles.add(new Rectangle(fillAround.x + fillAround.width, base.y,
-                    base.width + base.x - fillAround.width - fillAround.x, base.height));
-        }
-        if (base.height + base.y > fillAround.height + fillAround.y) {
-            rectangles.add(new Rectangle(base.x, fillAround.y + fillAround.height, base.width,
-                    base.height + base.y - fillAround.height - fillAround.y));
-        }
-        return rectangles;
     }
 
     public Rectangle getVisible() {
