@@ -52,7 +52,7 @@ public class BuilderMapFrameModel {
     private final List<EnabledStateChangedListener<BuilderMapFrameModel>> enabledStateChangedListeners;
 
     public BuilderMapFrameModel(ApplicationContext applicationContext) {
-        this(applicationContext, true);
+        this(applicationContext, false);
     }
 
     BuilderMapFrameModel(ApplicationContext applicationContext, boolean loadKnown) {
