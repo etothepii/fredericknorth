@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import java.util.List;
  */
 public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
 
+    private static final Logger LOG = LoggerFactory.getLogger(
+            LazyLoadingBoundaryLineFeature.class);
     private static final Logger LOG_SYNC = LoggerFactory.getLogger(
             LazyLoadingBoundaryLineFeature.class.getName().concat("_sync"));
 
@@ -42,6 +45,7 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
     }
 
     private void loadPoints() {
+        LOG.debug("Loading points");
         LOG_SYNC.debug("Awaiting super.getPoints()");
         try {
             synchronized (super.getPoints()) {
@@ -49,7 +53,9 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
                 if (loadedPoints) return;
                 MultiPolygon multiPolygon = (MultiPolygon)this.boundaryLineFeature.getAttribute("the_geom");
                 for (int n = 0; n < multiPolygon.getNumGeometries(); n++) {
-                    Coordinate[] coordinates = multiPolygon.getGeometryN(n).getCoordinates();
+                    Geometry geometry = multiPolygon.getGeometryN(n);
+                    LOG.debug("Type: {}", geometry.getGeometryType());
+                    Coordinate[] coordinates = geometry.getBoundary().getCoordinates();
                     List<Point> points = new ArrayList<Point>();
                     for (int i = 0; i < coordinates.length; i++) {
                         points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));

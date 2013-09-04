@@ -62,7 +62,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     public MapViewGeneratorImpl(OSMapLoader osMapLoader, OSMapLocator osMapLocator, LocationFactory locationFactory,
                                 MapLabelFactory mapLabelFactory, ProgressTracker progressTracker) {
-        Rectangle initial = new Rectangle(new Dimension(700000, 1300000));
+        Rectangle initial = new Rectangle(new Dimension(1, 1));
         currentImage = new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB),
                 new Rectangle(0, 0, 1, 1), OSMapType.STREET_VIEW, 1d);
         initializer = Executors.newSingleThreadExecutor();
