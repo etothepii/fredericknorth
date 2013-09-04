@@ -150,6 +150,16 @@ public class RectangleExtensionsTest {
         checkResult(base, fillAround, surrounding);
     }
 
+    @Test
+    public void getSurroundingTest6() {
+        Rectangle base = new Rectangle(5, 10, 100, 150);
+        Collection<Rectangle> fillAround = buildExpectedList();
+        Set<Rectangle> surrounding =
+                new HashSet<Rectangle>(RectangleExtensions.getSurrounding(
+                        base, fillAround));
+        checkResult(base, fillAround, surrounding);
+    }
+
     private Set<Rectangle> buildExpectedList(Rectangle... rectangles) {
         Set<Rectangle> list = new HashSet<Rectangle>(4);
         for (Rectangle rectangle : rectangles) {

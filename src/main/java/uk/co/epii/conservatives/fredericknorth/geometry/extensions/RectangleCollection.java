@@ -67,7 +67,7 @@ public class RectangleCollection implements Collection<Rectangle> {
         if (toAdd.width == 0 || toAdd.height == 0) {
             return false;
         }
-        int j = list.size() - 1;
+        int j = list.size();
         outerLoop: while (j >= 0) {
             for (j = list.size() - 1; j >= 0; j--) {
                 Rectangle addTo = list.get(j);
@@ -87,6 +87,7 @@ public class RectangleCollection implements Collection<Rectangle> {
                 }
             }
         }
+        list.add(toAdd);
         return true;
     }
 
