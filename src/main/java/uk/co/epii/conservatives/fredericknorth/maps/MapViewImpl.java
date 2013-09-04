@@ -1,10 +1,14 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -16,6 +20,8 @@ import java.util.List;
  * Time: 22:07
  */
 public class MapViewImpl implements MapView {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MapViewImpl.class);
 
     private final BufferedImage map;
     private final Point geoCenter;
@@ -60,11 +66,22 @@ public class MapViewImpl implements MapView {
     }
 
     @Override
-    public AffineTransform getGeoTransform() {
-        AffineTransform transform = AffineTransform.getTranslateInstance(-geoCenter.x, -geoCenter.y);
-        transform.scale(scale, scale);
-        transform.translate(viewPortSize.getWidth() / 2, viewPortSize.getHeight() / 2);
+    public AffineTransform getGeoToImageTransform() {
+        AffineTransform transform = AffineTransform.getTranslateInstance(viewPortSize.getWidth() / 2, viewPortSize.getHeight() / 2);
+        transform.scale(scale, -scale);
+        transform.translate(-geoCenter.x, -geoCenter.y);
         return transform;
+    }
+
+    @Override
+    public AffineTransform getImageToGeoTransform() {
+        try {
+            return getGeoToImageTransform().createInverse();
+        }
+        catch (NoninvertibleTransformException nte) {
+            LOG.error(nte.getMessage(), nte);
+            throw new RuntimeException(nte);
+        }
     }
 
     @Override

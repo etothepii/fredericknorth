@@ -62,16 +62,6 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             renderedOverlay.paint(g.create(drawFrom.x, drawFrom.y, renderedSize.width, renderedSize.height));
         }
         LOG_PAINT.debug("Drawn Overlays");
-        Shape selected = mapPanelModel.getSelectedArea();
-        if (selected != null) {
-            g.setTransform(mapPanelModel.getCurrentMapView().getGeoTransform());
-            g.setColor(new Color(0, 0, 255, 32));
-            g.fill(selected);
-            g.setColor(Color.BLUE);
-            g.draw(selected);
-            g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
-        }
-        LOG_PAINT.debug("Drawn Selected");
     }
 
     @Override
