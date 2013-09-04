@@ -167,7 +167,6 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     private void updateImageOnThread(final ProgressTracker progressTracker, final MapImageObserver imageObserver,
                                      CancellationToken cancellationToken) {
-        final List<Rectangle> dirty;
         final MapImageImpl mapImage;
         final Rectangle visible;
         LOG_SYNC.debug("Awaiting currentImageSync");
@@ -182,7 +181,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 mapImage = new MapImageImpl(
                         new BufferedImage(viewPortSize.width, viewPortSize.height, BufferedImage.TYPE_INT_ARGB),
                         visible, mapType, requiredScale);
-                dirty = loadPreviousMapIntoNewMapAndReportCleanGeoRect(previousMapImage, mapImage);
+                loadPreviousMapIntoNewMapAndReportCleanGeoRect(previousMapImage, mapImage);
                 try {
                     if (SwingUtilities.isEventDispatchThread()) {
                         setCurrentImage(mapImage);
@@ -224,10 +223,10 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         finally {
             LOG_SYNC.debug("Released currentImageSync");
         }
-        paintMapImage(dirty, mapImage, visible, progressTracker, imageObserver, cancellationToken);
+        paintMapImage(mapImage, visible, progressTracker, imageObserver, cancellationToken);
     }
 
-    private List<Rectangle> loadPreviousMapIntoNewMapAndReportCleanGeoRect(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
+    private void loadPreviousMapIntoNewMapAndReportCleanGeoRect(MapImageImpl previousMapImage, MapImageImpl newMapImage) {
         BufferedImage map = newMapImage.getMap();
         Graphics2D g = (Graphics2D)map.getGraphics();
         g.setColor(OSMapLoaderImpl.getSeaColor(newMapImage.getOSMapType()));
@@ -245,16 +244,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
             g.drawImage(previousMapImage.getMap(), drawFrom.x, drawFrom.y, size.width, size.height, null);
             if (previousMapImage.getOSMapType() == newMapImage.getOSMapType() &&
                     newMapImage.getScale() < 1.01 * previousMapImage.getScale()) {
-                return RectangleExtensions.getSurrounding(
-                        new Rectangle(newMapImage.getGeoLocation(new Point(0, newMapImage.getSize().height)),
-                                DimensionExtensions.scale(newMapImage.getSize(), 1d / newMapImage.getScale())), previousMapImage.getCleanRectangles());
+                newMapImage.getCleanRectangles().addAll(previousMapImage.getCleanRectangles());
             }
-            else {
-                return null;
-            }
-        }
-        else {
-            return null;
         }
     }
 
@@ -284,7 +275,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
     }
 
-    private void paintMapImage(List<Rectangle> dirty, MapImageImpl mapImage, Rectangle visible,
+    private void paintMapImage(MapImageImpl mapImage, Rectangle visible,
                                         ProgressTracker progressTracker, MapImageObserver mapImageObserver,
                                         CancellationToken cancellationToken) {
         if (osMapLoader == null || osMapLocator == null) return;
@@ -296,14 +287,11 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 LOG.debug("paintMapImage({}, {})", new Object[] {visible, viewPortSize});
                 Graphics2D imageGraphics = (Graphics2D)mapImage.getMap().getGraphics();
                 Set<OSMap> maps;
-                if (dirty == null) {
-                    maps = osMapLocator.getMaps(mapImage.getOSMapType(), visible);
-                }
-                else {
-                    maps = new HashSet<OSMap>();
-                    for (Rectangle rectangle : dirty) {
-                         maps.addAll(osMapLocator.getMaps(mapImage.getOSMapType(), rectangle));
-                    }
+                Collection<Rectangle> dirty =
+                        RectangleExtensions.getSurrounding(mapImage.getGeoCoverage(), mapImage.getCleanRectangles());
+                maps = new HashSet<OSMap>();
+                for (Rectangle rectangle : dirty) {
+                     maps.addAll(osMapLocator.getMaps(mapImage.getOSMapType(), rectangle));
                 }
                 if (maps.isEmpty()) {
                     LOG.warn("Some how there are not any maps to draw, this should be investigated");

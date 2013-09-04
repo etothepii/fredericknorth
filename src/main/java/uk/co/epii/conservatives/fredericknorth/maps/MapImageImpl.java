@@ -1,9 +1,11 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleCollection;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * User: James Robinson
@@ -18,11 +20,12 @@ class MapImageImpl implements MapImage {
     private final Point geoTopLeft;
     private final Dimension size;
     private final double scale;
-    private final ArrayList<Rectangle> clean;
+    private final RectangleCollection rectangleCollection;
     private boolean completelyLoaded;
 
-    MapImageImpl(BufferedImage map, Rectangle geoCoverage, OSMapType osMapType, double scale) {
-        clean = new ArrayList<Rectangle>();
+    MapImageImpl(BufferedImage map, Rectangle geoCoverage,
+                 OSMapType osMapType, double scale) {
+        rectangleCollection = new RectangleCollection();
         this.map = map;
         this.osMapType = osMapType;
         this.geoCoverage = geoCoverage;
@@ -89,11 +92,15 @@ class MapImageImpl implements MapImage {
     public void reportDrawn(Rectangle rectangle) {
         Rectangle intersection = geoCoverage.intersection(rectangle);
         if (intersection.width * intersection.height > 0) {
-            clean.add(intersection);
+            rectangleCollection.add(intersection);
         }
     }
 
-    public ArrayList<Rectangle> getCleanRectangles() {
-        return clean;
+    public Collection<Rectangle> getCleanRectangles() {
+        return rectangleCollection;
+    }
+
+    public Rectangle getGeoCoverage() {
+        return geoCoverage;
     }
 }
