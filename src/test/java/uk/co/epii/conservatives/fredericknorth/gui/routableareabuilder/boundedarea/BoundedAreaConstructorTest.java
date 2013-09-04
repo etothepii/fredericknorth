@@ -36,7 +36,7 @@ public class BoundedAreaConstructorTest {
         constructor.add(new Point(2, 7), new BoundedArea[] {boundedArea});
         constructor.add(new Point(0,7), new BoundedArea[0]);
         constructor.add(new Point(0,3), new BoundedArea[0]);
-        Polygon polygon = constructor.getArea();
+        Polygon polygon = constructor.getAreas()[0];
         for (int i = 0; i < polygon.npoints; i++) {
             LOG.debug("({}, {})", new Object[] {polygon.xpoints[i], polygon.ypoints[i]});
         }

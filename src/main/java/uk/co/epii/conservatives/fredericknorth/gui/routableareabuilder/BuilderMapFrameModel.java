@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaOverlayItem;
@@ -83,7 +84,7 @@ public class BuilderMapFrameModel {
 
     private void updateAfterSelectionChange(BoundedArea changedTo) {
         if (changedTo != null) {
-            final Rectangle bounds = changedTo.getArea().getBounds();
+            final Rectangle bounds = PolygonExtensions.getBounds(changedTo.getAreas());
             LOG_SYNC.debug("Awaiting enabledSync");
             try {
                 synchronized (enabledSync) {
@@ -273,7 +274,7 @@ public class BuilderMapFrameModel {
         colorMap.put(BoundedAreaType.UNITARY_DISTRICT_WARD, Color.BLUE);
         colorMap.put(BoundedAreaType.UNITARY_DISTRICT, Color.RED);
         BufferedImage bufferedImage = dwellingCountReportBuilder.getImage(
-                master, flattenedList, colorMap, master.getArea().getBounds().getSize());
+                master, flattenedList, colorMap, PolygonExtensions.getBounds(master.getAreas()).getSize());
         try {
             ImageIO.write(bufferedImage, "png", largeMap);
             FileWriter fileWriter = new FileWriter(csvFile);

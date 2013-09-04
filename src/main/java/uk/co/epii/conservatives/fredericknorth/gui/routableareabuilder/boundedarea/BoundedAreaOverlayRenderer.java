@@ -31,14 +31,11 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
     private final Map<BoundedAreaType, Color> colors;
     private Point mouseGeoOnEdge;
     private Point mouseLocationWorldPosition;
-    private Polygon polygon;
+    private Polygon[] polygons;
     protected Color color;
     private Point nearestImagePointOnBoundary;
     private int radius = 5;
-    private int minX = Integer.MAX_VALUE;
-    private int minY = Integer.MAX_VALUE;
-    private int maxX = Integer.MIN_VALUE;
-    private int maxY = Integer.MIN_VALUE;
+    private Rectangle imageBounds;
 
     public BoundedAreaOverlayRenderer(Map<BoundedAreaType, Color> colors) {
         this.colors = colors;
@@ -46,9 +43,9 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
 
     @Override
     public boolean contains(int x, int y) {
-        x = x - minX + radius;
-        y = y - minY + radius;
-        if (polygon.contains(x, y)) return true;
+        x = x - imageBounds.x + radius;
+        y = y - imageBounds.y + radius;
+        if (PolygonExtensions.contains(polygons, x, y)) return true;
         return getMouseOnPolygon(new Point2D.Float(x, y)) != null;
     }
 
@@ -63,38 +60,38 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
                                                  Point mouseLocation) {
         Point mouseGeoLocation = imageAndGeoPointTranslator.getGeoLocation(mouseLocation);
         color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
-        minX = Integer.MAX_VALUE;
-        minY = Integer.MAX_VALUE;
-        maxX = Integer.MIN_VALUE;
-        maxY = Integer.MIN_VALUE;
-        Polygon polygon = overlayItem.getItem().getArea();
-        List<Point> points = new ArrayList<Point>(polygon.npoints);
-        for (int i = 0; i < polygon.npoints; i++) {
-            Point point = imageAndGeoPointTranslator.getImageLocation(
-                    new Point(polygon.xpoints[i], polygon.ypoints[i]));
-            minX = Math.min(minX, point.x);
-            minY = Math.min(minY, point.y);
-            maxX = Math.max(maxX, point.x);
-            maxY = Math.max(maxY, point.y);
-            if (i == 0 || !points.get(points.size() - 1).equals(point)) {
-                points.add(point);
+        Rectangle geoBounds = PolygonExtensions.getBounds(overlayItem.getItem().getAreas());
+        imageBounds = imageAndGeoPointTranslator.getGeoToImageTransform().
+                createTransformedShape(geoBounds).getBounds();
+        LOG.debug("imageBounds: {}", imageBounds);
+        Polygon[] polygons = overlayItem.getItem().getAreas();
+        this.polygons = new Polygon[polygons.length];
+        for (int q = 0; q < polygons.length; q++) {
+            Polygon polygon = polygons[q];
+            List<Point> points = new ArrayList<Point>(polygon.npoints);
+            for (int i = 0; i < polygon.npoints; i++) {
+                Point point = imageAndGeoPointTranslator.getImageLocation(
+                        new Point(polygon.xpoints[i], polygon.ypoints[i]));
+                if (i == 0 || !points.get(points.size() - 1).equals(point)) {
+                    points.add(point);
+                }
             }
+            int[] xpoints = new int[points.size()];
+            int[] ypoints = new int[points.size()];
+            for (int i = 0; i < points.size(); i++) {
+                Point point = points.get(i);
+                xpoints[i] = point.x - imageBounds.x + radius;
+                ypoints[i] = point.y - imageBounds.y + radius;
+            }
+            this.polygons[q] = new Polygon(xpoints, ypoints, points.size());
         }
-        int[] xpoints = new int[points.size()];
-        int[] ypoints = new int[points.size()];
-        for (int i = 0; i < points.size(); i++) {
-            Point point = points.get(i);
-            xpoints[i] = point.x - minX + radius;
-            ypoints[i] = point.y - minY + radius;
-        }
-        setPreferredSize(new Dimension(maxX - minX + radius * 2 + 1, maxY - minY + radius * 2 + 1));
+        setPreferredSize(new Dimension(imageBounds.width + radius * 2 + 1, imageBounds.height + radius * 2 + 1));
         setSize(getPreferredSize());
-        this.polygon = new Polygon(xpoints, ypoints, points.size());
         if (mouseGeoLocation != null) {
             Point mouseOnImage = imageAndGeoPointTranslator.getImageLocation(mouseGeoLocation);
             Point2D.Float mouseOnPolygon = new Point2D.Float(
-                    mouseOnImage.x - minX + radius,
-                    mouseOnImage.y - minY + radius);
+                    mouseOnImage.x - imageBounds.x + radius,
+                    mouseOnImage.y - imageBounds.y + radius);
             setMouseOnPolygon(mouseOnPolygon);
         }
         if (nearestImagePointOnBoundary == null) {
@@ -102,15 +99,15 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
         }
         else {
             Point2D.Float geoEdge = PolygonExtensions.getNearestPoint(
-                    overlayItem.getItem().getArea(), new Point2D.Float(mouseGeoLocation.x, mouseGeoLocation.y)).point;
+                    overlayItem.getItem().getAreas(), new Point2D.Float(mouseGeoLocation.x, mouseGeoLocation.y)).point;
             setMouseGeo(new Point(Math.round(geoEdge.x), Math.round(geoEdge.y)));
         }
         setLocation(-radius, -radius);
         return this;
     }
 
-    protected Polygon getPolygon() {
-        return polygon;
+    protected Polygon[] getPolygons() {
+        return polygons;
     }
 
     private void setMouseOnPolygon(Point2D.Float mouseOnPolygon) {
@@ -122,7 +119,7 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
         LOG.debug("mouseOnPolygon: {}", mouseOnPolygon);
         long time = System.nanoTime();
         NearestPoint nearestPoint =
-                PolygonExtensions.getNearestPoint(polygon, mouseOnPolygon);
+                PolygonExtensions.getNearestPoint(polygons, mouseOnPolygon);
         long took = System.nanoTime() - time;
         if (nearestPoint == null) {
             return null;
@@ -141,18 +138,20 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
     protected void paint(Graphics2D g) {
         long time = System.nanoTime();
         g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 64));
-        if (polygon.npoints < 3) {
-            return;
-        }
-        g.fillPolygon(polygon);
-        g.setColor(color);
-        Stroke original = g.getStroke();
-        g.setStroke(new BasicStroke(4));
-        g.drawPolygon(polygon);
-        g.setStroke(original);
-        if (nearestImagePointOnBoundary != null) {
-            LOG.debug("Nearest Boundary: {}", nearestImagePointOnBoundary);
-            g.fillOval(nearestImagePointOnBoundary.x - radius, nearestImagePointOnBoundary.y - radius, radius * 2, radius * 2);
+        for (Polygon polygon : polygons) {
+            if (polygon.npoints < 3) {
+                return;
+            }
+            g.fillPolygon(polygon);
+            g.setColor(color);
+            Stroke original = g.getStroke();
+            g.setStroke(new BasicStroke(4));
+            g.drawPolygon(polygon);
+            g.setStroke(original);
+            if (nearestImagePointOnBoundary != null) {
+                LOG.debug("Nearest Boundary: {}", nearestImagePointOnBoundary);
+                g.fillOval(nearestImagePointOnBoundary.x - radius, nearestImagePointOnBoundary.y - radius, radius * 2, radius * 2);
+            }
         }
         long took = System.nanoTime() - time;
         LOG.debug("Rendering overlay item: {}ns", took);

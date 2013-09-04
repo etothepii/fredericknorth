@@ -9,6 +9,7 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.VertexExtensi
 
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,14 +33,15 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
 
     @Override
     public void add(Point p, BoundedArea[] neighbours) {
-        List<Point> points = getPoints();
+        List<Point> points = getPoints().get(0);
         Point previous = points.isEmpty() ? null : points.get(points.size() - 1);
         if (previousNeighbours != null && !previousNeighbours.isEmpty()) {
             for (BoundedArea neighbour : neighbours) {
                 if (!previousNeighbours.contains(neighbour)) continue;
                 NearestPoint nearestPointToPrevious = neighbour.getNearestGeoPoint(new Point2D.Float(previous.x, previous.y));
                 if (nearestPointToPrevious.dSquared > 1.5f) continue;
-                addPointsBetween(new Point2D.Float(previous.x, previous.y), new Point2D.Float(p.x, p.y), neighbour);
+                addPointsBetween(new Point2D.Float(previous.x, previous.y), new Point2D.Float(p.x, p.y),
+                        nearestPointToPrevious.polygon);
                 break;
             }
         }
@@ -48,14 +50,13 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
         points.add(p);
     }
 
-    private void addPointsBetween(Point2D.Float previous, Point2D.Float toAdd, BoundedArea neighbour) {
-        NearestPoint nearestPointToPrevious = neighbour.getNearestGeoPoint(previous);
-        NearestPoint nearestPointToNew = neighbour.getNearestGeoPoint(toAdd);
+    private void addPointsBetween(Point2D.Float previous, Point2D.Float toAdd, Polygon neighbour) {
+        NearestPoint nearestPointToPrevious = PolygonExtensions.getNearestPoint(neighbour, previous);
+        NearestPoint nearestPointToNew = PolygonExtensions.getNearestPoint(neighbour, toAdd);
         int[] nearestPointToPreviousVertexIndicies = new int[nearestPointToPrevious.nearestVertices.length];
         int[] nearestPointToNewVertexIndicies = new int[nearestPointToNew.nearestVertices.length];
-        Polygon polygon = neighbour.getArea();
-        for (int i = 0; i < polygon.npoints; i++) {
-            Point2D.Float vertex = new Point2D.Float(polygon.xpoints[i], polygon.ypoints[i]);
+        for (int i = 0; i < neighbour.npoints; i++) {
+            Point2D.Float vertex = new Point2D.Float(neighbour.xpoints[i], neighbour.ypoints[i]);
             for (int j = 0; j < nearestPointToPrevious.nearestVertices.length; j++) {
                 if (VertexExtensions.dSquared(nearestPointToPrevious.nearestVertices[j].getCommonPoint(), vertex) < 1) {
                     nearestPointToPreviousVertexIndicies[j] = i;
@@ -77,8 +78,8 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
                 };
             }
         }
-        List<Point> pointsToAdd = PolygonExtensions.getShortestPathConnecting(polygon, pathsIndexes, previous, toAdd);
-        List<Point> points = getPoints();
+        List<Point> pointsToAdd = PolygonExtensions.getShortestPathConnecting(neighbour, pathsIndexes, previous, toAdd);
+        List<Point> points = getActivePoints();
         for (Point p : pointsToAdd) {
             LOG.debug("{}: {}", new Object[] {points.size(), p});
             points.add(p);
@@ -91,5 +92,12 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
 
     public DefaultBoundedArea lockDown() {
         return new DefaultBoundedArea(this);
+    }
+
+    public List<Point> getActivePoints() {
+        if (_points.isEmpty()) {
+            _points.add(new ArrayList<Point>());
+        }
+        return _points.get(_points.size());
     }
 }

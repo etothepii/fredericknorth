@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,10 +48,13 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
                 LOG_SYNC.debug("Received super.getPoints()");
                 if (loadedPoints) return;
                 MultiPolygon multiPolygon = (MultiPolygon)this.boundaryLineFeature.getAttribute("the_geom");
-                Coordinate[] coordinates = multiPolygon.getBoundary().getCoordinates();
-                List<Point> points = super.getPoints();
-                for (int i = 0; i < coordinates.length; i++) {
-                    points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+                for (int n = 0; n < multiPolygon.getNumGeometries(); n++) {
+                    Coordinate[] coordinates = multiPolygon.getGeometryN(n).getCoordinates();
+                    List<Point> points = new ArrayList<Point>();
+                    for (int i = 0; i < coordinates.length; i++) {
+                        points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+                    }
+                    super.getPoints().add(points);
                 }
                 loadedPoints = true;
             }
@@ -84,7 +88,7 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
     }
 
     @Override
-    protected List<Point> getPoints() {
+    protected List<List<Point>> getPoints() {
         if (!loadedPoints) {
             loadPoints();
         }

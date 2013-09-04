@@ -13,9 +13,7 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * User: James Robinson
@@ -60,7 +58,7 @@ public class PolygonExtensionsTest {
     @Test
     public void getNearestPointTest1() {
         NearestPoint result = PolygonExtensions.getNearestPoint(polygon, new Point2D.Float(2.9f, 2.5f));
-        NearestPoint expected = new NearestPoint(new Point2D.Float(3f, 2.5f), 0.01, null);
+        NearestPoint expected = new NearestPoint(null, new Point2D.Float(3f, 2.5f), 0.01, null);
         assertEquals(expected.point.getX(), result.point.getX(), 0.000001);
         assertEquals(expected.point.getY(), result.point.getY(), 0.000001);
         assertEquals(expected.dSquared, result.dSquared, 0.000001);
@@ -69,7 +67,7 @@ public class PolygonExtensionsTest {
     @Test
     public void getNearestPointTest2() {
         NearestPoint result = PolygonExtensions.getNearestPoint(polygon, new Point2D.Float(4f, 0.9f));
-        NearestPoint expected = new NearestPoint(new Point2D.Float(3f, 1f), 1.01, null);
+        NearestPoint expected = new NearestPoint(null, new Point2D.Float(3f, 1f), 1.01, null);
         assertEquals(expected.point.getX(), result.point.getX(), 0.000001);
         assertEquals(expected.point.getY(), result.point.getY(), 0.000001);
         assertEquals(expected.dSquared, result.dSquared, 0.000001);
@@ -151,14 +149,14 @@ public class PolygonExtensionsTest {
     public void getEdgesTest() {
         Edge[] result = PolygonExtensions.getEdges(polygon);
         Edge[] expected = new Edge[] {
-                new Edge(new Point(1,1),new Point(1,2)),
-                new Edge(new Point(1,2),new Point(2,2)),
-                new Edge(new Point(2,2),new Point(2,3)),
-                new Edge(new Point(2,3),new Point(1,3)),
-                new Edge(new Point(1,3),new Point(1,4)),
-                new Edge(new Point(1,4),new Point(3,4)),
-                new Edge(new Point(3,4),new Point(3,1)),
-                new Edge(new Point(3,1),new Point(1,1))
+                new Edge(polygon, new Point(1,1),new Point(1,2)),
+                new Edge(polygon, new Point(1,2),new Point(2,2)),
+                new Edge(polygon, new Point(2,2),new Point(2,3)),
+                new Edge(polygon, new Point(2,3),new Point(1,3)),
+                new Edge(polygon, new Point(1,3),new Point(1,4)),
+                new Edge(polygon, new Point(1,4),new Point(3,4)),
+                new Edge(polygon, new Point(3,4),new Point(3,1)),
+                new Edge(polygon, new Point(3,1),new Point(1,1))
         };
         assertArrayEquals(expected, result);
     }
@@ -167,14 +165,14 @@ public class PolygonExtensionsTest {
     public void getVerticesTest() {
         Vertex[] result = PolygonExtensions.getVertices(polygon);
         Vertex[] expected = new Vertex[] {
-                new Vertex(new Edge(new Point(3,1),new Point(1,1)),new Edge(new Point(1,1),new Point(1,2))),
-                new Vertex(new Edge(new Point(1,1),new Point(1,2)),new Edge(new Point(1,2),new Point(2,2))),
-                new Vertex(new Edge(new Point(1,2),new Point(2,2)),new Edge(new Point(2,2),new Point(2,3))),
-                new Vertex(new Edge(new Point(2,2),new Point(2,3)),new Edge(new Point(2,3),new Point(1,3))),
-                new Vertex(new Edge(new Point(2,3),new Point(1,3)),new Edge(new Point(1,3),new Point(1,4))),
-                new Vertex(new Edge(new Point(1,3),new Point(1,4)),new Edge(new Point(1,4),new Point(3,4))),
-                new Vertex(new Edge(new Point(1,4),new Point(3,4)),new Edge(new Point(3,4),new Point(3,1))),
-                new Vertex(new Edge(new Point(3,4),new Point(3,1)),new Edge(new Point(3,1),new Point(1,1)))
+                new Vertex(new Edge(polygon, new Point(3,1),new Point(1,1)),new Edge(polygon, new Point(1,1),new Point(1,2))),
+                new Vertex(new Edge(polygon, new Point(1,1),new Point(1,2)),new Edge(polygon, new Point(1,2),new Point(2,2))),
+                new Vertex(new Edge(polygon, new Point(1,2),new Point(2,2)),new Edge(polygon, new Point(2,2),new Point(2,3))),
+                new Vertex(new Edge(polygon, new Point(2,2),new Point(2,3)),new Edge(polygon, new Point(2,3),new Point(1,3))),
+                new Vertex(new Edge(polygon, new Point(2,3),new Point(1,3)),new Edge(polygon, new Point(1,3),new Point(1,4))),
+                new Vertex(new Edge(polygon, new Point(1,3),new Point(1,4)),new Edge(polygon, new Point(1,4),new Point(3,4))),
+                new Vertex(new Edge(polygon, new Point(1,4),new Point(3,4)),new Edge(polygon, new Point(3,4),new Point(3,1))),
+                new Vertex(new Edge(polygon, new Point(3,4),new Point(3,1)),new Edge(polygon, new Point(3,1),new Point(1,1)))
         };
         assertArrayEquals(expected, result);
     }

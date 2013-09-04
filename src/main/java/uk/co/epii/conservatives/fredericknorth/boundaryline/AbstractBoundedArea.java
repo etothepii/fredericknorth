@@ -27,14 +27,14 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     private String name;
     private final BoundedAreaType type;
-    protected final List<Point> _points;
+    protected final List<List<Point>> _points;
     protected final List<List<Point>> _enclavePoints;
     protected final List<BoundedArea> _childrenList;
 
     protected AbstractBoundedArea(BoundedAreaType type, String name) {
         this.type = type;
         this.name = name;
-        _points = new ArrayList<Point>();
+        _points = new ArrayList<List<Point>>();
         _enclavePoints = new ArrayList<List<Point>>();
         _childrenList = new ArrayList<BoundedArea>();
     }
@@ -61,8 +61,13 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
     }
 
     @Override
-    public Polygon getArea() {
-        return getPolygon(getPoints());
+    public Polygon[] getAreas() {
+        List<List<Point>> points = getPoints();
+        ArrayList<Polygon> polygons = new ArrayList<Polygon>(points.size());
+        for (List<Point> polygon : points) {
+            polygons.add(getPolygon(polygon));
+        }
+        return polygons.toArray(new Polygon[polygons.size()]);
     }
 
     @Override
@@ -96,17 +101,21 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
         boundedAreaElt.appendChild(nameElt);
         Element areaElt = document.createElement("Area");
         boundedAreaElt.appendChild(areaElt);
-        Element pointsElt = document.createElement("Points");
-        areaElt.appendChild(pointsElt);
-        for (Point point : getPoints()) {
-            Element pointElt = document.createElement("Point");
-            pointsElt.appendChild(pointElt);
-            Element xElt = document.createElement("X");
-            xElt.setTextContent(point.getX() + "");
-            pointElt.appendChild(xElt);
-            Element yElt = document.createElement("Y");
-            yElt.setTextContent(point.getY() + "");
-            pointElt.appendChild(yElt);
+        Element allPointsElt = document.createElement("AllPoints");
+        areaElt.appendChild(allPointsElt);
+        for (List<Point> points : getPoints()) {
+            Element pointsElt = document.createElement("Points");
+            allPointsElt.appendChild(pointsElt);
+            for (Point point : points) {
+                Element pointElt = document.createElement("Point");
+                pointsElt.appendChild(pointElt);
+                Element xElt = document.createElement("X");
+                xElt.setTextContent(point.getX() + "");
+                pointElt.appendChild(xElt);
+                Element yElt = document.createElement("Y");
+                yElt.setTextContent(point.getY() + "");
+                pointElt.appendChild(yElt);
+            }
         }
         Element enclavesElt = document.createElement("Enclaves");
         boundedAreaElt.appendChild(enclavesElt);
@@ -166,10 +175,10 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     @Override
     public NearestPoint getNearestGeoPoint(Point2D.Float point) {
-        return PolygonExtensions.getNearestPoint(getArea(), point);
+        return PolygonExtensions.getNearestPoint(getAreas(), point);
     }
 
-    protected List<Point> getPoints() {
+    protected List<List<Point>> getPoints() {
         return _points;
     }
 
