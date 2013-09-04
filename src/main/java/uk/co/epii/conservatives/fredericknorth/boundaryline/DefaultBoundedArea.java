@@ -47,8 +47,8 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
                 boundedArea.getElementsByTagName("Type").item(0).getTextContent());
         DefaultBoundedArea defaultBoundedArea = new DefaultBoundedArea(boundedAreaType, name);
         Element areaElt = (Element)boundedArea.getElementsByTagName("Area").item(0);
-        Element pointsElt = (Element)areaElt.getElementsByTagName("AllPoints").item(0);
-        defaultBoundedArea.getPoints().addAll(getAllPointsFromNode(pointsElt));
+        Element allPointsElt = (Element)areaElt.getElementsByTagName("AllPoints").item(0);
+        defaultBoundedArea.getPoints().addAll(getAllPointsFromNode(allPointsElt == null ? areaElt : allPointsElt));
         Element enclavesElt = (Element)areaElt.getElementsByTagName("Enclaves").item(0);
         if (enclavesElt != null) {
             NodeList enclavesList = enclavesElt.getElementsByTagName("Enclave");
