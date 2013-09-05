@@ -6,6 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 import uk.co.epii.conservatives.fredericknorth.geometry.Vertex;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
@@ -361,5 +362,36 @@ public class PolygonExtensions {
             if (polygon.contains(centreOfGravity)) return true;
         }
         return false;
+    }
+
+    public static Polygon transform(Polygon polygon, AffineTransform affineTransform) {
+        int[] xpoints = new int[polygon.npoints];
+        int[] ypoints = new int[polygon.npoints];
+        for (int i = 0; i < polygon.npoints; i++) {
+            Point2D.Float transformed = new Point2D.Float();
+            affineTransform.transform(new Point2D.Float(polygon.xpoints[i], polygon.ypoints[i]), transformed);
+            xpoints[i] = Math.round(transformed.x);
+            ypoints[i] = Math.round(transformed.y);
+        }
+        return new Polygon(xpoints, ypoints, polygon.npoints);
+    }
+
+    public static Polygon[] transform(Polygon[] polygons, AffineTransform affineTransform) {
+        Polygon[] transformed = new Polygon[polygons.length];
+        for (int i = 0; i < polygons.length; i++) {
+            transformed[i] = transform(polygons[i], affineTransform);
+        }
+        return transformed;
+    }
+
+    public static Polygon construct(List<Point> points) {
+        int[] xpoints = new int[points.size()];
+        int[] ypoints = new int[points.size()];
+        for (int i = 0; i < points.size(); i++) {
+            Point p = points.get(i);
+            xpoints[i] = p.x;
+            ypoints[i] = p.y;
+        }
+        return new Polygon(xpoints, ypoints, points.size());
     }
 }
