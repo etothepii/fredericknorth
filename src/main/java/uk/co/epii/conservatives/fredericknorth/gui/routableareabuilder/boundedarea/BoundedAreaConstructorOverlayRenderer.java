@@ -1,19 +1,30 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea;
 
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 
 import java.awt.*;
 import java.util.Map;
+import java.util.List;
 
 /**
  * User: James Robinson
  * Date: 31/07/2013
  * Time: 13:29
  */
-class BoundedAreaConstructorOverlayRenderer extends BoundedAreaOverlayRenderer {
+class BoundedAreaConstructorOverlayRenderer extends BoundedAreaOverlayRenderer<BoundedAreaConstructor> {
 
-    public BoundedAreaConstructorOverlayRenderer(Map<BoundedAreaType, Color> color) {
-        super(color);
+    public BoundedAreaConstructorOverlayRenderer(Map<BoundedAreaType, Color> colors) {
+        super(colors);
+    }
+    public Component getOverlayRendererComponent(OverlayItem<BoundedAreaConstructor> overlayItem,
+                                                 ImageAndGeoPointTranslator imageAndGeoPointTranslator,
+                                                 Point mouseLocation) {
+        color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
+        setGeoPolygons(new Polygon[] {PolygonExtensions.construct(overlayItem.getItem().getPointsToDraw())}, imageAndGeoPointTranslator);
+        return this;
     }
 
     protected void paint(Graphics2D g) {

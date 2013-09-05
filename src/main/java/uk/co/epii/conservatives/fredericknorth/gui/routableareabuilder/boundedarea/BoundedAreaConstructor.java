@@ -24,33 +24,75 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
 
     private final BoundedArea parent;
     private List<BoundedArea> previousNeighbours;
+    private Point currentPoint;
+    private List<BoundedArea> currentNeighbours;
+    private List<Point> inbetweenPoints;
 
     public BoundedAreaConstructor(BoundedArea parent, BoundedAreaType boundedAreaType, String name) {
         super(boundedAreaType, name);
         previousNeighbours = null;
         this.parent = parent;
+        getPoints().add(new ArrayList<Point>());
     }
 
     @Override
-    public void add(Point p, BoundedArea[] neighbours) {
+    public void addCurrent() {
+        if (currentPoint == null) {
+            return;
+        }
         List<Point> points = getPoints().get(0);
         Point previous = points.isEmpty() ? null : points.get(points.size() - 1);
+        if (currentPoint.equals(previous)) {
+            return;
+        }
+        points.addAll(inbetweenPoints);
+        points.add(currentPoint);
+        previousNeighbours = currentNeighbours;
+        inbetweenPoints = null;
+        currentNeighbours = null;
+        currentPoint = null;
+    }
+
+    public void setCurrent(Point p, BoundedArea[] neighbours) {
+        List<Point> points = getPoints().get(0);
+        Point previous = points.isEmpty() ? null : points.get(points.size() - 1);
+        inbetweenPoints = new ArrayList<Point>();
         if (previousNeighbours != null && !previousNeighbours.isEmpty()) {
             for (BoundedArea neighbour : neighbours) {
                 if (!previousNeighbours.contains(neighbour)) continue;
                 NearestPoint nearestPointToPrevious = neighbour.getNearestGeoPoint(new Point2D.Float(previous.x, previous.y));
                 if (nearestPointToPrevious.dSquared > 1.5f) continue;
-                addPointsBetween(new Point2D.Float(previous.x, previous.y), new Point2D.Float(p.x, p.y),
+                calculateCurrentPointsBetween(new Point2D.Float(previous.x, previous.y), new Point2D.Float(p.x, p.y),
                         nearestPointToPrevious.polygon);
                 break;
             }
         }
-        previousNeighbours = Arrays.asList(neighbours);
+        currentNeighbours = Arrays.asList(neighbours);
         LOG.debug("{}: {}", new Object[] {points.size(), p});
-        points.add(p);
+        currentPoint = p;
     }
 
-    private void addPointsBetween(Point2D.Float previous, Point2D.Float toAdd, Polygon neighbour) {
+    @Override
+    public List<Point> getPointsToDraw() {
+        List<Point> points = getPoints().get(0);
+        int pointCount = 1 + points.size() + (inbetweenPoints == null ? 0 : inbetweenPoints.size());
+        ArrayList<Point> pointsToDraw = new ArrayList<Point>(pointCount);
+        pointsToDraw.addAll(points);
+        if (inbetweenPoints != null) {
+            pointsToDraw.addAll(inbetweenPoints);
+        }
+        if (currentPoint != null) {
+            pointsToDraw.add(currentPoint);
+        }
+        if (LOG.isDebugEnabled()) {
+            for (Point point : pointsToDraw) {
+                LOG.debug("DrawPoint: {}", point);
+            }
+        }
+        return pointsToDraw;
+    }
+
+    private void calculateCurrentPointsBetween(Point2D.Float previous, Point2D.Float toAdd, Polygon neighbour) {
         NearestPoint nearestPointToPrevious = PolygonExtensions.getNearestPoint(neighbour, previous);
         NearestPoint nearestPointToNew = PolygonExtensions.getNearestPoint(neighbour, toAdd);
         int[] nearestPointToPreviousVertexIndicies = new int[nearestPointToPrevious.nearestVertices.length];
@@ -79,10 +121,9 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
             }
         }
         List<Point> pointsToAdd = PolygonExtensions.getShortestPathConnecting(neighbour, pathsIndexes, previous, toAdd);
-        List<Point> points = getActivePoints();
         for (Point p : pointsToAdd) {
-            LOG.debug("{}: {}", new Object[] {points.size(), p});
-            points.add(p);
+            LOG.debug("{}: {}", new Object[] {inbetweenPoints.size(), p});
+            inbetweenPoints.add(p);
         }
     }
 

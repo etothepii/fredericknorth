@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.AbstractOverlayItem;
@@ -14,6 +16,8 @@ import java.awt.*;
  * Time: 17:16
  */
 public class BoundedAreaOverlayItem extends AbstractOverlayItem<BoundedArea> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BoundedAreaOverlayItem.class);
 
     private Point boundsCenter;
     private Point boundsTopLeft;

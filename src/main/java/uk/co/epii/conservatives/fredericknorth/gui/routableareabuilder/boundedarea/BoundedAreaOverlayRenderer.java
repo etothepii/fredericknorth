@@ -12,6 +12,7 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayRenderer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Map;
@@ -22,13 +23,13 @@ import java.util.List;
  * Date: 21/07/2013
  * Time: 18:13
  */
-class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<BoundedArea> {
+class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implements OverlayRenderer<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BoundedAreaOverlayRenderer.class);
     private static final int STICKY_BOUNDARY_RADIUS = 5;
     private static final int STICKY_BOUNDARY_RADIUS_SQUARED = STICKY_BOUNDARY_RADIUS * STICKY_BOUNDARY_RADIUS;
 
-    private final Map<BoundedAreaType, Color> colors;
+    protected final Map<BoundedAreaType, Color> colors;
     private Point mouseGeoOnEdge;
     private Point mouseLocationWorldPosition;
     private Polygon[] polygons;
@@ -54,39 +55,35 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
         return contains(p.x, p.y);
     }
 
+    protected void setGeoPolygons(Polygon[] polygons, ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
+        Polygon[] geoPolygons = polygons;
+        Polygon[] imagePolygons = PolygonExtensions.transform(geoPolygons,
+                imageAndGeoPointTranslator.getGeoToImageTransform());
+        imageBounds = PolygonExtensions.getBounds(imagePolygons);
+        AffineTransform internalComponentTransform =
+                AffineTransform.getTranslateInstance(radius - imageBounds.x, radius - imageBounds.y);
+        LOG.debug("imageBounds: {}", imageBounds);
+        this.polygons = PolygonExtensions.transform(imagePolygons, internalComponentTransform);
+        if (LOG.isDebugEnabled()) {
+            for (Polygon polygon : this.polygons) {
+                LOG.debug("Setting polygon");
+                for (int i = 0; i < polygon.npoints; i++) {
+                    LOG.debug("{}: ({}, {})", new Object[] {i, polygon.xpoints[i], polygon.ypoints[i]});
+                }
+            }
+        }
+        setPreferredSize(new Dimension(imageBounds.width + radius * 2 + 1, imageBounds.height + radius * 2 + 1));
+        setSize(getPreferredSize());
+        setLocation(-radius, -radius);
+    }
+
     @Override
-    public Component getOverlayRendererComponent(OverlayItem<BoundedArea> overlayItem,
+    public Component getOverlayRendererComponent(OverlayItem<T> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator,
                                                  Point mouseLocation) {
         Point mouseGeoLocation = imageAndGeoPointTranslator.getGeoLocation(mouseLocation);
         color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
-        Rectangle geoBounds = PolygonExtensions.getBounds(overlayItem.getItem().getAreas());
-        imageBounds = imageAndGeoPointTranslator.getGeoToImageTransform().
-                createTransformedShape(geoBounds).getBounds();
-        LOG.debug("imageBounds: {}", imageBounds);
-        Polygon[] polygons = overlayItem.getItem().getAreas();
-        this.polygons = new Polygon[polygons.length];
-        for (int q = 0; q < polygons.length; q++) {
-            Polygon polygon = polygons[q];
-            List<Point> points = new ArrayList<Point>(polygon.npoints);
-            for (int i = 0; i < polygon.npoints; i++) {
-                Point point = imageAndGeoPointTranslator.getImageLocation(
-                        new Point(polygon.xpoints[i], polygon.ypoints[i]));
-                if (i == 0 || !points.get(points.size() - 1).equals(point)) {
-                    points.add(point);
-                }
-            }
-            int[] xpoints = new int[points.size()];
-            int[] ypoints = new int[points.size()];
-            for (int i = 0; i < points.size(); i++) {
-                Point point = points.get(i);
-                xpoints[i] = point.x - imageBounds.x + radius;
-                ypoints[i] = point.y - imageBounds.y + radius;
-            }
-            this.polygons[q] = new Polygon(xpoints, ypoints, points.size());
-        }
-        setPreferredSize(new Dimension(imageBounds.width + radius * 2 + 1, imageBounds.height + radius * 2 + 1));
-        setSize(getPreferredSize());
+        setGeoPolygons(overlayItem.getItem().getAreas(), imageAndGeoPointTranslator);
         if (mouseGeoLocation != null) {
             Point mouseOnImage = imageAndGeoPointTranslator.getImageLocation(mouseGeoLocation);
             Point2D.Float mouseOnPolygon = new Point2D.Float(
@@ -102,7 +99,6 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
                     overlayItem.getItem().getAreas(), new Point2D.Float(mouseGeoLocation.x, mouseGeoLocation.y)).point;
             setMouseGeo(new Point(Math.round(geoEdge.x), Math.round(geoEdge.y)));
         }
-        setLocation(-radius, -radius);
         return this;
     }
 

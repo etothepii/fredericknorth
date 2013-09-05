@@ -62,56 +62,65 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
     }
 
     @Override
+    public void mouseMovedTo(Point point) {
+        super.mouseMovedTo(point);
+        if (constructorOverlay.getItem() == null) return;
+        Map<BoundedArea, Point> boundedAreas =
+                new HashMap<BoundedArea, Point>();
+        int priority = Integer.MIN_VALUE;
+        Map<OverlayItem, MouseLocation> itemsMouseOver =
+                builderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
+        LOG.debug("itemsMouseOver.size(): {}", itemsMouseOver.size());
+        for (Map.Entry<OverlayItem, MouseLocation> entry : itemsMouseOver.entrySet()) {
+            if (!(entry.getKey().getItem() instanceof BoundedArea)) {
+                continue;
+            }
+            OverlayItem<BoundedArea> overlay = (OverlayItem<BoundedArea>)entry.getKey();
+            MouseLocation mouseLocation = entry.getValue();
+            LOG.debug("mouseLocations.isMouseStuck(): {}", mouseLocation.isMouseStuck());
+            if (!mouseLocation.isMouseStuck()) {
+                continue;
+            }
+            if (priority == overlay.getPriority() ) {
+                boundedAreas.put(overlay.getItem(), mouseLocation.getGeoLocation());
+            }
+            else if (overlay.getPriority() > priority && overlay.getItem() != constructorOverlay.getItem()) {
+                priority = overlay.getPriority();
+                boundedAreas.clear();
+                boundedAreas.put(overlay.getItem(), mouseLocation.getGeoLocation());
+            }
+        }
+        if (boundedAreas.isEmpty()) {
+            constructorOverlay.getItem().setCurrent(
+                    builderMapFrameModel.getMapPanelModel().getCurrentMapView().getGeoLocation(point),
+                    new BoundedArea[0]);
+            return;
+        }
+        HashSet<Point> points = new HashSet<Point>(boundedAreas.size());
+        BoundedArea[] neighbours = new BoundedArea[boundedAreas.size()];
+        int index = 0;
+        for (Map.Entry<BoundedArea, Point> mouseLocation : boundedAreas.entrySet()) {
+            neighbours[index++] = mouseLocation.getKey();
+            points.add(mouseLocation.getValue());
+        }
+        if (points.size() == 1) {
+            constructorOverlay.getItem().setCurrent(points.iterator().next(), neighbours);
+        }
+        else {
+            LOG.warn("There are too many points: {}", points);
+            LOG.warn("Taking median");
+            constructorOverlay.getItem().setCurrent(PointExtensions.getMedian(boundedAreas.values()), neighbours);
+        }
+    }
+
+    @Override
     public void clicked(MouseEvent e) {
         LOG.debug("You clicked me");
         if (e.getButton() == MouseEvent.BUTTON1) {
-            if (constructorOverlay.getItem() == null) return;
-            Map<BoundedArea, Point> boundedAreas =
-                    new HashMap<BoundedArea, Point>();
-            int priority = Integer.MIN_VALUE;
-            Map<OverlayItem, MouseLocation> itemsMouseOver =
-                    builderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
-            LOG.debug("itemsMouseOver.size(): {}", itemsMouseOver.size());
-            for (Map.Entry<OverlayItem, MouseLocation> entry : itemsMouseOver.entrySet()) {
-                if (!(entry.getKey().getItem() instanceof BoundedArea)) {
-                    continue;
-                }
-                OverlayItem<BoundedArea> overlay = (OverlayItem<BoundedArea>)entry.getKey();
-                MouseLocation mouseLocation = entry.getValue();
-                LOG.debug("mouseLocations.isMouseStuck(): {}", mouseLocation.isMouseStuck());
-                if (!mouseLocation.isMouseStuck()) {
-                    continue;
-                }
-                if (priority == overlay.getPriority() ) {
-                    boundedAreas.put(overlay.getItem(), mouseLocation.getGeoLocation());
-                }
-                else if (overlay.getPriority() > priority && overlay.getItem() != constructorOverlay.getItem()) {
-                    priority = overlay.getPriority();
-                    boundedAreas.clear();
-                    boundedAreas.put(overlay.getItem(), mouseLocation.getGeoLocation());
-                }
-            }
-            if (boundedAreas.isEmpty()) {
-                constructorOverlay.getItem().add(
-                        builderMapFrameModel.getMapPanelModel().getCurrentMapView().getGeoLocation(e.getPoint()),
-                        new BoundedArea[0]);
+            if (constructorOverlay.getItem() == null) {
                 return;
             }
-            HashSet<Point> points = new HashSet<Point>(boundedAreas.size());
-            BoundedArea[] neighbours = new BoundedArea[boundedAreas.size()];
-            int index = 0;
-            for (Map.Entry<BoundedArea, Point> mouseLocation : boundedAreas.entrySet()) {
-                neighbours[index++] = mouseLocation.getKey();
-                points.add(mouseLocation.getValue());
-            }
-            if (points.size() == 1) {
-                constructorOverlay.getItem().add(points.iterator().next(), neighbours);
-            }
-            else {
-                LOG.warn("There are too many points: {}", points);
-                LOG.warn("Taking median");
-                constructorOverlay.getItem().add(PointExtensions.getMedian(boundedAreas.values()), neighbours);
-            }
+            constructorOverlay.getItem().addCurrent();
         }
     }
 

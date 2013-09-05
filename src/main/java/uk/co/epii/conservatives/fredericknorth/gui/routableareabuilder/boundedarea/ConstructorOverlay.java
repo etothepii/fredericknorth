@@ -37,7 +37,7 @@ public class ConstructorOverlay implements OverlayItem<BoundedArea> {
         if (boundedAreaConstructor == null) {
             return new Point(0,0);
         }
-        Rectangle bounds = PolygonExtensions.getBounds(boundedAreaConstructor.getAreas());
+        Rectangle bounds = PolygonExtensions.construct(boundedAreaConstructor.getPointsToDraw()).getBounds();
         return imageAndGeoPointTranslator.getImageLocation(new Point(bounds.x, bounds.y + bounds.height));
     }
 
