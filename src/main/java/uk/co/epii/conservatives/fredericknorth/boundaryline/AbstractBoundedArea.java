@@ -189,4 +189,12 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
     protected List<List<Point>> getEnclavePoints() {
         return _enclavePoints;
     }
+
+    @Override
+    public String toString() {
+        return "AbstractBoundedArea{" +
+                "name='" + name + '\'' +
+                ", type=" + type +
+                '}';
+    }
 }
