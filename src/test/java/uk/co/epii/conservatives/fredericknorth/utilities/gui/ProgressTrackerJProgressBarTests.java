@@ -1,8 +1,7 @@
-package utilities.gui;
+package uk.co.epii.conservatives.fredericknorth.utilities.gui;
 
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
-import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerJProgressBar;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
