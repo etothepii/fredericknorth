@@ -3,7 +3,9 @@ package uk.co.epii.conservatives.fredericknorth.maps.gui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /**
@@ -54,7 +56,13 @@ public class MapPanelMouseTracker {
                     }
                     else {
                         if (stablePoint != null) {
-                            mouseStable(stablePoint);
+                            final Point finalStablePoint = stablePoint;
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mouseStable(finalStablePoint);
+                                }
+                            });
                         }
                         LOG_SYNC.debug("Awaiting sync");
                         try {
