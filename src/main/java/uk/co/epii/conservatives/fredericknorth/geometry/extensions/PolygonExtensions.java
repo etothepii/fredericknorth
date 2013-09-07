@@ -394,4 +394,39 @@ public class PolygonExtensions {
         }
         return new Polygon(xpoints, ypoints, points.size());
     }
+
+    public static Polygon[] translate(Polygon[] polygons, Point location) {
+        Polygon[] translated = new Polygon[polygons.length];
+        for (int i = 0; i < polygons.length; i++) {
+            translated[i] = translate(polygons[i], location);
+        }
+        return translated;
+    }
+
+    public static Polygon translate(Polygon polygon, Point location) {
+        int[] xpoints = new int[polygon.npoints];
+        int[] ypoints = new int[polygon.npoints];
+        for (int i = 0; i < polygon.npoints; i++) {
+            xpoints[i] = polygon.xpoints[i] + location.x;
+            ypoints[i] = polygon.ypoints[i] + location.y;
+        }
+        return new Polygon(xpoints, ypoints, polygon.npoints);
+    }
+
+    public static boolean intersects(Polygon[] polygons, Rectangle rectangle) {
+        for (Polygon polygon : polygons) {
+            Rectangle bounds = polygon.getBounds();
+            if (bounds.width == 0 || bounds.height == 0) {
+                if (rectangle.intersects(new Rectangle(bounds.x, bounds.y,
+                        bounds.width == 0 ? 1 : bounds.width,
+                        bounds.height == 0 ? 1 : bounds.height))) {
+                    return true;
+                }
+            }
+            else if (polygon.intersects(rectangle)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

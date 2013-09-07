@@ -20,9 +20,9 @@ import static org.junit.Assert.*;
  * Date: 23/07/2013
  * Time: 21:44
  */
-public class PolygonExtensionsTest {
+public class PolygonExtensionsTests {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PolygonExtensionsTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PolygonExtensionsTests.class);
     private Polygon polygon;
     private Polygon reversePolygon;
 
@@ -181,6 +181,14 @@ public class PolygonExtensionsTest {
     public void getInsideTest() {
         assertEquals(Handedness.RIGHT, PolygonExtensions.getInside(polygon));
         assertEquals(Handedness.LEFT, PolygonExtensions.getInside(reversePolygon));
+    }
+
+    @Test
+    public void intersectsTest1() {
+        Polygon polygon = new Polygon(new int[] {6}, new int[] {6}, 1);
+        boolean result = PolygonExtensions.intersects(new Polygon[] {polygon}, new Rectangle(new Dimension(10, 10)));
+        boolean expected = true;
+        assertEquals(expected, result);
     }
 
 }
