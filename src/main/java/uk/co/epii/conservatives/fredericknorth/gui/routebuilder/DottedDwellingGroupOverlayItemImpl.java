@@ -30,11 +30,6 @@ class DottedDwellingGroupOverlayItemImpl extends AbstractOverlayItem<DottedDwell
     }
 
     @Override
-    public boolean containedWithin(Shape geoShape) {
-        return geoShape.contains(getGeoLocationOfCenter());
-    }
-
-    @Override
     protected int compareToSameGeneric(OverlayItem<DottedDwellingGroup> o) {
         int comparison = getItem().getDwellingGroup().getPostcode().getPostcode().compareTo(
                 o.getItem().getDwellingGroup().getPostcode().getPostcode());

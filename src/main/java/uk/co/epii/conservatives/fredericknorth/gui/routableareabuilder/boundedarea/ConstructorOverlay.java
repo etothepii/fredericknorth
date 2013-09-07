@@ -4,7 +4,6 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayRenderer;
 
 import java.awt.*;
 
@@ -53,27 +52,6 @@ public class ConstructorOverlay implements OverlayItem<BoundedArea> {
     @Override
     public int getPriority() {
         return boundedAreaConstructor == null ? 0 : priority;
-    }
-
-    @Override
-    public boolean contains(Point imagePoint, ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                            OverlayRenderer<BoundedArea> overlayRenderer) {
-        if (boundedAreaConstructor == null) return false;
-        Point geoPoint = imageAndGeoPointTranslator.getGeoLocation(imagePoint);
-        if (!PolygonExtensions.getBounds(getItem().getAreas()).contains(geoPoint)) return false;
-        Component component = overlayRenderer.getOverlayRendererComponent(
-                this, imageAndGeoPointTranslator, imagePoint);
-        return component.contains(imagePoint);
-    }
-
-    @Override
-    public boolean containedWithin(Shape geoShape) {
-        for (Polygon area : getItem().getAreas()) {
-            for (int i = 0; i < area.npoints; i++) {
-                if (!geoShape.contains(area.xpoints[i], area.ypoints[i])) return false;
-            }
-        }
-        return true;
     }
 
     @Override

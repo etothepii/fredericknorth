@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundeda
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 
 import java.awt.*;
@@ -19,12 +20,16 @@ class BoundedAreaConstructorOverlayRenderer extends BoundedAreaOverlayRenderer<B
     public BoundedAreaConstructorOverlayRenderer(Map<BoundedAreaType, Color> colors) {
         super(colors);
     }
-    public Component getOverlayRendererComponent(OverlayItem<BoundedAreaConstructor> overlayItem,
-                                                 ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                                                 Point mouseLocation) {
-        color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
-        setGeoPolygons(new Polygon[] {PolygonExtensions.construct(overlayItem.getItem().getPointsToDraw())}, imageAndGeoPointTranslator);
-        return this;
+
+    @Override
+    protected void processMouseLocation(OverlayItem<BoundedAreaConstructor> overlayItem,
+                                        ImageAndGeoPointTranslator imageAndGeoPointTranslator, Point mouseLocation) {
+        // Do nothing with the mouse
+    }
+
+    @Override
+    protected Polygon[] deriveGeoPolygons(OverlayItem<BoundedAreaConstructor> overlayItem) {
+        return new Polygon[] {PolygonExtensions.construct(overlayItem.getItem().getPointsToDraw())};
     }
 
     protected void paint(Graphics2D g) {

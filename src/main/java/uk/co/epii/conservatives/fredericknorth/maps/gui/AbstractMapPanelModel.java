@@ -8,6 +8,7 @@ import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.*;
@@ -35,6 +36,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     private ProgressTracker progressTracker;
     private final Object selectionChangingSync = new Object();
     private MapImageObserver mapImageObserver;
+    private Collection<? extends RenderedOverlayBoundary> renderedOverlayBoundaries;
 
     protected AbstractMapPanelModel(MapViewGenerator mapViewGenerator) {
         this.progressTracker = NullProgressTracker.NULL;
@@ -67,6 +69,19 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
         if (fireOverlaysChanged) {
             fireOverlaysChanged();
         }
+    }
+
+    @Override
+    public void setRenderedOverlayBoundaries(Collection<? extends RenderedOverlayBoundary> renderedOverlayBoundaries) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new RuntimeException("The Rendered Overlays can only be updated from the Event Dispatch Thread");
+        }
+        for (RenderedOverlayBoundary renderedOverlayBoundary : renderedOverlayBoundaries) {
+            if (renderedOverlayBoundary == null) {
+                throw new NullPointerException("No null RenderedOverlayBoundaries allowed");
+            }
+        }
+        this.renderedOverlayBoundaries = renderedOverlayBoundaries;
     }
 
     @Override
@@ -146,9 +161,9 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     }
 
     @Override
-    public Component render(OverlayItem overlayItem) {
+    public RenderedOverlay render(MapPanel mapPanel, OverlayItem overlayItem) {
         return getOverlayRenderer(overlayItem.getItem().getClass())
-                .getOverlayRendererComponent(overlayItem, currentMapView, mouseAt);
+                .getOverlayRendererComponent(mapPanel, overlayItem, currentMapView, mouseAt);
     }
 
     public OverlayRenderer getOverlayRenderer(Class<?> overlayRendererClassStartingPoint) {
@@ -401,65 +416,51 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     @Override
     public Map<OverlayItem, MouseLocation> getImmutableOverlaysMouseOver() {
-        Map<OverlayItem, MouseLocation> overlaysMouseOver;
-        LOG_SYNC.debug("Awaiting overlays");
-        try {
-            synchronized (overlays) {
-                LOG_SYNC.debug("Received overlays");
-                overlaysMouseOver = new HashMap<OverlayItem, MouseLocation>(overlays.size());
-                for (OverlayItem overlayItem : overlays) {
-                    if (overlayItem.getItem() == null) {
-                        continue;
-                    }
-                    MouseLocation mouseOverAt = mouseOverAt(overlayItem);
-                    if (mouseOverAt != null) {
-                        overlaysMouseOver.put(overlayItem, mouseOverAt);
-                    }
+        return getImmutableOverlaysMouseOver(0);
+    }
+
+    public Map<OverlayItem, MouseLocation> getImmutableOverlaysMouseOver(int stopAt) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new RuntimeException("The getImmutableOverlaysMouseOver method " +
+                    "should only be called from the EventDispatchThread");
+        }
+        if (renderedOverlayBoundaries == null) {
+            return new HashMap<OverlayItem, MouseLocation>(0);
+        }
+        if (getMouseAt() == null) {
+            LOG.warn("Mouse Location not set");
+            return new HashMap<OverlayItem, MouseLocation>(0);
+        }
+        Map<OverlayItem, MouseLocation> overlaysMouseOver =
+                new HashMap<OverlayItem, MouseLocation>(renderedOverlayBoundaries.size());
+        for (RenderedOverlayBoundary renderedOverlayBoundary : renderedOverlayBoundaries) {
+            OverlayItem overlayItem = renderedOverlayBoundary.getOverlayItem();
+            if (overlayItem.getItem() == null) {
+                continue;
+            }
+            boolean onEdge = renderedOverlayBoundary.isOnEdge(getMouseAt());
+            boolean inside = renderedOverlayBoundary.isInside(getMouseAt());
+            if (inside) {
+                overlaysMouseOver.put(overlayItem,
+                        new MouseLocationImpl(getMouseAt(),
+                                getCurrentMapView().getGeoLocation(getMouseAt()), onEdge));
+                if (overlaysMouseOver.size() == stopAt) {
+                    break;
                 }
             }
-        }
-        finally {
-            LOG_SYNC.debug("Released overlays");
         }
         return overlaysMouseOver;
     }
 
     @Override
     public boolean isMouseOverItems() {
-        Map<OverlayItem, MouseLocation> overlaysMouseOver;
-        LOG_SYNC.debug("Awaiting overlays");
-        try {
-            synchronized (overlays) {
-                LOG_SYNC.debug("Received overlays");
-                for (OverlayItem overlayItem : overlays) {
-                    MouseLocation mouseOverAt = mouseOverAt(overlayItem);
-                    if (mouseOverAt != null) {
-                        return true;
-                    }
-                }
-            }
-        }
-        finally {
-            LOG_SYNC.debug("Released overlays");
-        }
-        return false;
+        return getImmutableOverlaysMouseOver(1).size() == 1;
     }
 
     @Override
     public void display(Rectangle rectangle) {
         mapViewGenerator.scaleToFitRectangle(rectangle, progressTracker, mapImageObserver);
         LOG.debug("Universe loading complete");
-    }
-
-    private MouseLocation mouseOverAt(OverlayItem overlayItem) {
-        OverlayRenderer renderer = getOverlayRenderer(overlayItem.getItem().getClass());
-        if (!overlayItem.contains(getMouseAt(), getCurrentMapView(), renderer)) {
-            return null;
-        }
-        return new MouseLocationImpl(
-                getMouseAt(),
-                renderer.getMouseGeo(),
-                renderer.isMouseOnBoundary());
     }
 
     @Override

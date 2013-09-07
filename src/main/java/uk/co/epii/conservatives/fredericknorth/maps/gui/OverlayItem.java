@@ -14,7 +14,4 @@ public interface OverlayItem<T> extends Comparable<OverlayItem> {
     public Point getTopLeft(Dimension size, ImageAndGeoPointTranslator imageAndGeoPointTranslator);
     public T getItem();
     public int getPriority();
-    public boolean contains(Point imagePoint, ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                            OverlayRenderer<T> overlayRenderer);
-    public boolean containedWithin(Shape geoShape);
 }

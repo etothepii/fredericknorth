@@ -1,12 +1,14 @@
 package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -15,9 +17,9 @@ import java.awt.geom.AffineTransform;
  */
 public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionListener, MouseListener, KeyListener {
 
-    private static final Logger LOG = Logger.getLogger(MapPanel.class);
-    private static final Logger LOG_SYNC = Logger.getLogger(MapPanel.class.getName().concat("_sync"));
-    private static final Logger LOG_PAINT = Logger.getLogger(MapPanel.class.getName().concat("_paint"));
+    private static final Logger LOG = LoggerFactory.getLogger(MapPanel.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(MapPanel.class.getName().concat("_sync"));
+    private static final Logger LOG_PAINT = LoggerFactory.getLogger(MapPanel.class.getName().concat("_paint"));
 
     private final MapPanelModel mapPanelModel;
     private final double zoomRate;
@@ -49,19 +51,24 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
         LOG_PAINT.debug("Got currentMapView");
         g.drawImage(currentMapView.getMap(), 0, 0, this);
         LOG_PAINT.debug("Drawn Image");
-        for(OverlayItem overlayItem : mapPanelModel.getImmutableOverlayItems()) {
+        List<OverlayItem> overlays = mapPanelModel.getImmutableOverlayItems();
+        List<RenderedOverlayBoundary> boundaries = new ArrayList<RenderedOverlayBoundary>(overlays.size());
+        for(OverlayItem overlayItem : overlays) {
             if (overlayItem.getItem() == null) {
                 continue;
             }
-            Component renderedOverlay = mapPanelModel.render(overlayItem);
-            Dimension renderedSize = renderedOverlay.getSize();
-            Point drawFrom = overlayItem.getTopLeft(renderedSize, currentMapView);
-            drawFrom = new Point(
-                    drawFrom.x + renderedOverlay.getLocation().x,
-                    drawFrom.y + renderedOverlay.getLocation().y);
-            renderedOverlay.paint(g.create(drawFrom.x, drawFrom.y, renderedSize.width, renderedSize.height));
+            RenderedOverlay renderedOverlay = mapPanelModel.render(this, overlayItem);
+            if (renderedOverlay.getBoundary() == null) {
+                LOG_PAINT.debug("No RenderedOverlayBoundary returned for {}", overlayItem.getItem().toString());
+                continue;
+            }
+            Dimension renderedSize = renderedOverlay.getComponent().getSize();
+            Point location = renderedOverlay.getComponent().getLocation();
+            renderedOverlay.getComponent().paint(g.create(location.x, location.y, renderedSize.width, renderedSize.height));
+            boundaries.add(renderedOverlay.getBoundary());
         }
         LOG_PAINT.debug("Drawn Overlays");
+        mapPanelModel.setRenderedOverlayBoundaries(boundaries);
     }
 
     @Override
@@ -84,6 +91,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        LOG.debug("mouseMovedTo: {}", e.getPoint());
         if (!isEnabled()) return;
         mapPanelModel.mouseMovedTo(e.getPoint());
         repaint();

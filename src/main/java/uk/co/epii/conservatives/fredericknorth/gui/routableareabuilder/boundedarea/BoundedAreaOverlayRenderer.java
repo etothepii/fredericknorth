@@ -7,8 +7,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayRenderer;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,7 +54,8 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
         return contains(p.x, p.y);
     }
 
-    protected void setGeoPolygons(Polygon[] polygons, ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
+    protected void setGeoPolygons(Polygon[] polygons, OverlayItem overlayItem,
+                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
         Polygon[] geoPolygons = polygons;
         Polygon[] imagePolygons = PolygonExtensions.transform(geoPolygons,
                 imageAndGeoPointTranslator.getGeoToImageTransform());
@@ -74,16 +74,32 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
         }
         setPreferredSize(new Dimension(imageBounds.width + radius * 2 + 1, imageBounds.height + radius * 2 + 1));
         setSize(getPreferredSize());
-        setLocation(-radius, -radius);
+        Point drawFrom = overlayItem.getTopLeft(getSize(), imageAndGeoPointTranslator);
+        setLocation(drawFrom.x - radius, drawFrom.y - radius);
     }
 
     @Override
-    public Component getOverlayRendererComponent(OverlayItem<T> overlayItem,
+    public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<T> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator,
                                                  Point mouseLocation) {
-        Point mouseGeoLocation = imageAndGeoPointTranslator.getGeoLocation(mouseLocation);
         color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
-        setGeoPolygons(overlayItem.getItem().getAreas(), imageAndGeoPointTranslator);
+        setGeoPolygons(deriveGeoPolygons(overlayItem), overlayItem, imageAndGeoPointTranslator);
+        processMouseLocation(overlayItem, imageAndGeoPointTranslator, mouseLocation);
+        Polygon[] screenPolygons = PolygonExtensions.translate(polygons, getLocation());
+        boolean polygonsVisible =
+                PolygonExtensions.intersects(polygons, new Rectangle(mapPanel.getSize()));
+        return new RenderedOverlay(this, polygonsVisible ?
+                new RenderedOverlayPolygonBoundaryImpl(overlayItem, screenPolygons, radius) : null);
+    }
+
+
+
+    protected Polygon[] deriveGeoPolygons(OverlayItem<T> overlayItem) {
+        return overlayItem.getItem().getAreas();
+    }
+
+    protected void processMouseLocation(OverlayItem<T> overlayItem, ImageAndGeoPointTranslator imageAndGeoPointTranslator, Point mouseLocation) {
+        Point mouseGeoLocation = imageAndGeoPointTranslator.getGeoLocation(mouseLocation);
         if (mouseGeoLocation != null) {
             Point mouseOnImage = imageAndGeoPointTranslator.getImageLocation(mouseGeoLocation);
             Point2D.Float mouseOnPolygon = new Point2D.Float(
@@ -99,7 +115,6 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
                     overlayItem.getItem().getAreas(), new Point2D.Float(mouseGeoLocation.x, mouseGeoLocation.y)).point;
             setMouseGeo(new Point(Math.round(geoEdge.x), Math.round(geoEdge.y)));
         }
-        return this;
     }
 
     protected Polygon[] getPolygons() {
@@ -153,17 +168,7 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
         LOG.debug("Rendering overlay item: {}ns", took);
     }
 
-    @Override
-    public Point getMouseGeo() {
-        return mouseLocationWorldPosition;
-    }
-
     private void setMouseGeo(Point mouseGeo) {
         mouseLocationWorldPosition = mouseGeo;
-    }
-
-    @Override
-    public boolean isMouseOnBoundary() {
-        return nearestImagePointOnBoundary != null;
     }
 }
