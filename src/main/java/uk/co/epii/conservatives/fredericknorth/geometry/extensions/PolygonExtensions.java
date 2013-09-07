@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.Edge;
 import uk.co.epii.conservatives.fredericknorth.geometry.Handedness;
 import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
@@ -17,6 +19,8 @@ import java.util.List;
  * Time: 21:26
  */
 public class PolygonExtensions {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PolygonExtensions.class);
 
     public static boolean isConvex(Polygon polygon) {
         throw new UnsupportedOperationException("This operation is not yet supported");
@@ -414,19 +418,50 @@ public class PolygonExtensions {
     }
 
     public static boolean intersects(Polygon[] polygons, Rectangle rectangle) {
+        LOG.debug("rectangle: {}", rectangle);
         for (Polygon polygon : polygons) {
+            LOG.debug("polygon.getBounds(): {}", polygon.getBounds());
             Rectangle bounds = polygon.getBounds();
             if (bounds.width == 0 || bounds.height == 0) {
                 if (rectangle.intersects(new Rectangle(bounds.x, bounds.y,
                         bounds.width == 0 ? 1 : bounds.width,
                         bounds.height == 0 ? 1 : bounds.height))) {
+                    LOG.debug("intersects");
                     return true;
                 }
             }
             else if (polygon.intersects(rectangle)) {
+                LOG.debug("intersects");
                 return true;
             }
         }
+        LOG.debug("doesn't intersect");
         return false;
+    }
+
+    public static Polygon[] removeRedundancies(Polygon[] polygons) {
+        Polygon[] reduced = new Polygon[polygons.length];
+        for (int i = 0; i < polygons.length; i++) {
+            reduced[i] = removeRedundancies(polygons[i]);
+        }
+        return reduced;
+    }
+
+    public static Polygon removeRedundancies(Polygon polygon) {
+        int[] xpoints = new int[polygon.npoints];
+        int[] ypoints = new int[polygon.npoints];
+        int reducedPointCount = 0;
+        for (int i = 0; i < polygon.npoints; i++) {
+            if (reducedPointCount == 0 || polygon.xpoints[i] != xpoints[reducedPointCount - 1] || polygon.ypoints[i] != ypoints[reducedPointCount - 1]) {
+                xpoints[reducedPointCount] = polygon.xpoints[i];
+                ypoints[reducedPointCount] = polygon.ypoints[i];
+                reducedPointCount++;
+            }
+        }
+        if (reducedPointCount > 1 && xpoints[0] == xpoints[reducedPointCount - 1] &&
+                ypoints[0] == ypoints[reducedPointCount - 1]) {
+            reducedPointCount--;
+        }
+        return new Polygon(xpoints, ypoints, reducedPointCount);
     }
 }
