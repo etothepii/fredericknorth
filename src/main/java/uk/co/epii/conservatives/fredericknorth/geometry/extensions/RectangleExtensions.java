@@ -2,8 +2,11 @@ package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.RectangleIntersection;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.util.*;
 import java.util.List;
 
@@ -97,5 +100,105 @@ public class RectangleExtensions {
             }
         }
         return surrounding;
+    }
+
+    public static RectangleIntersection[] getIntersection(Rectangle rectangle, Point from, Point to) {
+        List<RectangleIntersection> intersectionsList = new ArrayList<RectangleIntersection>(2);
+        Line2D.Float line = new Line2D.Float(from.x, from.y, to.x, to.y);
+        if (line.intersectsLine(
+                rectangle.x, rectangle.y, rectangle.x + rectangle.width, rectangle.y)) {
+            double ratio = (rectangle.y - from.getY()) / (from.getY() - to.getY());
+            double dx = ratio * (from.getX() - to.getX());
+            intersectionsList.add(new RectangleIntersection(new Point((int) (dx + from.getX()), rectangle.y), SwingConstants.NORTH));
+        }
+        if (line.intersectsLine(
+                rectangle.x + rectangle.width, rectangle.y, rectangle.x + rectangle.width, rectangle.y + rectangle.height)) {
+            double ratio = (rectangle.x + rectangle.width - to.getX()) / (to.getX() - from.getX());
+            double dy = ratio * (to.getY() - from.getY());
+            intersectionsList.add(new RectangleIntersection(new Point(rectangle.x + rectangle.width, (int) (dy + to.getY())), SwingConstants.EAST));
+        }
+        if (line.intersectsLine(
+                rectangle.x + rectangle.width, rectangle.y + rectangle.height, rectangle.x, rectangle.y + rectangle.height)) {
+            double ratio = (rectangle.y + rectangle.height - to.getY()) / (to.getY() - from.getY());
+            double dx = ratio * (to.getX() - from.getX());
+            intersectionsList.add(new RectangleIntersection(new Point((int) (dx + to.getX()), rectangle.y + rectangle.height), SwingConstants.SOUTH));
+
+        }
+        if (line.intersectsLine(
+                rectangle.x, rectangle.y + rectangle.height, rectangle.x, rectangle.y)) {
+            double ratio = (rectangle.x - from.getX()) / (from.getX() - to.getX());
+            double dy = ratio * (from.getY() - to.getY());
+            intersectionsList.add(new RectangleIntersection(new Point(rectangle.x, (int) (dy + from.getY())), SwingConstants.WEST));
+        }
+        if (intersectionsList.isEmpty()) {
+            return new RectangleIntersection[0];
+        }
+        else if (intersectionsList.size() == 1) {
+            return new RectangleIntersection[] {intersectionsList.get(0)};
+        }
+        else if (intersectionsList.size() == 2) {
+            RectangleIntersection[] intersections = new RectangleIntersection[] {
+                    intersectionsList.get(0), intersectionsList.get(1)
+            };
+            if (shouldSwitchRectangleIntersections(
+                    intersections[0].getEdgeCrossed(),
+                    intersections[1].getEdgeCrossed(),
+                    from, to)) {
+                return new RectangleIntersection[] {intersections[1], intersections[0]};
+            }
+            return intersections;
+        }
+        throw new RuntimeException("It is not possible to cross more than two edges of a rectangle with a straight line. " +
+                "You have a Euclidean Plane Fail");
+    }
+
+    static boolean shouldSwitchRectangleIntersections(int edgeCrossedA, int edgeCrossedB, Point from, Point to) {
+        switch (edgeCrossedA) {
+            case SwingConstants.NORTH:
+                switch (edgeCrossedB) {
+                    case SwingConstants.EAST:
+                        return to.x < from.x;
+                    case SwingConstants.SOUTH:
+                        return to.y < from.y;
+                    case SwingConstants.WEST:
+                        return to.x > from.x;
+                }
+            case SwingConstants.EAST:
+                switch (edgeCrossedB) {
+                    case SwingConstants.NORTH:
+                        return to.x > from.x;
+                    case SwingConstants.SOUTH:
+                        return to.y < from.y;
+                    case SwingConstants.WEST:
+                        return to.x > from.x;
+                }
+            case SwingConstants.SOUTH:
+                switch (edgeCrossedB) {
+                    case SwingConstants.NORTH:
+                        return to.y > from.y;
+                    case SwingConstants.EAST:
+                        return to.y > from.y;
+                    case SwingConstants.WEST:
+                        return to.x > from.x;
+                }
+            case SwingConstants.WEST:
+                switch (edgeCrossedB) {
+                    case SwingConstants.NORTH:
+                        return to.x < from.x;
+                    case SwingConstants.EAST:
+                        return to.x < from.x;
+                    case SwingConstants.SOUTH:
+                        return to.x < from.x;
+                }
+        }
+        throw new IllegalArgumentException(String.format(
+                "The combination of edges crossed %d and %d is not supported", edgeCrossedA, edgeCrossedB));
+    }
+
+    public static Polygon toPolygon(Rectangle rectangle) {
+        return new Polygon(
+                new int[] {rectangle.x, rectangle.x + rectangle.width, rectangle.x + rectangle.width, rectangle.x},
+                new int[] {rectangle.y, rectangle.y, rectangle.y+ rectangle.height, rectangle.y + rectangle.height},
+                4);
     }
 }
