@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -45,4 +46,19 @@ public class PointExtensions {
         return new Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
 
+    public static Point2D.Float toFloat(Point point) {
+        return new Point2D.Float(point.x, point.y);
+    }
+
+    public static Point2D.Double toDouble(Point point) {
+        return new Point2D.Double(point.x, point.y);
+    }
+
+    public static Point fromFloat(Point2D.Float point) {
+        return new Point(Math.round(point.x), Math.round(point.y));
+    }
+
+    public static Point fromDouble(Point2D.Double point) {
+        return new Point((int)Math.round(point.x), (int)Math.round(point.y));
+    }
 }
