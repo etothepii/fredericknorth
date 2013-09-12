@@ -152,6 +152,34 @@ public class RectangleExtensions {
                 "You have a Euclidean Plane Fail");
     }
 
+    public static Integer getEdge(Rectangle rectangle, Point point) {
+        if (point.x == rectangle.x && point.y == rectangle.y) {
+            return SwingConstants.NORTH_WEST;
+        }
+        else if (point.x == rectangle.x + rectangle.width && point.y == rectangle.y) {
+            return SwingConstants.NORTH_EAST;
+        }
+        else if (point.x == rectangle.x && point.y == rectangle.y + rectangle.height) {
+            return SwingConstants.SOUTH_WEST;
+        }
+        else if (point.x == rectangle.x + rectangle.width && point.y == rectangle.y + rectangle.height) {
+            return SwingConstants.SOUTH_EAST;
+        }
+        else if (point.y == rectangle.y && point.x > rectangle.x && point.x < rectangle.x + rectangle.width) {
+            return SwingConstants.NORTH;
+        }
+        else if (point.y == rectangle.y + rectangle.height && point.x > rectangle.x && point.x < rectangle.x + rectangle.width) {
+            return SwingConstants.SOUTH;
+        }
+        else if (point.x == rectangle.x && point.y > rectangle.y && point.y < rectangle.y + rectangle.height) {
+            return SwingConstants.WEST;
+        }
+        else if (point.x == rectangle.x + rectangle.width && point.y > rectangle.y && point.y < rectangle.y + rectangle.height) {
+            return SwingConstants.EAST;
+        }
+        return null;
+    }
+
     static boolean shouldSwitchRectangleIntersections(int edgeCrossedA, int edgeCrossedB, Point from, Point to) {
         switch (edgeCrossedA) {
             case SwingConstants.NORTH:
