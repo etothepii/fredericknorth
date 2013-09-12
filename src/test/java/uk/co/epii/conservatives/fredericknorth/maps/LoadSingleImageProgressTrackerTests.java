@@ -4,8 +4,8 @@ import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerJProgressBar;
 
-import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 /**
  * User: James Robinson
