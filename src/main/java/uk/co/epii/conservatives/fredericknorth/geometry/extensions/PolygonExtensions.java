@@ -2,13 +2,11 @@ package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.epii.conservatives.fredericknorth.geometry.Edge;
-import uk.co.epii.conservatives.fredericknorth.geometry.Handedness;
-import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
-import uk.co.epii.conservatives.fredericknorth.geometry.Vertex;
+import uk.co.epii.conservatives.fredericknorth.geometry.*;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
@@ -54,6 +52,18 @@ public class PolygonExtensions {
             a += x_1 * y_2 - x_2 * y_1;
         }
         return a / 2;
+    }
+
+    public static boolean isClockwise(Polygon polygon) {
+        double a = 0;
+        for (int i = 0; i < polygon.npoints; i++) {
+            double x_1 = polygon.xpoints[i];
+            double y_1 = polygon.ypoints[i];
+            double x_2 = polygon.xpoints[i == polygon.npoints - 1 ? 0 : i + 1];
+            double y_2 = polygon.ypoints[i == polygon.npoints - 1 ? 0 : i + 1];
+            a += (x_2 - x_1) * (y_1 + y_2);
+        }
+        return a < 0; //Compared to standard access its reflected through x=0
     }
 
     public static Polygon[] getConvexPolygons(Polygon polygon) {
@@ -368,6 +378,13 @@ public class PolygonExtensions {
         return false;
     }
 
+    public static boolean contains(Polygon[] polygons, Rectangle rectangle) {
+        for (Polygon polygon : polygons) {
+            if (polygon.contains(rectangle)) return true;
+        }
+        return false;
+    }
+
     public static Polygon transform(Polygon polygon, AffineTransform affineTransform) {
         int[] xpoints = new int[polygon.npoints];
         int[] ypoints = new int[polygon.npoints];
@@ -463,5 +480,71 @@ public class PolygonExtensions {
             reducedPointCount--;
         }
         return new Polygon(xpoints, ypoints, reducedPointCount);
+    }
+
+    public static Shape[] clip(Polygon polygon, Rectangle clip) {
+        List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
+        if (clippedSegments.size() == 1) {
+            return new Shape[] {clippedSegments.get(0).inside ? polygon : clip};
+        }
+        return new ClippedPolygonFactory(polygon, clip, clippedSegments).build();
+    }
+
+    public static List<ClippedSegment> getClippedSegments(Polygon polygon, Rectangle clip) {
+        polygon = PolygonExtensions.removeRedundancies(polygon);
+        Point previous = null;
+        boolean inside = false;
+        List<Point> points = new ArrayList<Point>();
+        List<ClippedSegment> clippedSegments = new ArrayList<ClippedSegment>();
+        for (int i = 0; i <= polygon.npoints; i++) {
+            Point point = new Point(polygon.xpoints[i % polygon.npoints], polygon.ypoints[i % polygon.npoints]);
+            if (previous == null) {
+                inside = clip.contains(point);
+            }
+            else {
+                if (RectangleExtensions.getEdge(clip, point) == null && RectangleExtensions.getEdge(clip, previous) == null) {
+                    RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
+                    for (RectangleIntersection intersection : intersections) {
+                        points.add(intersection.getIntersection());
+                        clippedSegments.add(new ClippedSegment(points, inside));
+                        points.clear();
+                        inside = !inside;
+                        points.add(intersection.getIntersection());
+                    }
+                }
+                else if (RectangleExtensions.getEdge(clip, point) != null) {
+                    points.add(point);
+                    clippedSegments.add(new ClippedSegment(points, inside));
+                    points.clear();
+                    inside = !inside;
+                }
+            }
+            points.add(point);
+            previous = point;
+        }
+        if (clippedSegments.isEmpty()) {
+            clippedSegments.add(new ClippedSegment(points, inside));
+        }
+        else if (clippedSegments.get(0).inside == inside) {
+            if (!points.isEmpty()) {
+                clippedSegments.get(0).points.addAll(0, points.subList(0, points.size() - 1));
+            }
+        }
+        else if (RectangleExtensions.getEdge(clip, clippedSegments.get(0).points.get(0)) != null) {
+            clippedSegments.add(new ClippedSegment(points, inside));
+        }
+        else {
+            throw new RuntimeException("The surface has exhibited the behaviour of a Klein bottle");
+        }
+        return clippedSegments;
+    }
+
+
+    public static Point[] toPointArray(Polygon polygon) {
+        Point[] points = new Point[polygon.npoints];
+        for (int i = 0; i < polygon.npoints; i++) {
+            points[i] = new Point(polygon.xpoints[i], polygon.ypoints[i]);
+        }
+        return points;
     }
 }
