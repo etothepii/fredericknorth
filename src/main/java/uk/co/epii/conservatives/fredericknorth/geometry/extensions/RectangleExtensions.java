@@ -229,4 +229,10 @@ public class RectangleExtensions {
                 new int[] {rectangle.y, rectangle.y, rectangle.y+ rectangle.height, rectangle.y + rectangle.height},
                 4);
     }
+
+    public static Rectangle fromPoints(Point from, Point to) {
+        return new Rectangle(
+                new Point(Math.min(from.x, to.x), Math.min(from.y, to.y)),
+                new Dimension(Math.abs(to.x - from.x), Math.abs(to.y - from.y)));
+    }
 }
