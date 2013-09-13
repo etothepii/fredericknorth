@@ -2,10 +2,12 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundeda
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.java2d.SunGraphics2D;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 
@@ -25,6 +27,8 @@ import java.util.List;
 class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implements OverlayRenderer<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BoundedAreaOverlayRenderer.class);
+    private static final Logger LOG_POINTBYPOINT =
+            LoggerFactory.getLogger(BoundedAreaOverlayRenderer.class.getName().concat("_pointByPoint"));
     private static final int STICKY_BOUNDARY_RADIUS = 5;
     private static final int STICKY_BOUNDARY_RADIUS_SQUARED = STICKY_BOUNDARY_RADIUS * STICKY_BOUNDARY_RADIUS;
 
@@ -36,6 +40,8 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
     private Point nearestImagePointOnBoundary;
     private int radius = 5;
     private Rectangle imageBounds;
+    private OverlayItem<T> overlayItem;
+    private boolean whollyContained;
 
     public BoundedAreaOverlayRenderer(Map<BoundedAreaType, Color> colors) {
         this.colors = colors;
@@ -63,12 +69,13 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
         AffineTransform internalComponentTransform =
                 AffineTransform.getTranslateInstance(radius - imageBounds.x, radius - imageBounds.y);
         LOG.debug("imageBounds: {}", imageBounds);
-        this.polygons = PolygonExtensions.transform(imagePolygons, internalComponentTransform);
-        if (LOG.isDebugEnabled()) {
+        this.polygons = PolygonExtensions.removeRedundancies(
+                PolygonExtensions.transform(imagePolygons, internalComponentTransform));
+        if (LOG_POINTBYPOINT.isDebugEnabled()) {
             for (Polygon polygon : this.polygons) {
-                LOG.debug("Setting polygon");
+                LOG_POINTBYPOINT.debug("Setting polygon");
                 for (int i = 0; i < polygon.npoints; i++) {
-                    LOG.debug("{}: ({}, {})", new Object[] {i, polygon.xpoints[i], polygon.ypoints[i]});
+                    LOG_POINTBYPOINT.debug("{}: ({}, {})", new Object[] {i, polygon.xpoints[i], polygon.ypoints[i]});
                 }
             }
         }
@@ -82,14 +89,25 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
     public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<T> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator,
                                                  Point mouseLocation) {
-        color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
-        setGeoPolygons(deriveGeoPolygons(overlayItem), overlayItem, imageAndGeoPointTranslator);
-        processMouseLocation(overlayItem, imageAndGeoPointTranslator, mouseLocation);
-        Polygon[] screenPolygons = PolygonExtensions.translate(polygons, getLocation());
-        boolean polygonsVisible =
-                PolygonExtensions.intersects(polygons, new Rectangle(mapPanel.getSize()));
-        return new RenderedOverlay(this, polygonsVisible ?
-                new RenderedOverlayPolygonBoundaryImpl(overlayItem, screenPolygons, radius) : null);
+        long start = System.nanoTime();
+        try {
+            color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
+            setGeoPolygons(deriveGeoPolygons(overlayItem), overlayItem, imageAndGeoPointTranslator);
+            processMouseLocation(overlayItem, imageAndGeoPointTranslator, mouseLocation);
+            Polygon[] screenPolygons = PolygonExtensions.translate(polygons, getLocation());
+            this.overlayItem = overlayItem;
+            Rectangle mapPanelBounds = new Rectangle(mapPanel.getSize());
+            boolean polygonsVisible =
+                    PolygonExtensions.intersects(screenPolygons, mapPanelBounds);
+            whollyContained = PolygonExtensions.contains(screenPolygons, RectangleExtensions.grow(mapPanelBounds, radius));
+            LOG.debug("polygonsVisible: {}", polygonsVisible);
+            return new RenderedOverlay(this, polygonsVisible ?
+                    new RenderedOverlayPolygonBoundaryImpl(overlayItem, screenPolygons, radius) : null);
+        }
+        finally {
+            long took = System.nanoTime() - start;
+            LOG.debug("Generating overlay Renderer took {}ns", took);
+        }
     }
 
 
@@ -147,25 +165,35 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implement
     }
 
     protected void paint(Graphics2D g) {
-        long time = System.nanoTime();
-        g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 64));
+        long start = System.nanoTime();
         for (Polygon polygon : polygons) {
+            g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 64));
             if (polygon.npoints < 3) {
-                return;
+                continue;
             }
-            g.fillPolygon(polygon);
+            long shapeStart = System.nanoTime();
+            Shape[] clippedShapes = PolygonExtensions.clip(polygon, g.getClipBounds());
+            long took = System.nanoTime() - shapeStart;
+            shapeStart = System.nanoTime();
+            LOG.debug("Calculating Clips: {}ns", took);
+            for (Shape clippedShape : clippedShapes) {
+                LOG.debug("clippedPolygon.getBounds(): {}", clippedShape.getBounds());
+                g.fill(clippedShape);
+            }
+            took = System.nanoTime() - shapeStart;
+            LOG.debug("Filling Polygon took: {}ns", took);
             g.setColor(color);
             Stroke original = g.getStroke();
             g.setStroke(new BasicStroke(4));
             g.drawPolygon(polygon);
             g.setStroke(original);
             if (nearestImagePointOnBoundary != null) {
-                LOG.debug("Nearest Boundary: {}", nearestImagePointOnBoundary);
+                LOG.debug("Nearest Boundary: {}ns", nearestImagePointOnBoundary);
                 g.fillOval(nearestImagePointOnBoundary.x - radius, nearestImagePointOnBoundary.y - radius, radius * 2, radius * 2);
             }
         }
-        long took = System.nanoTime() - time;
-        LOG.debug("Rendering overlay item: {}ns", took);
+        long took = System.nanoTime() - start;
+        LOG.debug("Painting Bounded Area {} took: {}ns", overlayItem.getItem().getName(), took);
     }
 
     private void setMouseGeo(Point mouseGeo) {
