@@ -52,6 +52,39 @@ public class RectangleCollectionTests {
     }
 
     @Test
+    public void addTest4() {
+        RectangleCollection rectangleCollection = new RectangleCollection();
+        rectangleCollection.add(new Rectangle(10, 20, 30, 30));
+        rectangleCollection.add(new Rectangle(40, 20, 30, 30));
+        rectangleCollection.add(new Rectangle(10, 50, 30, 30));
+        rectangleCollection.add(new Rectangle(40, 50, 30, 30));
+        rectangleCollection.add(new Rectangle(10, 20, 60, 60));
+        assertEquals(1, rectangleCollection.size());
+    }
+
+    @Test
+    public void addTest5() {
+        RectangleCollection rectangleCollection = new RectangleCollection();
+        rectangleCollection.add(new Rectangle(10, 20, 30, 30));
+        rectangleCollection.add(new Rectangle(40, 20, 30, 30));
+        rectangleCollection.add(new Rectangle(10, 50, 30, 30));
+        rectangleCollection.add(new Rectangle(40, 50, 30, 30));
+        rectangleCollection.add(new Rectangle(9, 19, 62, 62));
+        assertEquals(1, rectangleCollection.size());
+    }
+
+    @Test
+    public void addTest6() {
+        RectangleCollection rectangleCollection = new RectangleCollection();
+        rectangleCollection.add(new Rectangle(10, 20, 30, 30));
+        rectangleCollection.add(new Rectangle(40, 20, 30, 30));
+        rectangleCollection.add(new Rectangle(10, 50, 30, 30));
+        rectangleCollection.add(new Rectangle(40, 50, 30, 30));
+        rectangleCollection.add(new Rectangle(11, 21, 58, 58));
+        assertEquals(1, rectangleCollection.size());
+    }
+
+    @Test
     public void removeTest() {
         RectangleCollection rectangleCollection = new RectangleCollection();
         rectangleCollection.add(new Rectangle(10, 20, 30, 30));
