@@ -1,7 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayRenderer;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 
 import java.awt.*;
@@ -20,23 +19,16 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
     private Point mouseGeo;
 
     @Override
-    public Component getOverlayRendererComponent(OverlayItem<DottedDwellingGroup> overlayItem,
+    public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<DottedDwellingGroup> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator, Point geoPointOfMouse) {
         setRadii(overlayItem.getItem().getDot().getRadii());
         setColours(overlayItem.getItem().getDot().getColours());
         setSize(getPreferredSize());
-
-        return this;
-    }
-
-    @Override
-    public Point getMouseGeo() {
-        return mouseGeo;
-    }
-
-    @Override
-    public boolean isMouseOnBoundary() {
-        return false;
+        return new RenderedOverlay(this,
+                new RenderedOverlayOvalBoundaryImpl(
+                        overlayItem,
+                        imageAndGeoPointTranslator.getImageLocation(overlayItem.getGeoLocationOfCenter()),
+                        totalRadii));
     }
 
     private void setRadii(int[] radii) {

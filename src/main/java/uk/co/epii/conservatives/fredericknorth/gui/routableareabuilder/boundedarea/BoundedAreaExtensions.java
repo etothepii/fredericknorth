@@ -27,7 +27,7 @@ public class BoundedAreaExtensions {
         return new BoundedAreaOverlayRenderer(colors);
     }
 
-    public static OverlayRenderer<BoundedArea> getConstructorOverlayRenderer(Map<BoundedAreaType, Color> color) {
+    public static OverlayRenderer<BoundedAreaConstructor> getConstructorOverlayRenderer(Map<BoundedAreaType, Color> color) {
         return new BoundedAreaConstructorOverlayRenderer(color);
     }
 

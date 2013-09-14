@@ -12,15 +12,16 @@ import java.awt.geom.Point2D;
  */
 public class Edge {
 
+    public final Polygon polygon;
     public final Point.Float a;
     public final Point.Float b;
 
-    public Edge(Point a, Point b) {
-        this.a = new Point.Float(a.x, a.y);
-        this.b = new Point.Float(b.x, b.y);
+    public Edge(Polygon polygon, Point a, Point b) {
+        this(polygon, new Point.Float(a.x, a.y), new Point.Float(b.x, b.y));
     }
 
-    public Edge(Point.Float a, Point.Float b) {
+    public Edge(Polygon polygon, Point.Float a, Point.Float b) {
+        this.polygon = polygon;
         this.a = a;
         this.b = b;
     }
@@ -46,18 +47,18 @@ public class Edge {
     }
 
     public NearestPoint getNearestPoint(Point2D.Float point) {
-        Vertex A = new Vertex(new Edge(point, a), this);
-        Vertex B = new Vertex(this, new Edge(b, point));
+        Vertex A = new Vertex(new Edge(polygon,point, a), this);
+        Vertex B = new Vertex(this, new Edge(polygon, b, point));
         if (A.getCommonPoint().equals(B.getCommonPoint())) {
-            return new NearestPoint(A.getCommonPoint(), VertexExtensions.dSquared(A.getCommonPoint(), point), new Vertex[] {A});
+            return new NearestPoint(polygon, A.getCommonPoint(), VertexExtensions.dSquared(A.getCommonPoint(), point), new Vertex[] {A});
         }
         double alpha;
         double beta;
         if ((alpha = A.getNonReflexAngle()) >= Math.PI / 2) {
-            return new NearestPoint(A.getCommonPoint(), VertexExtensions.dSquared(A.getCommonPoint(), point), new Vertex[] {A});
+            return new NearestPoint(polygon, A.getCommonPoint(), VertexExtensions.dSquared(A.getCommonPoint(), point), new Vertex[] {A});
         }
         if ((beta = B.getNonReflexAngle()) >= Math.PI / 2) {
-            return new NearestPoint(B.getCommonPoint(), VertexExtensions.dSquared(B.getCommonPoint(), point), new Vertex[] {B});
+            return new NearestPoint(polygon, B.getCommonPoint(), VertexExtensions.dSquared(B.getCommonPoint(), point), new Vertex[] {B});
         }
         float along = (float)(Math.cos(alpha) * Math.sqrt(VertexExtensions.dSquared(point, a)));
         float magnitudeOfV = (float)(Math.sqrt(VertexExtensions.dSquared(a, b)));
@@ -65,6 +66,6 @@ public class Edge {
                 a.x + along / magnitudeOfV * (b.x - a.x),
                 a.y + along / magnitudeOfV * (b.y - a.y)
         );
-        return new NearestPoint(nearest, VertexExtensions.dSquared(nearest, point), new Vertex[] {A, B});
+        return new NearestPoint(polygon, nearest, VertexExtensions.dSquared(nearest, point), new Vertex[] {A, B});
     }
 }

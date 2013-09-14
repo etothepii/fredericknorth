@@ -20,7 +20,7 @@ public interface BoundedArea {
     public void setName(String name);
     public BoundedArea[] getChildren();
     public BoundedAreaType getBoundedAreaType();
-    public Polygon getArea();
+    public Polygon[] getAreas();
     public Polygon[] getEnclaves();
     public Element toXml(Document document);
     public void addChild(BoundedArea boundedAreas);

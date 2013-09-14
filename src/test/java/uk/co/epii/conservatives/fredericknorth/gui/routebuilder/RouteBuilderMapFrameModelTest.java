@@ -5,13 +5,12 @@ import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.DummyBoundedArea;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapLoaderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.MouseLocation;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.maps.DummyMapViewGeneratorFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.*;
@@ -19,6 +18,9 @@ import uk.co.epii.conservatives.fredericknorth.opendata.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +68,7 @@ public class RouteBuilderMapFrameModelTest {
         dummyRoute.addDwellingGroup(cStreet);
         dummyRoutableArea.addRoute(dummyRoute);
         ApplicationContext applicationContext = new TestApplicationContext();
+        OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
                 DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(0, 0, 100, 100)));
         DotFactoryRegistrar.registerToContext(applicationContext);
@@ -79,67 +82,201 @@ public class RouteBuilderMapFrameModelTest {
         routeBuilderMapFrameModel.getMapPanelModel().setGeoCenter(new Point(50, 50));
         routeBuilderMapFrameModel.updateOverlays();
         routeBuilderMapFrameModel.getMapPanelModel().getCurrentMapView();
+        final MapPanel mapPanel = new MapPanel(routeBuilderMapFrameModel.getMapPanelModel(), 1.2d);
+        mapPanel.setSize(50, 50);
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                BufferedImage image = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
+                mapPanel.paint(image.getGraphics());
+            }
+        });
     }
 
     @Test
     public void correctlyBuildsRoutedAndUnroutedToolTipListTest1() {
-        ((RouteBuilderMapPanelModel) routeBuilderMapFrameModel.getMapPanelModel()).mouseStablized(new Point(4, 4));
-        List<OverlayItem> overlays = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlayItems();
-        assertEquals("overlays", 5, overlays.size());
-        Map<OverlayItem, MouseLocation> mouseOverOverlays = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
-        assertEquals("mouseOverOverlays", 2, mouseOverOverlays.size());
-        RoutedAndUnroutedToolTipModel routedAndUnroutedToolTipModel = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
-        assertTrue("B Road: ", routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(bRoad));
-        assertTrue("D Flats 26, B Road: ", routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(bRoadFlats));
-        assertTrue("C Street: ", !routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(cStreet));
-        assertTrue("E Grove: ", !routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(eGrove));
-        assertTrue("Apartment 26, E Grove: ", !routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(eGroveAppartments));
-        routeBuilderMapFrameModel.getUnroutedDwellingGroups().getRowCount();
-        List<DwellingGroup> selected = routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.SELECTED);
-        List<DwellingGroup> unselected = routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
-        assertEquals("B Road: ", bRoad, selected.get(0));
-        assertEquals("D Flats 26, B Road: ", bRoadFlats, unselected.get(0));
+        final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
+        final List<OverlayItem>[] overlays = new List[1];
+        final List<DwellingGroup>[] selected = new List[1];
+        final List<DwellingGroup>[] unselected = new List[1];
+        final Map<OverlayItem, MouseLocation>[] mouseOverOverlays = new Map[1];
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    ((RouteBuilderMapPanelModel) routeBuilderMapFrameModel.getMapPanelModel()).mouseStablized(new Point(4, 4));
+                    overlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlayItems();
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        assertEquals("overlays", 5, overlays[0].size());
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    mouseOverOverlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("mouseOverOverlays", 2, mouseOverOverlays[0].size());
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    routedAndUnroutedToolTipModel[0] = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
+                }
+            });
+        }
+        catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertTrue("B Road: ", routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(bRoad));
+        assertTrue("D Flats 26, B Road: ", routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(bRoadFlats));
+        assertTrue("C Street: ", !routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(cStreet));
+        assertTrue("E Grove: ", !routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(eGrove));
+        assertTrue("Apartment 26, E Grove: ", !routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(eGroveAppartments));
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    routeBuilderMapFrameModel.getUnroutedDwellingGroups().getRowCount();
+                    selected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.SELECTED);
+                    unselected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("B Road: ", bRoad, selected[0].get(0));
+        assertEquals("D Flats 26, B Road: ", bRoadFlats, unselected[0].get(0));
     }
 
     @Test
     public void correctlyBuildsRoutedAndUnroutedToolTipListTest2() {
-        ((RouteBuilderMapPanelModel) routeBuilderMapFrameModel.getMapPanelModel()).mouseStablized(new Point(46, 4));
-        List<OverlayItem> overlays = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlayItems();
-        assertEquals("overlays", 5, overlays.size());
-        Map<OverlayItem, MouseLocation> mouseOverOverlays = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
-        assertEquals("mouseOverOverlays", 2, mouseOverOverlays.size());
-        RoutedAndUnroutedToolTipModel routedAndUnroutedToolTipModel = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
-        assertTrue("B Road: ", !routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(bRoad));
-        assertTrue("D Flats 26, B Road: ", !routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(bRoadFlats));
-        assertTrue("C Street: ", !routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(cStreet));
-        assertTrue("E Grove: ", routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(eGrove));
-        assertTrue("Apartment 26, E Grove: ", routedAndUnroutedToolTipModel.getDwellingGroupModel().contains(eGroveAppartments));
-        routeBuilderMapFrameModel.getUnroutedDwellingGroups().getRowCount();
-        List<DwellingGroup> selected = routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.SELECTED);
-        List<DwellingGroup> unselected = routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
-        assertEquals("selected: ", 0, selected.size());
-        assertEquals("unselected: ", 2, unselected.size());
-        assertEquals("Apartment 26, E Grove: ", eGroveAppartments, unselected.get(0));
-        assertEquals("E Grove: ", eGrove, unselected.get(1));
+        final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
+        final List<OverlayItem>[] overlays = new List[1];
+        final List<DwellingGroup>[] selected = new List[1];
+        final List<DwellingGroup>[] unselected = new List[1];
+        final Map<OverlayItem, MouseLocation>[] mouseOverOverlays = new Map[1];
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    ((RouteBuilderMapPanelModel) routeBuilderMapFrameModel.getMapPanelModel()).mouseStablized(new Point(46, 4));
+                    overlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlayItems();
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("overlays", 5, overlays[0].size());
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    mouseOverOverlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("mouseOverOverlays", 2, mouseOverOverlays[0].size());
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    routedAndUnroutedToolTipModel[0] = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertTrue("B Road: ", !routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(bRoad));
+        assertTrue("D Flats 26, B Road: ", !routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(bRoadFlats));
+        assertTrue("C Street: ", !routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(cStreet));
+        assertTrue("E Grove: ", routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(eGrove));
+        assertTrue("Apartment 26, E Grove: ", routedAndUnroutedToolTipModel[0].getDwellingGroupModel().contains(eGroveAppartments));
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    routeBuilderMapFrameModel.getUnroutedDwellingGroups().getRowCount();
+                    selected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.SELECTED);
+                    unselected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("selected: ", 0, selected[0].size());
+        assertEquals("unselected: ", 2, unselected[0].size());
+        assertEquals("Apartment 26, E Grove: ", eGroveAppartments, unselected[0].get(0));
+        assertEquals("E Grove: ", eGrove, unselected[0].get(1));
     }
 
     @Test
     public void routedAndUnroutedToolTipListSelectsAllOnDoubleClickTest() {
-        final RoutedAndUnroutedToolTipModel routedAndUnroutedToolTipModel = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
-        routeBuilderMapFrameModel.getMapPanelModel().doubleClicked(new MouseEvent(new JPanel(), 0, 0l, 0, 46, 4, 1, false));
-        routeBuilderMapFrameModel.getMapPanelModel().mouseMovedTo(new Point(45, 4));
+        final List<DwellingGroup>[] selected = new List[1];
+        final List<DwellingGroup>[] unselected = new List[1];
+        final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    routedAndUnroutedToolTipModel[0] = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
+                    routeBuilderMapFrameModel.getMapPanelModel().doubleClicked(new MouseEvent(new JPanel(), 0, 0l, 0, 46, 4, 1, false));
+                    routeBuilderMapFrameModel.getMapPanelModel().mouseMovedTo(new Point(45, 4));
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
         try {
             Thread.sleep(500L);
         }
         catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        List<DwellingGroup> selected = routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.SELECTED);
-        List<DwellingGroup> unselected = routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
-        assertEquals("selected: ", 2, selected.size());
-        assertEquals("unselected: ", 0, unselected.size());
-        assertEquals("Apartment 26, E Grove: ", eGroveAppartments, selected.get(0));
-        assertEquals("E Grove: ", eGrove, selected.get(1));
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    selected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.SELECTED);
+                    unselected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
+                }
+            });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("selected: ", 2, selected[0].size());
+        assertEquals("unselected: ", 0, unselected[0].size());
+        assertEquals("Apartment 26, E Grove: ", eGroveAppartments, selected[0].get(0));
+        assertEquals("E Grove: ", eGrove, selected[0].get(1));
     }
 
 }

@@ -1,9 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea;
 
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayRenderer;
 
 import java.awt.*;
 
@@ -27,7 +27,7 @@ public class ConstructorOverlay implements OverlayItem<BoundedArea> {
         if (boundedAreaConstructor == null) {
             return new Point(0,0);
         }
-        Rectangle bounds = boundedAreaConstructor.getArea().getBounds();
+        Rectangle bounds = PolygonExtensions.getBounds(boundedAreaConstructor.getAreas());
         return new Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
     }
 
@@ -36,7 +36,7 @@ public class ConstructorOverlay implements OverlayItem<BoundedArea> {
         if (boundedAreaConstructor == null) {
             return new Point(0,0);
         }
-        Rectangle bounds = boundedAreaConstructor.getArea().getBounds();
+        Rectangle bounds = PolygonExtensions.construct(boundedAreaConstructor.getPointsToDraw()).getBounds();
         return imageAndGeoPointTranslator.getImageLocation(new Point(bounds.x, bounds.y + bounds.height));
     }
 
@@ -52,27 +52,6 @@ public class ConstructorOverlay implements OverlayItem<BoundedArea> {
     @Override
     public int getPriority() {
         return boundedAreaConstructor == null ? 0 : priority;
-    }
-
-    @Override
-    public boolean contains(Point imagePoint, ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                            OverlayRenderer<BoundedArea> overlayRenderer) {
-        if (boundedAreaConstructor == null) return false;
-        Point geoPoint = imageAndGeoPointTranslator.getGeoLocation(imagePoint);
-        Polygon polygon = getItem().getArea();
-        if (!polygon.getBounds().contains(geoPoint)) return false;
-        Component component = overlayRenderer.getOverlayRendererComponent(
-                this, imageAndGeoPointTranslator, imagePoint);
-        return component.contains(imagePoint);
-    }
-
-    @Override
-    public boolean containedWithin(Shape geoShape) {
-        Polygon area = getItem().getArea();
-        for (int i = 0; i < area.npoints; i++) {
-            if (!geoShape.contains(area.xpoints[i], area.ypoints[i])) return false;
-        }
-        return true;
     }
 
     @Override

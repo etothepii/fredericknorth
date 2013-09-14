@@ -6,7 +6,6 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.image.ImageObserver;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +35,9 @@ public interface MapPanelModel {
     public void moveDraggedFrom(Point point);
     public void mouseMovedTo(Point point);
     public void setOverlayRenderer(Class<?> clazz, OverlayRenderer overlayRenderer);
-    public Component render(OverlayItem overlayItem);
+    public RenderedOverlay render(MapPanel mapPanel, OverlayItem overlayItem);
     public Map<OverlayItem, MouseLocation> getImmutableOverlaysMouseOver();
+    public void setRenderedOverlayBoundaries(Collection<? extends RenderedOverlayBoundary> renderedOverlays);
     public Point getMouseAt();
     public void doubleClicked(MouseEvent e);
     public void clicked(MouseEvent e);

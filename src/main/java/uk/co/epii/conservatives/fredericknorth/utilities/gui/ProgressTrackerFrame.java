@@ -93,4 +93,19 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
     public void endSubsection() {
         progressBar.endSubsection();
     }
+
+    @Override
+    public int getMaximum() {
+        return progressBar.getMaximum();
+    }
+
+    @Override
+    public int getValue() {
+        return progressBar.getValue();
+    }
+
+    @Override
+    public boolean isIndeterminate() {
+        return progressBar.isIndeterminate();
+    }
 }

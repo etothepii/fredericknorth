@@ -16,22 +16,22 @@ import static org.junit.Assert.assertEquals;
 public class VertexExtensionsTest {
 
     private Vertex[] vertices = new Vertex[] {
-            new Vertex(new Edge(new Point(3,4),new Point(3,1)),new Edge(new Point(3,1),new Point(1,1))), // 0
-            new Vertex(new Edge(new Point(3,1),new Point(1,1)),new Edge(new Point(1,1),new Point(1,2))), // 1
-            new Vertex(new Edge(new Point(1,1),new Point(1,2)),new Edge(new Point(1,2),new Point(2,2))), // 2
-            new Vertex(new Edge(new Point(1,2),new Point(2,2)),new Edge(new Point(2,2),new Point(2,3))), // 3
-            new Vertex(new Edge(new Point(2,2),new Point(2,3)),new Edge(new Point(2,3),new Point(1,3))), // 4
-            new Vertex(new Edge(new Point(2,3),new Point(1,3)),new Edge(new Point(1,3),new Point(1,4))), // 5
-            new Vertex(new Edge(new Point(1,3),new Point(1,4)),new Edge(new Point(1,4),new Point(3,4))), // 6
-            new Vertex(new Edge(new Point(1,4),new Point(3,4)),new Edge(new Point(3,4),new Point(3,1))), // 7
-            new Vertex(new Edge(new Point(1,2),new Point(2,2)),new Edge(new Point(2,2),new Point(3,1))), // 8
-            new Vertex(new Edge(new Point(2,2),new Point(3,1)),new Edge(new Point(3,1),new Point(1,1))), // 9
-            new Vertex(new Edge(new Point(2,2),new Point(2,3)),new Edge(new Point(2,3),new Point(3,4))), //10
-            new Vertex(new Edge(new Point(2,3),new Point(3,4)),new Edge(new Point(3,4),new Point(3,1))), //11
-            new Vertex(new Edge(new Point(3,4),new Point(3,1)),new Edge(new Point(3,1),new Point(2,2))), //12
-            new Vertex(new Edge(new Point(3,1),new Point(2,2)),new Edge(new Point(2,2),new Point(2,3))), //13
-            new Vertex(new Edge(new Point(1,3),new Point(2,3)),new Edge(new Point(2,3),new Point(3,4))), //14
-            new Vertex(new Edge(new Point(2,3),new Point(3,4)),new Edge(new Point(3,4),new Point(1,4)))  //15
+            new Vertex(new Edge(null, new Point(3,4),new Point(3,1)),new Edge(null, new Point(3,1),new Point(1,1))), // 0
+            new Vertex(new Edge(null, new Point(3,1),new Point(1,1)),new Edge(null, new Point(1,1),new Point(1,2))), // 1
+            new Vertex(new Edge(null, new Point(1,1),new Point(1,2)),new Edge(null, new Point(1,2),new Point(2,2))), // 2
+            new Vertex(new Edge(null, new Point(1,2),new Point(2,2)),new Edge(null, new Point(2,2),new Point(2,3))), // 3
+            new Vertex(new Edge(null, new Point(2,2),new Point(2,3)),new Edge(null, new Point(2,3),new Point(1,3))), // 4
+            new Vertex(new Edge(null, new Point(2,3),new Point(1,3)),new Edge(null, new Point(1,3),new Point(1,4))), // 5
+            new Vertex(new Edge(null, new Point(1,3),new Point(1,4)),new Edge(null, new Point(1,4),new Point(3,4))), // 6
+            new Vertex(new Edge(null, new Point(1,4),new Point(3,4)),new Edge(null, new Point(3,4),new Point(3,1))), // 7
+            new Vertex(new Edge(null, new Point(1,2),new Point(2,2)),new Edge(null, new Point(2,2),new Point(3,1))), // 8
+            new Vertex(new Edge(null, new Point(2,2),new Point(3,1)),new Edge(null, new Point(3,1),new Point(1,1))), // 9
+            new Vertex(new Edge(null, new Point(2,2),new Point(2,3)),new Edge(null, new Point(2,3),new Point(3,4))), //10
+            new Vertex(new Edge(null, new Point(2,3),new Point(3,4)),new Edge(null, new Point(3,4),new Point(3,1))), //11
+            new Vertex(new Edge(null, new Point(3,4),new Point(3,1)),new Edge(null, new Point(3,1),new Point(2,2))), //12
+            new Vertex(new Edge(null, new Point(3,1),new Point(2,2)),new Edge(null, new Point(2,2),new Point(2,3))), //13
+            new Vertex(new Edge(null, new Point(1,3),new Point(2,3)),new Edge(null, new Point(2,3),new Point(3,4))), //14
+            new Vertex(new Edge(null, new Point(2,3),new Point(3,4)),new Edge(null, new Point(3,4),new Point(1,4)))  //15
     };
 
     @Test

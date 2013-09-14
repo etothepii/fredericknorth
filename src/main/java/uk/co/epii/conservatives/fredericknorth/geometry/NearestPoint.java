@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.geometry;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 
 /**
@@ -9,11 +10,13 @@ import java.awt.geom.Point2D;
  */
 public class NearestPoint {
 
+    public final Polygon polygon;
     public final Point2D.Float point;
     public final double dSquared;
     public final Vertex[] nearestVertices;
 
-    public NearestPoint(Point2D.Float point, double dSquared, Vertex[] nearestVertices) {
+    public NearestPoint(Polygon polygon, Point2D.Float point, double dSquared, Vertex[] nearestVertices) {
+        this.polygon = polygon;
         this.point = point;
         this.dSquared = dSquared;
         this.nearestVertices = nearestVertices;

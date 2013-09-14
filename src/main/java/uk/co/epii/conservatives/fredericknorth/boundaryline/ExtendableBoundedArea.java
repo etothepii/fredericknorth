@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
 import java.awt.*;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -9,5 +10,8 @@ import java.awt.*;
  */
 public interface ExtendableBoundedArea extends BoundedArea {
 
-    public void add(Point p, BoundedArea[] neighbours);
+    public void addCurrent();
+    public void setCurrent(Point p, BoundedArea[] neighbours);
+    public List<Point> getPointsToDraw();
+
 }

@@ -4,6 +4,8 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.AbstractBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -14,7 +16,9 @@ public class DummyBoundedArea extends AbstractBoundedArea {
 
     public DummyBoundedArea(BoundedAreaType type, String name, Polygon polygon) {
         super(type, name);
-        java.util.List<Point> points = getPoints();
+        List<List<Point>> list = getPoints();
+        List<Point> points = new ArrayList<Point>();
+        list.add(points);
         for (int i = 0; i < polygon.npoints; i++) {
             points.add(new Point(polygon.xpoints[i], polygon.ypoints[i]));
         }

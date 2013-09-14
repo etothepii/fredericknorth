@@ -11,5 +11,6 @@ import java.awt.geom.AffineTransform;
 public interface ImageAndGeoPointTranslator {
     public Point getGeoLocation(Point pointOnImage);
     public Point getImageLocation(Point geoLocation);
-    public AffineTransform getGeoTransform();
+    public AffineTransform getGeoToImageTransform();
+    public AffineTransform getImageToGeoTransform();
 }

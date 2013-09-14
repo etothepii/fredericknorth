@@ -14,6 +14,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaComboBoxModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaExtensions;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
+import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
@@ -213,7 +214,37 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
 
     @Override
     public String getNextSuggestedName(BoundedAreaType boundedAreaType) {
-        return boundedAreaType.getName() + " " + 1;
+        return getNextSuggestedName(boundedAreaType, getParentType(boundedAreaType));
+    }
+
+    private String getNextSuggestedName(BoundedAreaType boundedAreaType, BoundedAreaType parentType) {
+        switch (boundedAreaType) {
+            case POLLING_DISTRICT:
+                String name = getSelected(parentType).getName();
+                String initials = StringExtentions.getAbbreviation(name.substring(0, name.length() - 5), 2);
+                for (int i = 1; true; i++) {
+                    String testing = initials + i;
+                    ListModel model = getComboBoxModel(boundedAreaType);
+                    boolean found = false;
+                    for (int n = 1; n < model.getSize() && !found; n++) {
+                        found = ((BoundedArea)model.getElementAt(n)).getName().equals(testing);
+                    }
+                    if (!found) {
+                        return testing;
+                    }
+                }
+            default:
+                return boundedAreaType.getName() + " " + 1;
+        }
+    }
+
+    private BoundedAreaType getParentType(BoundedAreaType boundedAreaType) {
+        if (boundedAreaType == masterBoundedAreaType) return null;
+        BoundedAreaType testing = masterBoundedAreaType;
+        while (testing != null && testing.getChildType() != boundedAreaType) {
+            testing = testing.getChildType();
+        }
+        return testing;
     }
 
     @Override

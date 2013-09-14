@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 import org.junit.Test;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
 import static org.junit.Assert.assertEquals;
@@ -50,6 +51,16 @@ public class MapViewTest {
         Point geoLocation = new Point(400, -100);
         Point expected = new Point(100, 100);
         Point result = mapView.getImageLocation(geoLocation);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void checkGeoLocationToImageLocationCalculationWithAffineTest() {
+        MapView mapView = new MapViewImpl(null, new Point(550, -400), new Dimension(300, 400), 0.333333333333333333333, null, null);
+        Point2D.Float geoLocation = new Point2D.Float(400, -100);
+        Point2D.Float expected = new Point2D.Float(100, 100);
+        Point2D.Float result = new Point2D.Float();
+        mapView.getGeoToImageTransform().transform(geoLocation, result);
         assertEquals(expected, result);
     }
 

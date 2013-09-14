@@ -10,9 +10,7 @@ import java.awt.*;
  * Time: 10:24
  */
 public interface OverlayRenderer<T> {
-    public Component getOverlayRendererComponent(OverlayItem<T> overlayItem,
+    public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<T> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator,
                                                  Point mouseGeoLocation);
-    public Point getMouseGeo();
-    public boolean isMouseOnBoundary();
 }
