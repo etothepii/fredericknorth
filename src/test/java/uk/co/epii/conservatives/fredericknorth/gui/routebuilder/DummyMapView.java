@@ -36,7 +36,12 @@ public class DummyMapView implements MapView {
     }
 
     @Override
-    public AffineTransform getGeoTransform() {
+    public AffineTransform getGeoToImageTransform() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public AffineTransform getImageToGeoTransform() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 

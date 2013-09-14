@@ -14,6 +14,7 @@ import java.awt.*;
 public class DummyOverlayItem<T> implements OverlayItem<T> {
 
     private final T item;
+    private Point geoLocationOfCentre;
 
     public DummyOverlayItem(T item) {
         this.item = item;
@@ -21,7 +22,11 @@ public class DummyOverlayItem<T> implements OverlayItem<T> {
 
     @Override
     public Point getGeoLocationOfCenter() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return geoLocationOfCentre;
+    }
+
+    public void setGeoLocationOfCenter(Point geoLocationOfCentre) {
+        this.geoLocationOfCentre = geoLocationOfCentre;
     }
 
     @Override
@@ -37,17 +42,6 @@ public class DummyOverlayItem<T> implements OverlayItem<T> {
     @Override
     public int getPriority() {
         throw new UnsupportedOperationException("This operation is not supported in the dummy class");
-    }
-
-    @Override
-    public boolean contains(Point imagePoint,
-                            ImageAndGeoPointTranslator imageAndGeoPointTranslator, OverlayRenderer<T> overlayRenderer) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean containedWithin(Shape geoShape) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

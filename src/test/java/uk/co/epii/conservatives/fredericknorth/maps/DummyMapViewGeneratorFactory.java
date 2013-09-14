@@ -1,5 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
+import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
@@ -11,6 +14,8 @@ import java.util.EnumMap;
  */
 public class DummyMapViewGeneratorFactory {
     public static MapViewGenerator getDummyInstance(OSMapType osMapType, Rectangle coverage) {
+        ApplicationContext applicationContext = new TestApplicationContext();
+        OSMapLocatorRegistrar.registerToContext(applicationContext);
         EnumMap<OSMapType, MapImage> mapCache = new EnumMap<OSMapType, MapImage>(OSMapType.class);
         mapCache.put(OSMapType.MINI,
                 new MapImageImpl(
@@ -18,7 +23,7 @@ public class DummyMapViewGeneratorFactory {
                                 coverage.width,
                                 coverage.height,
                                 BufferedImage.TYPE_INT_ARGB),
-                        coverage.getLocation(), osMapType, 1d));
-        return new MapViewGeneratorImpl(mapCache, null, null);
+                        coverage, osMapType, 1d));
+        return new MapViewGeneratorImpl(applicationContext, mapCache, null, null);
     }
 }

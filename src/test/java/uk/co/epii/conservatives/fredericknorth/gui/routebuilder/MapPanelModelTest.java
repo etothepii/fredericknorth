@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Test;
+import uk.co.epii.conservatives.fredericknorth.maps.OSMapLoaderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
@@ -25,6 +26,7 @@ public class MapPanelModelTest {
         MapViewGenerator mapViewGenerator =
                 DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(100, 200, 300, 400));
         ApplicationContext applicationContext = new TestApplicationContext();
+        OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
         RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
         MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderMapFrameModel, 0);
@@ -44,6 +46,7 @@ public class MapPanelModelTest {
         MapViewGenerator mapViewGenerator =
                 DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(100, 200, 300, 400));
         ApplicationContext applicationContext = new TestApplicationContext();
+        OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
         RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
         MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderMapFrameModel, 0);

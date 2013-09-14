@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ public class BuilderMapFrameModelTest {
     }
 
     @Test
+    @Ignore
     public void loadDataIntoComboBoxesTest() {
         BuilderMapFrameModel builderMapFrameModel =
                 new BuilderMapFrameModel(applicationContext, false);

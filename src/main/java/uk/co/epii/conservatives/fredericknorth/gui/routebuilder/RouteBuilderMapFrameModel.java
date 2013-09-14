@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedEvent;
@@ -173,7 +174,7 @@ public class RouteBuilderMapFrameModel {
                             enable();
                             return;
                         }
-                        Rectangle bounds = routableArea.getBoundedArea().getArea().getBounds();
+                        Rectangle bounds = PolygonExtensions.getBounds(routableArea.getBoundedArea().getAreas());
                         LOG.debug("Setting universe");
                         mapPanelModel.display(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
                                 bounds.width * 6 / 5, bounds.height * 6 / 5));
@@ -336,13 +337,13 @@ public class RouteBuilderMapFrameModel {
             progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
                     parent.getRoutedDwellingGroups().size());
             for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
-                if (boundedArea.getArea().contains(dwellingGroup.getPoint())) {
-                    routableArea.addDwellingGroup(dwellingGroup, false);
+                if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                        routableArea.addDwellingGroup(dwellingGroup, false);
                 }
                 progressTracker.increment();
             }
             for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
-                if (boundedArea.getArea().contains(dwellingGroup.getPoint())) {
+                if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
                     routableArea.addDwellingGroup(dwellingGroup, true);
                 }
                 progressTracker.increment();
@@ -352,7 +353,8 @@ public class RouteBuilderMapFrameModel {
             Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes();
             progressTracker.startSubsection(postcodes.size());
             for (PostcodeDatum postcode : postcodes) {
-                if (postcode.getPoint() != null && boundedArea.getArea().contains(postcode.getPoint())) {
+                if (postcode.getPoint() != null &&
+                        PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
                     for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getPostcode())) {
                         routableArea.addDwellingGroup(dwellingGroup, false);
                     }

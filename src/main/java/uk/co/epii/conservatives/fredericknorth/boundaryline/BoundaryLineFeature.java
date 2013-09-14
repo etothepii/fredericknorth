@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.w3c.dom.Document;
@@ -25,10 +26,15 @@ public class BoundaryLineFeature extends AbstractBoundedArea {
         this.boundaryLineFeature = boundaryLineFeature;
         MultiPolygon multiPolygon = (MultiPolygon)this.boundaryLineFeature.getAttribute("the_geom");
         setName((String)this.boundaryLineFeature.getAttribute("NAME"));
-        Coordinate[] coordinates = multiPolygon.getBoundary().getCoordinates();
-        List<Point> points = getPoints();
-        for (int i = 0; i < coordinates.length; i++) {
-            points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+        List<List<Point>> allPoints = getPoints();
+        for (int i = 0; i < multiPolygon.getNumGeometries(); i++) {
+            Geometry geometry = multiPolygon.getGeometryN(i);
+            List<Point> points = new ArrayList<Point>(geometry.getNumPoints());
+            allPoints.add(points);
+            Coordinate[] coordinates = geometry.getCoordinates();
+            for (int j = 0; j < coordinates.length; i++) {
+                points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+            }
         }
     }
 }

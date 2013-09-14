@@ -12,7 +12,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
-import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -60,28 +59,28 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
                           Map<BoundedAreaType, Color> colours, Dimension dimension) {
         this.colours = colours;
         rectangles.clear();
-        Rectangle masterAreaBounds = masterArea.getArea().getBounds();
+        Rectangle masterAreaBounds = PolygonExtensions.getBounds(masterArea.getAreas());
         mapViewGenerator.setGeoCenter(RectangleExtensions.getCenter(masterAreaBounds), NullProgressTracker.NULL, null);
         mapViewGenerator.setViewPortSize(
                 new Dimension((int)(masterAreaBounds.width * 1.2), (int)(masterAreaBounds.height * 1.2)),
                 NullProgressTracker.NULL, null);
         mapViewGenerator.setScale(1d, NullProgressTracker.NULL, null);
         MapView mapView = mapViewGenerator.getView();
-        Map<Polygon, Integer> identifiers =
-                new HashMap<Polygon, Integer>(boundedAreas.size());
-        Map<BoundedAreaType, List<Polygon>> groupedPolygons =
-                new HashMap<BoundedAreaType, List<Polygon>>(boundedAreas.size());
+        Map<Polygon[], Integer> identifiers =
+                new HashMap<Polygon[], Integer>(boundedAreas.size());
+        Map<BoundedAreaType, List<Polygon[]>> groupedPolygons =
+                new HashMap<BoundedAreaType, List<Polygon[]>>(boundedAreas.size());
         int index = 0;
         for (BoundedArea boundedArea : boundedAreas) {
-            Polygon imagePolygon = getPolygon(boundedArea.getArea(), mapView);
-            identifiers.put(imagePolygon, (++index));
+            Polygon[] imagePolygons = getImagePolygons(boundedArea.getAreas(), mapView);
+            identifiers.put(imagePolygons, (++index));
             LOG.debug("{}: {}", new Object[] {index, boundedArea.getName()});
-            List<Polygon> polygons = groupedPolygons.get(boundedArea.getBoundedAreaType());
+            List<Polygon[]> polygons = groupedPolygons.get(boundedArea.getBoundedAreaType());
             if (polygons == null) {
-                polygons = new ArrayList<Polygon>();
+                polygons = new ArrayList<Polygon[]>();
                 groupedPolygons.put(boundedArea.getBoundedAreaType(), polygons);
             }
-            polygons.add(imagePolygon);
+            polygons.add(imagePolygons);
         }
         BoundedAreaType[] boundedAreaTypes = masterArea.getBoundedAreaType().getAllPossibleDecendentTypes();
         reverse(boundedAreaTypes);
@@ -104,13 +103,15 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
             fontSize /= 2;
             g.setFont(new Font(font.getName(), font.getStyle(), fontSize));
             //stroke -= 2;
-            List<Polygon> polygons = groupedPolygons.get(boundedAreaType);
-            for (Polygon polygon : polygons) {
+            List<Polygon[]> allPolygons = groupedPolygons.get(boundedAreaType);
+            for (Polygon[] polygons : allPolygons) {
                 g.setStroke(boundaryStroke);
-                g.draw(polygon);
+                for (Polygon polygon : polygons) {
+                    g.draw(polygon);
+                }
                 g.setStroke(originalStroke);
-                Point2D.Float centreOfGravity = PolygonExtensions.getCentreOfGravity(polygon);
-                String value = identifiers.get(polygon).toString();
+                Point2D.Float centreOfGravity = PolygonExtensions.getCentreOfGravity(polygons);
+                String value = identifiers.get(polygons).toString();
                 drawIndex(value, g, centreOfGravity, boundedAreaType);
             }
         }
@@ -155,7 +156,7 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
         }
     }
 
-    private Polygon getPolygon(Polygon geoPolygon, ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
+    private Polygon getImagePolygon(Polygon geoPolygon, ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
         int[] xpoints = new int[geoPolygon.npoints];
         int[] ypoints = new int[geoPolygon.npoints];
         for (int i = 0; i < geoPolygon.npoints; i++) {
@@ -165,6 +166,14 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
             ypoints[i] = imagePoint.y;
         }
         return new Polygon(xpoints, ypoints, geoPolygon.npoints);
+    }
+
+    private Polygon[] getImagePolygons(Polygon[] geoPolygons, ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
+        Polygon[] imagePolygons = new Polygon[geoPolygons.length];
+        for (int i = 0; i < imagePolygons.length; i++) {
+            imagePolygons[i] = getImagePolygon(geoPolygons[i], imageAndGeoPointTranslator);
+        }
+        return imagePolygons;
     }
 
     private Map<BoundedArea, int[]>
@@ -178,7 +187,7 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
                 LOG.debug("{}", postcodeDatum.getPostcode());
                 continue;
             }
-            if (boundedArea.getArea().contains(postcodeDatum.getPoint())) {
+            if (PolygonExtensions.contains(boundedArea.getAreas(), postcodeDatum.getPoint())) {
                 containedPostcodes.add(postcodeDatum);
                 int[] dwellings = postcodeDatum.getCouncilBandCount();
                 for (int i = 0; i < 9; i++) {

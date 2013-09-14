@@ -1,7 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.opengis.feature.simple.SimpleFeature;
 
 import java.awt.*;
 import java.util.List;
@@ -18,5 +17,5 @@ public interface BoundaryLineController {
     public List<BoundedArea> getKnownDescendents(BoundedArea parent, BoundedAreaType type);
     public BoundedArea getContainingFeature(BoundedAreaType type, double x, double y);
     public BoundedArea getContainingFeature(BoundedAreaType type, Point p);
-    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Shape s);
+    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Polygon[] s);
 }

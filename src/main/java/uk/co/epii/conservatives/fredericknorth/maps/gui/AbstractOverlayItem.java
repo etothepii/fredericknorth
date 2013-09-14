@@ -36,19 +36,6 @@ public abstract class AbstractOverlayItem<T> implements OverlayItem<T> {
     }
 
     @Override
-    public boolean contains(Point imagePoint, ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                            OverlayRenderer<T> overlayRenderer) {
-        Component rendered = overlayRenderer.getOverlayRendererComponent(this, imageAndGeoPointTranslator, null);
-        rendered.setSize(rendered.getPreferredSize());
-        Point topLeft = getTopLeft(rendered.getPreferredSize(), imageAndGeoPointTranslator);
-        Point localPoint = new Point(imagePoint.x - topLeft.x, imagePoint.y - topLeft.y);
-        return rendered.contains(localPoint);
-    }
-
-    @Override
-    public abstract boolean containedWithin(Shape geoShape);
-
-    @Override
     public int compareTo(OverlayItem o) {
         if (priority != o.getPriority()) return priority - o.getPriority();
         if (getGeoLocationOfCenter().x != o.getGeoLocationOfCenter().x)

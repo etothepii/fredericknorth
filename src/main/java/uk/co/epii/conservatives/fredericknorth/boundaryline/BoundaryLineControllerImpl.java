@@ -107,7 +107,7 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
         if (!Arrays.asList(parent.getBoundedAreaType().getAllPossibleDecendentTypes()).contains(childType)) {
             return new ArrayList<BoundedArea>();
         }
-        return getFeaturesContainedWithin(childType, parent.getArea());
+        return getFeaturesContainedWithin(childType, parent.getAreas());
     }
 
     @Override
@@ -120,7 +120,7 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
             if (boundingBox.contains(x, y)) {
                 BoundaryLineFeature boundaryLineFeature =
                         new BoundaryLineFeature(simpleFeature, type);
-                if (boundaryLineFeature.getArea().contains(x, y)) {
+                if (PolygonExtensions.contains(boundaryLineFeature.getAreas(), x, y)) {
                     return boundaryLineFeature;
                 }
             }
@@ -129,7 +129,7 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
     }
 
     @Override
-    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Shape s) {
+    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Polygon[] polygons) {
         ArrayList<BoundedArea> boundedAreas = new ArrayList<BoundedArea>();
         SimpleFeatureCollection simpleFeaturesCollection =
                 getAllOSKnownBoundedAreas(type);
@@ -138,7 +138,7 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
             return new ArrayList<BoundedArea>();
         }
         SimpleFeatureIterator simpleFeatures = simpleFeaturesCollection.features();
-        Rectangle shapeBounds = s.getBounds();
+        Rectangle shapeBounds = PolygonExtensions.getBounds(polygons);
         while (simpleFeatures.hasNext()) {
             SimpleFeature simpleFeature = simpleFeatures.next();
             BoundingBox boundingBox = simpleFeature.getBounds();
@@ -147,16 +147,16 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
                 LazyLoadingBoundaryLineFeature lazyLoadingBoundaryLineFeature =
                         new LazyLoadingBoundaryLineFeature(this, simpleFeature, type);
                 Point2D.Float centreOfGravity =
-                        PolygonExtensions.getCentreOfGravity(lazyLoadingBoundaryLineFeature.getArea());
-                if (lazyLoadingBoundaryLineFeature.getArea().contains(centreOfGravity)) {
-                    if (s.contains(centreOfGravity)) {
+                        PolygonExtensions.getCentreOfGravity(lazyLoadingBoundaryLineFeature.getAreas());
+                if (PolygonExtensions.contains(lazyLoadingBoundaryLineFeature.getAreas(), centreOfGravity)) {
+                    if (PolygonExtensions.contains(polygons, centreOfGravity)) {
                         boundedAreas.add(lazyLoadingBoundaryLineFeature);
                     }
                 }
                 else {
                     LOG.warn("This {}, {}, has a centre of gravity outside itself",
                             new Object[] {type, lazyLoadingBoundaryLineFeature.getName()});
-                    if (s.contains(centreOfGravity)) {
+                    if (PolygonExtensions.contains(polygons, centreOfGravity)) {
                         boundedAreas.add(lazyLoadingBoundaryLineFeature);
                     }
                 }

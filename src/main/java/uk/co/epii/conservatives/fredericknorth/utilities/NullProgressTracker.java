@@ -44,4 +44,17 @@ public class NullProgressTracker implements ProgressTracker {
 
     @Override
     public void endSubsection() {}
+
+    @Override
+    public int getMaximum() {return 1;}
+
+    @Override
+    public int getValue() {
+        return 0;
+    }
+
+    @Override
+    public boolean isIndeterminate() {
+        return false;
+    }
 }

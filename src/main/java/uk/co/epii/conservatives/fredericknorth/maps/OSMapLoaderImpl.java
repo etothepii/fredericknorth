@@ -1,26 +1,21 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.util.LocaleServiceProviderPool;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.CancellationToken;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
-import javax.imageio.spi.IIORegistry;
-import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User: James Robinson
@@ -28,23 +23,22 @@ import java.util.Map;
  * Time: 22:56
  */
 public class OSMapLoaderImpl implements OSMapLoader {
+
     private static final Logger LOG = LoggerFactory.getLogger(OSMapLoaderImpl.class);
     private static final Logger LOG_SYNC = LoggerFactory.getLogger(OSMapLoaderImpl.class.getName().concat("_sync"));
+    private static final Logger LOG_FILES = LoggerFactory.getLogger(OSMapLoaderImpl.class.getName().concat("_files"));
 
     private final Map<OSMapType, String> mapLocationFormatStrings;
     private final Map<OSMapType, Dimension> mapDimensions;
     private final GraphicsConfiguration configuration;
-    private final ImageReader imageReader;
 
     private String mapImagesRoot;
     private String mapImagesURLRoot;
     private String urlEncodingFormat;
 
-
     public OSMapLoaderImpl(String mapImagesRoot, String mapImagesURLRoot,
                            Map<OSMapType, String> mapLocationFormatStrings, Map<OSMapType, Dimension> mapDimensions,
                            String urlEncodingFormat) {
-        imageReader = ImageIO.getImageReadersBySuffix("tif").next();
         configuration = GraphicsEnvironment.
                 getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         this.mapImagesRoot = mapImagesRoot;
@@ -55,76 +49,98 @@ public class OSMapLoaderImpl implements OSMapLoader {
     }
 
     @Override
-    public BufferedImage loadMap(OSMap map, Dimension targetSize) {
+    public BufferedImage loadMap(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad,
+                                 CancellationToken cancellationToken) {
         if (map instanceof SeaMapImpl) {
-            return getDummyImage(map);
+            return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad);
         }
-        File file = getMapFile(map);
-        LOG.debug("Loading ... {}", file);
+        File file = getMapFile(map, progressTracker, incrementsForImageLoad / 2);
+        LOG_FILES.debug("Loading ... {} => {} at {} x {}", new Object[] {
+                map.getMapName(), file, targetSize.width, targetSize.height
+        });
         if (file != null) {
-            BufferedImage image = readFile(file, targetSize);
-            LOG.debug("Converting to compatible image");
-            BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
-                    image.getHeight());
-            LOG.debug("Converted to compatible image");
-            Graphics g = compatibleImage.getGraphics();
-            LOG.debug("Creating graphics");
-            g.drawImage(image, 0, 0, null);
-            LOG.debug("Drawing Image");
-            g.dispose();
-            LOG.debug("Converted to compatible image");
-            return compatibleImage;
+            return readFile(file, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2,
+                    cancellationToken);
         }
-        return getDummyImage(map);
+        return getDummyImage(map, targetSize, progressTracker, incrementsForImageLoad - incrementsForImageLoad / 2);
     }
 
-    private BufferedImage readFile(File file, Dimension targetSize) {
+    private BufferedImage readFile(File file, Dimension targetSize, ProgressTracker progressTracker,
+                                   int incrementsForFileRead, CancellationToken cancellationToken) {
+        final ImageReader imageReader = ImageIO.getImageReadersBySuffix("tif").next();
+        Runnable cancel = new Runnable() {
+            @Override
+            public void run() {
+                imageReader.abort();
+            }
+        };
+        ImageInputStream iis = null;
+        FileInputStream fin = null;
+        LoadSingleImageProgressTracker imageLoadProgressTracker = new LoadSingleImageProgressTracker(progressTracker, incrementsForFileRead);
         try {
-            LOG_SYNC.debug("Awaiting imageReader");
-            synchronized (imageReader) {
-                LOG_SYNC.debug("Received imageReader");
-                FileInputStream fin = null;
-                try {
-                    fin = new FileInputStream(file);
-                    ImageInputStream iis = ImageIO.createImageInputStream(fin);
-                    imageReader.setInput(iis, false);
-                    int sourceXSubSampling = targetSize == null ? 1 : imageReader.getWidth(0) / targetSize.width;
-                    int sourceYSubSampling = targetSize == null ? 1 : imageReader.getHeight(0) / targetSize.height;
-                    ImageReadParam subSamplingParam = new ImageReadParam();
-                    subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
-                    return imageReader.read(0, subSamplingParam);
+            LOG_SYNC.debug("Waiting to receive an imageReader");
+            synchronized (configuration) {
+                imageReader.addIIOReadProgressListener(imageLoadProgressTracker);
+                cancellationToken.register(cancel);
+                if (cancellationToken.isCancelled()) {
+                    return null;
                 }
-                catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
+            }
+            LOG_SYNC.debug("Received an imageReader");
+            try {
+
+                fin = new FileInputStream(file);
+                iis = ImageIO.createImageInputStream(fin);
+                imageReader.setInput(iis, false);
+                int sourceXSubSampling = targetSize == null ?
+                        1 : Math.max(1, imageReader.getWidth(0) / targetSize.width);
+                int sourceYSubSampling = targetSize == null ?
+                        1 : Math.max(1, imageReader.getHeight(0) / targetSize.height);
+                ImageReadParam subSamplingParam = new ImageReadParam();
+                subSamplingParam.setSourceSubsampling(sourceXSubSampling, sourceYSubSampling, 0, 0);
+                return imageReader.read(0, subSamplingParam);
+            }
+            catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            finally {
+                if (fin != null) {
+                    try {
+                        fin.close();
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-                catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                finally {
-                    if (fin != null) {
-                        try {
-                            fin.close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                if (iis != null) {
+                    try {
+                        iis.flush();
+                        iis.close();
+                    }
+                    catch (IOException ioe) {
+                        throw new RuntimeException(ioe);
                     }
                 }
             }
         }
         finally {
-            LOG_SYNC.debug("Released imageReader");
+            cancellationToken.unregister(cancel);
+            imageReader.dispose();
+            progressTracker.increment(imageLoadProgressTracker.getRemaining());
         }
-
     }
 
-    private BufferedImage getDummyImage(OSMap map) {
-        Dimension size = mapDimensions.get(map.getOSMapType());
+    private BufferedImage getDummyImage(OSMap map, Dimension targetSize, ProgressTracker progressTracker, int incrementsForImageLoad) {
+        Dimension size = targetSize == null ? mapDimensions.get(map.getOSMapType()) : targetSize;
         BufferedImage bufferedImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+        progressTracker.increment(incrementsForImageLoad / 2);
         Graphics2D g = bufferedImage.createGraphics();
-        Font font = g.getFont();
-        g.setFont(new Font(font.getName(), font.getStyle(), 24));
         g.setColor(getSeaColor(map.getOSMapType()));
         g.fillRect(0, 0, size.width, size.height);
+        progressTracker.increment(incrementsForImageLoad - (incrementsForImageLoad / 2));
         return bufferedImage;
     }
 
@@ -142,29 +158,27 @@ public class OSMapLoaderImpl implements OSMapLoader {
         return null;
     }
 
-    private void drawCenteredString(Graphics g, FontRenderContext frc, Dimension canvasSize,
-                                    String string, int xOffset, int yOffset) {
-        Rectangle bounds = g.getFont().createGlyphVector(frc, string).getPixelBounds(frc, 0, 0);
-        int x = (canvasSize.width - bounds.width) / 2 - bounds.x + xOffset;
-        int y = (canvasSize.height - bounds.height) / 2 - bounds.y + yOffset;
-        g.drawString(string, x, y);
-    }
-
-    private File getMapFile(OSMap map) {
+    private File getMapFile(OSMap map, ProgressTracker progressTracker, int incrementsForGettingMapFile) {
         StringBuilder stringBuilder = new StringBuilder(255);
         stringBuilder.append(mapImagesRoot);
         String postRootLocation = getPostRootLocation(map);
         stringBuilder.append(postRootLocation);
         File mapFile = new File(stringBuilder.toString());
         if (!mapFile.exists()) {
-            return loadMapFile(postRootLocation, mapFile) ? mapFile : null;
+            return loadMapFile(postRootLocation, mapFile, progressTracker, incrementsForGettingMapFile) ? mapFile : null;
+        }
+        else {
+            progressTracker.increment(incrementsForGettingMapFile);
         }
         return mapFile;
     }
 
-    private boolean loadMapFile(String postRootLocation, File mapFile) {
+    private boolean loadMapFile(String postRootLocation, File mapFile, ProgressTracker progressTracker,
+                                int incrementsForGettingMapFile) {
+        int progressRemaining = incrementsForGettingMapFile;
         StringBuilder stringBuilder;
         if (mapImagesURLRoot == null) {
+            progressTracker.increment(progressRemaining);
             return false;
         }
         stringBuilder = new StringBuilder(255);
@@ -184,6 +198,7 @@ public class OSMapLoaderImpl implements OSMapLoader {
         }
         catch (UnsupportedEncodingException uee) {
             LOG.warn(uee.getMessage(), uee);
+            progressTracker.increment(progressRemaining);
             return false;
         }
         try {
@@ -192,8 +207,11 @@ public class OSMapLoaderImpl implements OSMapLoader {
             LOG.debug("Loading from: {}", url.toString());
             BufferedImage image = ImageIO.read(url);
             LOG.debug("Converting to compatible image");
-            BufferedImage compatibleImage = configuration.createCompatibleImage(image.getWidth(),
-                    image.getHeight());
+            BufferedImage compatibleImage;
+            synchronized (configuration) {
+                compatibleImage = configuration.createCompatibleImage(image.getWidth(),
+                        image.getHeight());
+            }
             LOG.debug("Converted to compatible image");
             Graphics g = compatibleImage.getGraphics();
             LOG.debug("Creating graphics");
@@ -203,13 +221,16 @@ public class OSMapLoaderImpl implements OSMapLoader {
             LOG.debug("Converted to compatible image");
             ImageIO.write(compatibleImage, "tif", mapFile);
             LOG.debug("Saved to: {}", url.toString());
+            progressTracker.increment(progressRemaining);
             return true;
         }
         catch (MalformedURLException mue) {
+            progressTracker.increment(progressRemaining);
             throw new RuntimeException(mue);
         }
         catch (IOException e) {
             LOG.debug(e.getMessage());
+            progressTracker.increment(progressRemaining);
             return false;
         }
     }
@@ -220,4 +241,5 @@ public class OSMapLoaderImpl implements OSMapLoader {
                 map.getQuadrant() == null ? null : map.getQuadrant().toLowerCase(),
                 map.getSquareHundredth(), map.getQuadrantHundredth());
     }
+
 }

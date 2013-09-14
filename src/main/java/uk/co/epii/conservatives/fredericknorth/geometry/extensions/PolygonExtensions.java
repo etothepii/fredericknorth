@@ -1,11 +1,12 @@
 package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
 
-import uk.co.epii.conservatives.fredericknorth.geometry.Edge;
-import uk.co.epii.conservatives.fredericknorth.geometry.Handedness;
-import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
-import uk.co.epii.conservatives.fredericknorth.geometry.Vertex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.*;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
@@ -17,11 +18,17 @@ import java.util.List;
  */
 public class PolygonExtensions {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PolygonExtensions.class);
+
     public static boolean isConvex(Polygon polygon) {
         throw new UnsupportedOperationException("This operation is not yet supported");
     }
 
     public static Point2D.Float getCentreOfGravity(Polygon polygon) {
+        return getCentreOfGravity(polygon, getArea(polygon));
+    }
+
+    private static Point2D.Float getCentreOfGravity(Polygon polygon, double area) {
         double x = 0;
         double y = 0;
         for (int i = 0; i < polygon.npoints; i++) {
@@ -32,8 +39,7 @@ public class PolygonExtensions {
             x += (x_1 + x_2) * (x_1 * y_2 - x_2 * y_1);
             y += (y_1 + y_2) * (x_1 * y_2 - x_2 * y_1);
         }
-        double A = getArea(polygon);
-        return new Point2D.Float((float)(x / (6 * A)), (float)(y / (6 * A)));
+        return new Point2D.Float((float)(x / (6 * area)), (float)(y / (6 * area)));
     }
 
     public static double getArea(Polygon polygon) {
@@ -46,6 +52,18 @@ public class PolygonExtensions {
             a += x_1 * y_2 - x_2 * y_1;
         }
         return a / 2;
+    }
+
+    public static boolean isClockwise(Polygon polygon) {
+        double a = 0;
+        for (int i = 0; i < polygon.npoints; i++) {
+            double x_1 = polygon.xpoints[i];
+            double y_1 = polygon.ypoints[i];
+            double x_2 = polygon.xpoints[i == polygon.npoints - 1 ? 0 : i + 1];
+            double y_2 = polygon.ypoints[i == polygon.npoints - 1 ? 0 : i + 1];
+            a += (x_2 - x_1) * (y_1 + y_2);
+        }
+        return a < 0; //Compared to standard access its reflected through x=0
     }
 
     public static Polygon[] getConvexPolygons(Polygon polygon) {
@@ -72,7 +90,7 @@ public class PolygonExtensions {
                 int check = (i + reflex) % vertices.length;
                 if (new Vertex(
                         vertices[reflex].getNearEdge(),
-                        new Edge(vertices[reflex].getCommonPoint(), vertices[check].getCommonPoint())
+                        new Edge(polygon, vertices[reflex].getCommonPoint(), vertices[check].getCommonPoint())
                 ).getAngle(inside) > Math.PI) {
                     continue;
                 }
@@ -82,7 +100,7 @@ public class PolygonExtensions {
                     closestAlternate = check;
                 }
             }
-            Vertex[][] polygons = cut(vertices, reflex, closestAlternate);
+            Vertex[][] polygons = cut(polygon, vertices, reflex, closestAlternate);
             for (int i = 0; i < 2; i++) {
                 if (polygons[i].length > 3) {
                     untestedPolygons.add(polygons[i]);
@@ -122,7 +140,7 @@ public class PolygonExtensions {
 
     public static Polygon[] cut(Polygon polygon, int newStart, int newStop) {
         Vertex[] vertices = getVertices(polygon);
-        Vertex[][] polygons = cut(vertices, newStart, newStop);
+        Vertex[][] polygons = cut(polygon, vertices, newStart, newStop);
         return new Polygon[] {fromVertices(polygons[0]), fromVertices(polygons[1])};
     }
 
@@ -170,9 +188,9 @@ public class PolygonExtensions {
         return cycled;
     }
 
-    private static Vertex[][] cut(Vertex[] vertices, int newStart, int newStop) {
+    private static Vertex[][] cut(Polygon polygon, Vertex[] vertices, int newStart, int newStop) {
         if (newStop < newStart) {
-            return cut(vertices, newStop, newStart);
+            return cut(polygon, vertices, newStop, newStart);
         }
         Vertex[] polygon_1 = new Vertex[newStop + 1 - newStart];
         for (int i = newStart + 1; i < newStop; i++) {
@@ -180,12 +198,12 @@ public class PolygonExtensions {
         }
         polygon_1[0] =
                 new Vertex(
-                        new Edge(vertices[newStop].getCommonPoint(), vertices[newStart].getCommonPoint()),
+                        new Edge(polygon, vertices[newStop].getCommonPoint(), vertices[newStart].getCommonPoint()),
                         vertices[newStart].getFarEdge());
         polygon_1[polygon_1.length - 1] =
                 new Vertex(
                         vertices[newStop].getNearEdge(),
-                        new Edge(vertices[newStop].getCommonPoint(), vertices[newStart].getCommonPoint()));
+                        new Edge(polygon, vertices[newStop].getCommonPoint(), vertices[newStart].getCommonPoint()));
         Vertex[] polygon_2 = new Vertex[vertices.length + 2 - polygon_1.length];
         int index = 1;
         for (int i = newStop + 1; i < vertices.length; i++) {
@@ -196,12 +214,12 @@ public class PolygonExtensions {
         }
         polygon_2[0] =
                 new Vertex(
-                        new Edge(vertices[newStart].getCommonPoint(), vertices[newStop].getCommonPoint()),
+                        new Edge(polygon, vertices[newStart].getCommonPoint(), vertices[newStop].getCommonPoint()),
                         vertices[newStop].getFarEdge());
         polygon_2[polygon_2.length - 1] =
                 new Vertex(
                         vertices[newStart].getNearEdge(),
-                        new Edge(vertices[newStart].getCommonPoint(), vertices[newStop].getCommonPoint()));
+                        new Edge(polygon, vertices[newStart].getCommonPoint(), vertices[newStop].getCommonPoint()));
         return new Vertex[][] {polygon_1, polygon_2};
     }
 
@@ -217,7 +235,7 @@ public class PolygonExtensions {
         Point[] points = getPoints(polygon);
         Edge[] edges = new Edge[polygon.npoints];
         for (int i = 0; i < polygon.npoints; i++) {
-            edges[i] = new Edge(points[i], points[i == polygon.npoints - 1 ? 0 : i + 1]);
+            edges[i] = new Edge(polygon, points[i], points[i == polygon.npoints - 1 ? 0 : i + 1]);
         }
         return edges;
     }
@@ -293,6 +311,240 @@ public class PolygonExtensions {
             }
             points.add(new Point(polygon.xpoints[at], polygon.ypoints[at]));
         } while (at != toIndex);
+        return points;
+    }
+
+    public static NearestPoint getNearestPoint(Polygon[] areas, Point2D.Float point) {
+        NearestPoint overallNearestPoint = null;
+        for (Polygon polygon : areas) {
+            NearestPoint nearestPoint = getNearestPoint(polygon, point);
+            if (overallNearestPoint == null || nearestPoint.dSquared < overallNearestPoint.dSquared) {
+                overallNearestPoint = nearestPoint;
+            }
+        }
+        return overallNearestPoint;
+    }
+
+    public static Rectangle getBounds(Polygon[] areas) {
+        Rectangle bounds = null;
+        for (Polygon polygon : areas) {
+            if (bounds == null) {
+                bounds = polygon.getBounds();
+            }
+            else {
+                bounds = bounds.union(polygon.getBounds());
+            }
+        }
+        return bounds;
+    }
+
+    public static boolean contains(Polygon[] polygons, Point point) {
+        for (Polygon polygon : polygons) {
+            if (polygon.contains(point)) return true;
+        }
+        return false;
+    }
+
+    public static boolean contains(Polygon[] polygons, int x, int y) {
+        return contains(polygons, new Point(x, y));
+    }
+
+    public static boolean contains(Polygon[] polygons, double x, double y) {
+        for (Polygon polygon : polygons) {
+            if (polygon.contains(x, y)) return true;
+        }
+        return false;
+    }
+
+    public static Point2D.Float getCentreOfGravity(Polygon[] polygons) {
+        double x = 0;
+        double y = 0;
+        double totalArea = 0;
+        for (int i = 0; i < polygons.length; i++) {
+            Polygon polygon = polygons[i];
+            double weight = getArea(polygon);
+            Point2D.Float centreOfGravity = getCentreOfGravity(polygon, weight);
+            totalArea += weight;
+            x += centreOfGravity.getX() * weight;
+            y += centreOfGravity.getY() * weight;
+        }
+        return new Point2D.Float((float)(x / totalArea), (float)(y / totalArea));
+    }
+
+    public static boolean contains(Polygon[] polygons, Point2D.Float centreOfGravity) {
+        for (Polygon polygon : polygons) {
+            if (polygon.contains(centreOfGravity)) return true;
+        }
+        return false;
+    }
+
+    public static boolean contains(Polygon[] polygons, Rectangle rectangle) {
+        for (Polygon polygon : polygons) {
+            if (polygon.contains(rectangle)) return true;
+        }
+        return false;
+    }
+
+    public static Polygon transform(Polygon polygon, AffineTransform affineTransform) {
+        int[] xpoints = new int[polygon.npoints];
+        int[] ypoints = new int[polygon.npoints];
+        for (int i = 0; i < polygon.npoints; i++) {
+            Point2D.Float transformed = new Point2D.Float();
+            affineTransform.transform(new Point2D.Float(polygon.xpoints[i], polygon.ypoints[i]), transformed);
+            xpoints[i] = Math.round(transformed.x);
+            ypoints[i] = Math.round(transformed.y);
+        }
+        return new Polygon(xpoints, ypoints, polygon.npoints);
+    }
+
+    public static Polygon[] transform(Polygon[] polygons, AffineTransform affineTransform) {
+        Polygon[] transformed = new Polygon[polygons.length];
+        for (int i = 0; i < polygons.length; i++) {
+            transformed[i] = transform(polygons[i], affineTransform);
+        }
+        return transformed;
+    }
+
+    public static Polygon construct(List<Point> points) {
+        int[] xpoints = new int[points.size()];
+        int[] ypoints = new int[points.size()];
+        for (int i = 0; i < points.size(); i++) {
+            Point p = points.get(i);
+            xpoints[i] = p.x;
+            ypoints[i] = p.y;
+        }
+        return new Polygon(xpoints, ypoints, points.size());
+    }
+
+    public static Polygon[] translate(Polygon[] polygons, Point location) {
+        Polygon[] translated = new Polygon[polygons.length];
+        for (int i = 0; i < polygons.length; i++) {
+            translated[i] = translate(polygons[i], location);
+        }
+        return translated;
+    }
+
+    public static Polygon translate(Polygon polygon, Point location) {
+        int[] xpoints = new int[polygon.npoints];
+        int[] ypoints = new int[polygon.npoints];
+        for (int i = 0; i < polygon.npoints; i++) {
+            xpoints[i] = polygon.xpoints[i] + location.x;
+            ypoints[i] = polygon.ypoints[i] + location.y;
+        }
+        return new Polygon(xpoints, ypoints, polygon.npoints);
+    }
+
+    public static boolean intersects(Polygon[] polygons, Rectangle rectangle) {
+        LOG.debug("rectangle: {}", rectangle);
+        for (Polygon polygon : polygons) {
+            LOG.debug("polygon.getBounds(): {}", polygon.getBounds());
+            Rectangle bounds = polygon.getBounds();
+            if (bounds.width == 0 || bounds.height == 0) {
+                if (rectangle.intersects(new Rectangle(bounds.x, bounds.y,
+                        bounds.width == 0 ? 1 : bounds.width,
+                        bounds.height == 0 ? 1 : bounds.height))) {
+                    LOG.debug("intersects");
+                    return true;
+                }
+            }
+            else if (polygon.intersects(rectangle)) {
+                LOG.debug("intersects");
+                return true;
+            }
+        }
+        LOG.debug("doesn't intersect");
+        return false;
+    }
+
+    public static Polygon[] removeRedundancies(Polygon[] polygons) {
+        Polygon[] reduced = new Polygon[polygons.length];
+        for (int i = 0; i < polygons.length; i++) {
+            reduced[i] = removeRedundancies(polygons[i]);
+        }
+        return reduced;
+    }
+
+    public static Polygon removeRedundancies(Polygon polygon) {
+        int[] xpoints = new int[polygon.npoints];
+        int[] ypoints = new int[polygon.npoints];
+        int reducedPointCount = 0;
+        for (int i = 0; i < polygon.npoints; i++) {
+            if (reducedPointCount == 0 || polygon.xpoints[i] != xpoints[reducedPointCount - 1] || polygon.ypoints[i] != ypoints[reducedPointCount - 1]) {
+                xpoints[reducedPointCount] = polygon.xpoints[i];
+                ypoints[reducedPointCount] = polygon.ypoints[i];
+                reducedPointCount++;
+            }
+        }
+        if (reducedPointCount > 1 && xpoints[0] == xpoints[reducedPointCount - 1] &&
+                ypoints[0] == ypoints[reducedPointCount - 1]) {
+            reducedPointCount--;
+        }
+        return new Polygon(xpoints, ypoints, reducedPointCount);
+    }
+
+    public static Shape[] clip(Polygon polygon, Rectangle clip) {
+        List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
+        if (clippedSegments.size() == 1) {
+            return new Shape[] {clippedSegments.get(0).inside ? polygon : clip};
+        }
+        return new ClippedPolygonFactory(polygon, clip, clippedSegments).build();
+    }
+
+    public static List<ClippedSegment> getClippedSegments(Polygon polygon, Rectangle clip) {
+        polygon = PolygonExtensions.removeRedundancies(polygon);
+        Point previous = null;
+        boolean inside = false;
+        List<Point> points = new ArrayList<Point>();
+        List<ClippedSegment> clippedSegments = new ArrayList<ClippedSegment>();
+        for (int i = 0; i <= polygon.npoints; i++) {
+            Point point = new Point(polygon.xpoints[i % polygon.npoints], polygon.ypoints[i % polygon.npoints]);
+            if (previous == null) {
+                inside = clip.contains(point);
+            }
+            else {
+                if (RectangleExtensions.getEdge(clip, point) == null && RectangleExtensions.getEdge(clip, previous) == null) {
+                    RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
+                    for (RectangleIntersection intersection : intersections) {
+                        points.add(intersection.getIntersection());
+                        clippedSegments.add(new ClippedSegment(points, inside));
+                        points.clear();
+                        inside = !inside;
+                        points.add(intersection.getIntersection());
+                    }
+                }
+                else if (RectangleExtensions.getEdge(clip, point) != null) {
+                    points.add(point);
+                    clippedSegments.add(new ClippedSegment(points, inside));
+                    points.clear();
+                    inside = !inside;
+                }
+            }
+            points.add(point);
+            previous = point;
+        }
+        if (clippedSegments.isEmpty()) {
+            clippedSegments.add(new ClippedSegment(points, inside));
+        }
+        else if (clippedSegments.get(0).inside == inside) {
+            if (!points.isEmpty()) {
+                clippedSegments.get(0).points.addAll(0, points.subList(0, points.size() - 1));
+            }
+        }
+        else if (RectangleExtensions.getEdge(clip, clippedSegments.get(0).points.get(0)) != null) {
+            clippedSegments.add(new ClippedSegment(points, inside));
+        }
+        else {
+            throw new RuntimeException("The surface has exhibited the behaviour of a Klein bottle");
+        }
+        return clippedSegments;
+    }
+
+
+    public static Point[] toPointArray(Polygon polygon) {
+        Point[] points = new Point[polygon.npoints];
+        for (int i = 0; i < polygon.npoints; i++) {
+            points[i] = new Point(polygon.xpoints[i], polygon.ypoints[i]);
+        }
         return points;
     }
 }

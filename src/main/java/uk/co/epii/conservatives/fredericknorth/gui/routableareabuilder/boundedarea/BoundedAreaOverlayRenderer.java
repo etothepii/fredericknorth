@@ -2,16 +2,18 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundeda
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.java2d.SunGraphics2D;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
-import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayRenderer;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Map;
@@ -22,23 +24,24 @@ import java.util.List;
  * Date: 21/07/2013
  * Time: 18:13
  */
-class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<BoundedArea> {
+class BoundedAreaOverlayRenderer<T extends BoundedArea> extends JPanel implements OverlayRenderer<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BoundedAreaOverlayRenderer.class);
+    private static final Logger LOG_POINTBYPOINT =
+            LoggerFactory.getLogger(BoundedAreaOverlayRenderer.class.getName().concat("_pointByPoint"));
     private static final int STICKY_BOUNDARY_RADIUS = 5;
     private static final int STICKY_BOUNDARY_RADIUS_SQUARED = STICKY_BOUNDARY_RADIUS * STICKY_BOUNDARY_RADIUS;
 
-    private final Map<BoundedAreaType, Color> colors;
+    protected final Map<BoundedAreaType, Color> colors;
     private Point mouseGeoOnEdge;
     private Point mouseLocationWorldPosition;
-    private Polygon polygon;
+    private Polygon[] polygons;
     protected Color color;
     private Point nearestImagePointOnBoundary;
     private int radius = 5;
-    private int minX = Integer.MAX_VALUE;
-    private int minY = Integer.MAX_VALUE;
-    private int maxX = Integer.MIN_VALUE;
-    private int maxY = Integer.MIN_VALUE;
+    private Rectangle imageBounds;
+    private OverlayItem<T> overlayItem;
+    private boolean whollyContained;
 
     public BoundedAreaOverlayRenderer(Map<BoundedAreaType, Color> colors) {
         this.colors = colors;
@@ -46,9 +49,9 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
 
     @Override
     public boolean contains(int x, int y) {
-        x = x - minX + radius;
-        y = y - minY + radius;
-        if (polygon.contains(x, y)) return true;
+        x = x - imageBounds.x + radius;
+        y = y - imageBounds.y + radius;
+        if (PolygonExtensions.contains(polygons, x, y)) return true;
         return getMouseOnPolygon(new Point2D.Float(x, y)) != null;
     }
 
@@ -57,44 +60,69 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
         return contains(p.x, p.y);
     }
 
-    @Override
-    public Component getOverlayRendererComponent(OverlayItem<BoundedArea> overlayItem,
-                                                 ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                                                 Point mouseLocation) {
-        Point mouseGeoLocation = imageAndGeoPointTranslator.getGeoLocation(mouseLocation);
-        color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
-        minX = Integer.MAX_VALUE;
-        minY = Integer.MAX_VALUE;
-        maxX = Integer.MIN_VALUE;
-        maxY = Integer.MIN_VALUE;
-        Polygon polygon = overlayItem.getItem().getArea();
-        List<Point> points = new ArrayList<Point>(polygon.npoints);
-        for (int i = 0; i < polygon.npoints; i++) {
-            Point point = imageAndGeoPointTranslator.getImageLocation(
-                    new Point(polygon.xpoints[i], polygon.ypoints[i]));
-            minX = Math.min(minX, point.x);
-            minY = Math.min(minY, point.y);
-            maxX = Math.max(maxX, point.x);
-            maxY = Math.max(maxY, point.y);
-            if (i == 0 || !points.get(points.size() - 1).equals(point)) {
-                points.add(point);
+    protected void setGeoPolygons(Polygon[] polygons, OverlayItem overlayItem,
+                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
+        Polygon[] geoPolygons = polygons;
+        Polygon[] imagePolygons = PolygonExtensions.transform(geoPolygons,
+                imageAndGeoPointTranslator.getGeoToImageTransform());
+        imageBounds = PolygonExtensions.getBounds(imagePolygons);
+        AffineTransform internalComponentTransform =
+                AffineTransform.getTranslateInstance(radius - imageBounds.x, radius - imageBounds.y);
+        LOG.debug("imageBounds: {}", imageBounds);
+        this.polygons = PolygonExtensions.removeRedundancies(
+                PolygonExtensions.transform(imagePolygons, internalComponentTransform));
+        if (LOG_POINTBYPOINT.isDebugEnabled()) {
+            for (Polygon polygon : this.polygons) {
+                LOG_POINTBYPOINT.debug("Setting polygon");
+                for (int i = 0; i < polygon.npoints; i++) {
+                    LOG_POINTBYPOINT.debug("{}: ({}, {})", new Object[] {i, polygon.xpoints[i], polygon.ypoints[i]});
+                }
             }
         }
-        int[] xpoints = new int[points.size()];
-        int[] ypoints = new int[points.size()];
-        for (int i = 0; i < points.size(); i++) {
-            Point point = points.get(i);
-            xpoints[i] = point.x - minX + radius;
-            ypoints[i] = point.y - minY + radius;
-        }
-        setPreferredSize(new Dimension(maxX - minX + radius * 2 + 1, maxY - minY + radius * 2 + 1));
+        setPreferredSize(new Dimension(imageBounds.width + radius * 2 + 1, imageBounds.height + radius * 2 + 1));
         setSize(getPreferredSize());
-        this.polygon = new Polygon(xpoints, ypoints, points.size());
+        Point drawFrom = overlayItem.getTopLeft(getSize(), imageAndGeoPointTranslator);
+        setLocation(drawFrom.x - radius, drawFrom.y - radius);
+    }
+
+    @Override
+    public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<T> overlayItem,
+                                                 ImageAndGeoPointTranslator imageAndGeoPointTranslator,
+                                                 Point mouseLocation) {
+        long start = System.nanoTime();
+        try {
+            color = colors == null ? null : colors.get(overlayItem.getItem().getBoundedAreaType());
+            setGeoPolygons(deriveGeoPolygons(overlayItem), overlayItem, imageAndGeoPointTranslator);
+            processMouseLocation(overlayItem, imageAndGeoPointTranslator, mouseLocation);
+            Polygon[] screenPolygons = PolygonExtensions.translate(polygons, getLocation());
+            this.overlayItem = overlayItem;
+            Rectangle mapPanelBounds = new Rectangle(mapPanel.getSize());
+            boolean polygonsVisible =
+                    PolygonExtensions.intersects(screenPolygons, mapPanelBounds);
+            whollyContained = PolygonExtensions.contains(screenPolygons, RectangleExtensions.grow(mapPanelBounds, radius));
+            LOG.debug("polygonsVisible: {}", polygonsVisible);
+            return new RenderedOverlay(this, polygonsVisible ?
+                    new RenderedOverlayPolygonBoundaryImpl(overlayItem, screenPolygons, radius) : null);
+        }
+        finally {
+            long took = System.nanoTime() - start;
+            LOG.debug("Generating overlay Renderer took {}ns", took);
+        }
+    }
+
+
+
+    protected Polygon[] deriveGeoPolygons(OverlayItem<T> overlayItem) {
+        return overlayItem.getItem().getAreas();
+    }
+
+    protected void processMouseLocation(OverlayItem<T> overlayItem, ImageAndGeoPointTranslator imageAndGeoPointTranslator, Point mouseLocation) {
+        Point mouseGeoLocation = imageAndGeoPointTranslator.getGeoLocation(mouseLocation);
         if (mouseGeoLocation != null) {
             Point mouseOnImage = imageAndGeoPointTranslator.getImageLocation(mouseGeoLocation);
             Point2D.Float mouseOnPolygon = new Point2D.Float(
-                    mouseOnImage.x - minX + radius,
-                    mouseOnImage.y - minY + radius);
+                    mouseOnImage.x - imageBounds.x + radius,
+                    mouseOnImage.y - imageBounds.y + radius);
             setMouseOnPolygon(mouseOnPolygon);
         }
         if (nearestImagePointOnBoundary == null) {
@@ -102,15 +130,13 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
         }
         else {
             Point2D.Float geoEdge = PolygonExtensions.getNearestPoint(
-                    overlayItem.getItem().getArea(), new Point2D.Float(mouseGeoLocation.x, mouseGeoLocation.y)).point;
+                    overlayItem.getItem().getAreas(), new Point2D.Float(mouseGeoLocation.x, mouseGeoLocation.y)).point;
             setMouseGeo(new Point(Math.round(geoEdge.x), Math.round(geoEdge.y)));
         }
-        setLocation(-radius, -radius);
-        return this;
     }
 
-    protected Polygon getPolygon() {
-        return polygon;
+    protected Polygon[] getPolygons() {
+        return polygons;
     }
 
     private void setMouseOnPolygon(Point2D.Float mouseOnPolygon) {
@@ -122,7 +148,7 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
         LOG.debug("mouseOnPolygon: {}", mouseOnPolygon);
         long time = System.nanoTime();
         NearestPoint nearestPoint =
-                PolygonExtensions.getNearestPoint(polygon, mouseOnPolygon);
+                PolygonExtensions.getNearestPoint(polygons, mouseOnPolygon);
         long took = System.nanoTime() - time;
         if (nearestPoint == null) {
             return null;
@@ -139,36 +165,38 @@ class BoundedAreaOverlayRenderer extends JPanel implements OverlayRenderer<Bound
     }
 
     protected void paint(Graphics2D g) {
-        long time = System.nanoTime();
-        g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 64));
-        if (polygon.npoints < 3) {
-            return;
+        long start = System.nanoTime();
+        for (Polygon polygon : polygons) {
+            g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 64));
+            if (polygon.npoints < 3) {
+                continue;
+            }
+            long shapeStart = System.nanoTime();
+            Shape[] clippedShapes = PolygonExtensions.clip(polygon, g.getClipBounds());
+            long took = System.nanoTime() - shapeStart;
+            shapeStart = System.nanoTime();
+            LOG.debug("Calculating Clips: {}ns", took);
+            for (Shape clippedShape : clippedShapes) {
+                LOG.debug("clippedPolygon.getBounds(): {}", clippedShape.getBounds());
+                g.fill(clippedShape);
+            }
+            took = System.nanoTime() - shapeStart;
+            LOG.debug("Filling Polygon took: {}ns", took);
+            g.setColor(color);
+            Stroke original = g.getStroke();
+            g.setStroke(new BasicStroke(4));
+            g.drawPolygon(polygon);
+            g.setStroke(original);
+            if (nearestImagePointOnBoundary != null) {
+                LOG.debug("Nearest Boundary: {}ns", nearestImagePointOnBoundary);
+                g.fillOval(nearestImagePointOnBoundary.x - radius, nearestImagePointOnBoundary.y - radius, radius * 2, radius * 2);
+            }
         }
-        g.fillPolygon(polygon);
-        g.setColor(color);
-        Stroke original = g.getStroke();
-        g.setStroke(new BasicStroke(4));
-        g.drawPolygon(polygon);
-        g.setStroke(original);
-        if (nearestImagePointOnBoundary != null) {
-            LOG.debug("Nearest Boundary: {}", nearestImagePointOnBoundary);
-            g.fillOval(nearestImagePointOnBoundary.x - radius, nearestImagePointOnBoundary.y - radius, radius * 2, radius * 2);
-        }
-        long took = System.nanoTime() - time;
-        LOG.debug("Rendering overlay item: {}ns", took);
-    }
-
-    @Override
-    public Point getMouseGeo() {
-        return mouseLocationWorldPosition;
+        long took = System.nanoTime() - start;
+        LOG.debug("Painting Bounded Area {} took: {}ns", overlayItem.getItem().getName(), took);
     }
 
     private void setMouseGeo(Point mouseGeo) {
         mouseLocationWorldPosition = mouseGeo;
-    }
-
-    @Override
-    public boolean isMouseOnBoundary() {
-        return nearestImagePointOnBoundary != null;
     }
 }

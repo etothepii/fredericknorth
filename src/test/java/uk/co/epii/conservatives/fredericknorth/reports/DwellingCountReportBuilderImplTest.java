@@ -113,7 +113,7 @@ public class DwellingCountReportBuilderImplTest {
         }
 
         @Override
-        public Polygon getArea() {
+        public Polygon[] getAreas() {
             throw new UnsupportedOperationException("This method is not supported in this Dummy");
         }
 
