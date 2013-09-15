@@ -513,9 +513,17 @@ public class PolygonExtensions {
                     }
                 }
                 else if (RectangleExtensions.getEdge(clip, point) != null) {
-                    points.add(point);
+                    if (!inside) {
+                        points.add(point);
+                        clippedSegments.add(new ClippedSegment(points, inside));
+                        points.clear();
+                        inside = !inside;
+                    }
+                }
+                else if (RectangleExtensions.getEdge(clip, previous) != null && !clip.contains(point)) {
                     clippedSegments.add(new ClippedSegment(points, inside));
                     points.clear();
+                    points.add(previous);
                     inside = !inside;
                 }
             }
@@ -534,6 +542,12 @@ public class PolygonExtensions {
             clippedSegments.add(new ClippedSegment(points, inside));
         }
         else {
+            LOG.error("clip: {}", clip);
+            LOG.error("polygon: {}", Arrays.toString(PolygonExtensions.toPointArray(polygon)));
+            for (int i = 0; i < clippedSegments.size(); i++) {
+                LOG.error("clippedSegemet[{}]: {}", i, clippedSegments.get(i));
+            }
+            LOG.error("activeSegemet: {}, {}", Arrays.toString(points.toArray(new Point[points.size()])), inside);
             throw new RuntimeException("The surface has exhibited the behaviour of a Klein bottle");
         }
         return clippedSegments;

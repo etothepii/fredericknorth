@@ -252,4 +252,38 @@ public class PolygonExtensionsTests {
         assertArrayEquals(expected, result);
     }
 
+    @Test
+    public void getClippedSegmentsTest3() {
+        Rectangle clip = new Rectangle(5, 10, 20, 30);
+        Polygon polygon = new Polygon(new int[] {0,10,15,20,30,20,15,11,10,10}, new int[] {25,15,-10,15,25,35,60,40,40,35}, 10);
+        ClippedSegment[] expected = new ClippedSegment[] {
+                createClippedSegment(new Point[] {new Point(5, 30), new Point(0, 25), new Point(5, 20)}, false),
+                createClippedSegment(new Point[] {new Point(5, 20), new Point(10, 15), new Point(11, 10)}, true),
+                createClippedSegment(new Point[] {new Point(11, 10), new Point(15, -10), new Point(19, 10)}, false),
+                createClippedSegment(new Point[] {new Point(19, 10), new Point(20, 15), new Point(25, 20)}, true),
+                createClippedSegment(new Point[] {new Point(25, 20), new Point(30, 25), new Point(25, 30)}, false),
+                createClippedSegment(new Point[] {new Point(25, 30), new Point(20, 35), new Point(19, 40)}, true),
+                createClippedSegment(new Point[] {new Point(19, 40), new Point(15, 60), new Point(11, 40)}, false),
+                createClippedSegment(new Point[] {new Point(11, 40), new Point(10, 40), new Point(10, 35), new Point(5, 30)}, true)};
+        ClippedSegment[] result = PolygonExtensions.getClippedSegments(polygon, clip).toArray(new ClippedSegment[0]);
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void getClippedSegmentsTest4() {
+        Rectangle clip = new Rectangle(5, 10, 20, 30);
+        Polygon polygon = new Polygon(new int[] {0,10,15,20,30,20,15,11,12,10}, new int[] {25,15,-10,15,25,35,60,40,40,35}, 10);
+        ClippedSegment[] expected = new ClippedSegment[] {
+                createClippedSegment(new Point[] {new Point(5, 30), new Point(0, 25), new Point(5, 20)}, false),
+                createClippedSegment(new Point[] {new Point(5, 20), new Point(10, 15), new Point(11, 10)}, true),
+                createClippedSegment(new Point[] {new Point(11, 10), new Point(15, -10), new Point(19, 10)}, false),
+                createClippedSegment(new Point[] {new Point(19, 10), new Point(20, 15), new Point(25, 20)}, true),
+                createClippedSegment(new Point[] {new Point(25, 20), new Point(30, 25), new Point(25, 30)}, false),
+                createClippedSegment(new Point[] {new Point(25, 30), new Point(20, 35), new Point(19, 40)}, true),
+                createClippedSegment(new Point[] {new Point(19, 40), new Point(15, 60), new Point(11, 40)}, false),
+                createClippedSegment(new Point[] {new Point(11, 40), new Point(12, 40), new Point(10, 35), new Point(5, 30)}, true)};
+        ClippedSegment[] result = PolygonExtensions.getClippedSegments(polygon, clip).toArray(new ClippedSegment[0]);
+        assertArrayEquals(expected, result);
+    }
+
 }
