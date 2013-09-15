@@ -37,7 +37,7 @@ public interface MapPanelModel {
     public void setOverlayRenderer(Class<?> clazz, OverlayRenderer overlayRenderer);
     public RenderedOverlay render(MapPanel mapPanel, OverlayItem overlayItem);
     public Map<OverlayItem, MouseLocation> getImmutableOverlaysMouseOver();
-    public void setRenderedOverlayBoundaries(Collection<? extends RenderedOverlayBoundary> renderedOverlays);
+    public void setRenderedOverlays(Collection<? extends RenderedOverlay> renderedOverlays);
     public Point getMouseAt();
     public void doubleClicked(MouseEvent e);
     public void clicked(MouseEvent e);
@@ -47,4 +47,7 @@ public interface MapPanelModel {
     public void setProgressTracker(ProgressTracker progressTracker);
     public void display(Rectangle rectangle);
     public void setMapImageObserver(MapImageObserver mapImageObserver);
+    public Collection<Rectangle> getRepaintAreas(MapPanel mapPanel);
+    public void monitorRepaintAreas();
+    public void setMapPanel(MapPanel mapPanel);
 }

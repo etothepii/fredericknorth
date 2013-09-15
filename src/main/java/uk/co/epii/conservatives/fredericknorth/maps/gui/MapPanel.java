@@ -30,6 +30,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
         setFocusable(true);
         addKeyListener(this);
         addMouseEvents();
+        mapPanelModel.setMapPanel(this);
     }
 
     private void addMouseEvents() {
@@ -52,7 +53,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
         g.drawImage(currentMapView.getMap(), 0, 0, this);
         LOG_PAINT.debug("Drawn Image");
         List<OverlayItem> overlays = mapPanelModel.getImmutableOverlayItems();
-        List<RenderedOverlayBoundary> boundaries = new ArrayList<RenderedOverlayBoundary>(overlays.size());
+        List<RenderedOverlay> renderedOverlays = new ArrayList<RenderedOverlay>(overlays.size());
         for(OverlayItem overlayItem : overlays) {
             if (overlayItem.getItem() == null) {
                 continue;
@@ -65,10 +66,11 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             Dimension renderedSize = renderedOverlay.getComponent().getSize();
             Point location = renderedOverlay.getComponent().getLocation();
             renderedOverlay.getComponent().paint(g.create(location.x, location.y, renderedSize.width, renderedSize.height));
-            boundaries.add(renderedOverlay.getBoundary());
+            renderedOverlays.add(renderedOverlay);
         }
         LOG_PAINT.debug("Drawn Overlays");
-        mapPanelModel.setRenderedOverlayBoundaries(boundaries);
+        mapPanelModel.setRenderedOverlays(renderedOverlays);
+        mapPanelModel.monitorRepaintAreas();
     }
 
     @Override
@@ -85,7 +87,9 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             finally {
                 LOG_SYNC.debug("Released this");
             }
-            repaint();
+            for (Rectangle repaintArea : mapPanelModel.getRepaintAreas(this)) {
+                repaint(repaintArea);
+            }
         }
     }
 
@@ -94,7 +98,9 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
         LOG.debug("mouseMovedTo: {}", e.getPoint());
         if (!isEnabled()) return;
         mapPanelModel.mouseMovedTo(e.getPoint());
-        repaint();
+        for (Rectangle repaintArea : mapPanelModel.getRepaintAreas(this)) {
+            repaint(repaintArea);
+        }
     }
 
     @Override
@@ -110,7 +116,9 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
         finally {
             LOG_SYNC.debug("Released this");
         }
-        repaint();
+        for (Rectangle repaintArea : mapPanelModel.getRepaintAreas(this)) {
+            repaint(repaintArea);
+        }
     }
 
     @Override
@@ -134,7 +142,9 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             finally {
                 LOG_SYNC.debug("Released this");
             }
-            repaint();
+            for (Rectangle repaintArea : mapPanelModel.getRepaintAreas(this)) {
+                repaint(repaintArea);
+            }
         }
     }
 
@@ -153,7 +163,9 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             finally {
                 LOG_SYNC.debug("Released this");
             }
-            repaint();
+            for (Rectangle repaintArea : mapPanelModel.getRepaintAreas(this)) {
+                repaint(repaintArea);
+            }
         }
     }
 
@@ -188,5 +200,9 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
     @Override
     public void keyReleased(KeyEvent e) {
         if (!isEnabled()) return;
+    }
+
+    public MapPanelModel getModel() {
+        return mapPanelModel;
     }
 }

@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
+import uk.co.epii.conservatives.fredericknorth.maps.MapViewChangedTranslationListener;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
@@ -73,4 +74,10 @@ public class DummyMapViewGenerator implements MapViewGenerator {
         setGeoCenter(newGeoCenter, progressTracker, imageObserver);
         return true;
     }
+
+    @Override
+    public void addMapViewChangedListener(MapViewChangedTranslationListener l) {}
+
+    @Override
+    public void removeMapViewChangedListener(MapViewChangedTranslationListener l) {}
 }

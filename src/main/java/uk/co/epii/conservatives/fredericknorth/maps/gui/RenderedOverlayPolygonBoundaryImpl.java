@@ -23,6 +23,7 @@ public class RenderedOverlayPolygonBoundaryImpl implements RenderedOverlayBounda
     private Point mouseLocation;
     private boolean onEdge;
     private boolean inside;
+    private NearestPoint nearestPoint;
 
     public RenderedOverlayPolygonBoundaryImpl(OverlayItem overlayItem, Polygon[] rendered) {
         this(overlayItem, rendered, false, Double.NaN);
@@ -38,6 +39,7 @@ public class RenderedOverlayPolygonBoundaryImpl implements RenderedOverlayBounda
         this.canBeOnEdge = canBeOnEdge;
         this.edgeDistanceSquared = edgeDistanceSquared;
         edgeDistance = canBeOnEdge ? Math.sqrt(edgeDistanceSquared) : Double.NaN;
+        nearestPoint = null;
     }
 
     @Override
@@ -59,10 +61,12 @@ public class RenderedOverlayPolygonBoundaryImpl implements RenderedOverlayBounda
         NearestPoint nearestPoint =
                 PolygonExtensions.getNearestPoint(rendered, new Point2D.Float(mouseLocation.x, mouseLocation.y));
         onEdge = nearestPoint.dSquared < edgeDistanceSquared;
+        this.nearestPoint = onEdge ? nearestPoint : null;
         inside = onEdge || PolygonExtensions.contains(rendered, mouseLocation);
     }
 
-    private Rectangle getBounds() {
+    @Override
+    public Rectangle getBounds() {
         if (_bounds == null) {
             _bounds = RectangleExtensions.grow(
                     PolygonExtensions.getBounds(rendered), canBeOnEdge ?
@@ -81,5 +85,10 @@ public class RenderedOverlayPolygonBoundaryImpl implements RenderedOverlayBounda
     public boolean isInside(Point mouseLocation) {
         setMouseLocation(mouseLocation);
         return inside;
+    }
+
+    @Override
+    public NearestPoint getNearestPoint() {
+        return nearestPoint;
     }
 }

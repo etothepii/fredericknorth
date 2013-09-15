@@ -23,12 +23,14 @@ public class BoundedAreaExtensions {
         return new BoundedAreaComboBoxModelImpl(boundedAreaType, parent);
     }
 
-    public static OverlayRenderer<BoundedArea> getOverlayRenderer(Map<BoundedAreaType, Color> colors) {
-        return new BoundedAreaOverlayRenderer(colors);
+    public static OverlayRenderer<BoundedArea> getOverlayRenderer(Map<BoundedAreaType, Color> colors,
+                                                                  int onBoundedAreaEdgeRadius) {
+        return new BoundedAreaOverlayRenderer(colors, onBoundedAreaEdgeRadius);
     }
 
-    public static OverlayRenderer<BoundedAreaConstructor> getConstructorOverlayRenderer(Map<BoundedAreaType, Color> color) {
-        return new BoundedAreaConstructorOverlayRenderer(color);
+    public static OverlayRenderer<BoundedAreaConstructor> getConstructorOverlayRenderer(
+            Map<BoundedAreaType, Color> color, int onBoundedAreaEdgeRadius) {
+        return new BoundedAreaConstructorOverlayRenderer(color, onBoundedAreaEdgeRadius);
     }
 
 }

@@ -53,6 +53,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     private double minScale = 0.001;
     private int incrementsPerImage = 1000;
     private int incrementsForImageLoad = 800;
+    private final List<MapViewChangedTranslationListener> mapViewChangedTranslationListeners;
 
     MapViewGeneratorImpl(ApplicationContext applicationContext,
                          Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
@@ -62,6 +63,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     public MapViewGeneratorImpl(OSMapLoader osMapLoader, OSMapLocator osMapLocator, LocationFactory locationFactory,
                                 MapLabelFactory mapLabelFactory, ProgressTracker progressTracker) {
+        mapViewChangedTranslationListeners = new ArrayList<MapViewChangedTranslationListener>();
         Rectangle initial = new Rectangle(new Dimension(1, 1));
         currentImage = new MapImageImpl(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB),
                 new Rectangle(0, 0, 1, 1), OSMapType.STREET_VIEW, 1d);
@@ -92,6 +94,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         if (updateImage) {
             updateImage(progressTracker, imageObserver);
         }
+        fireMapViewTranslationChangedEvent();
         return true;
     }
 
@@ -119,6 +122,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         if (updateImage) {
             updateImage(progressTracker, imageObserver);
         }
+        fireMapViewTranslationChangedEvent();
         return true;
     }
 
@@ -142,6 +146,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         if (updateImage) {
             updateImage(progressTracker, imageObserver);
         }
+        fireMapViewTranslationChangedEvent();
         return true;
     }
 
@@ -380,6 +385,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         boolean dirty = setGeoCenter(desiredGeoCentre, false, progressTracker, imageObserver);
         dirty &= setScale(requiredScale, false, progressTracker, imageObserver);
         if (dirty) {
+            fireMapViewTranslationChangedEvent();
             updateImage(progressTracker, imageObserver);
         }
         return dirty;
@@ -388,12 +394,35 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     @Override
     public boolean setScaleAndCenter(double newScale, Point newGeoCenter, ProgressTracker progressTracker,
                                      MapImageObserver imageObserver) {
-        boolean updateImage = setScale(newScale, false, progressTracker, imageObserver);
-        updateImage |= setGeoCenter(newGeoCenter, progressTracker, imageObserver);
-        if (updateImage) {
+        boolean hasChanged = setScale(newScale, false, progressTracker, imageObserver);
+        hasChanged |= setGeoCenter(newGeoCenter, progressTracker, imageObserver);
+        if (hasChanged) {
             updateImage(progressTracker, imageObserver);
+            fireMapViewTranslationChangedEvent();
         }
-        return updateImage;
+        return hasChanged;
+    }
+
+    @Override
+    public void addMapViewChangedListener(MapViewChangedTranslationListener l) {
+        mapViewChangedTranslationListeners.add(l);
+    }
+
+    @Override
+    public void removeMapViewChangedListener(MapViewChangedTranslationListener l) {
+        mapViewChangedTranslationListeners.remove(l);
+    }
+
+    protected void fireMapViewTranslationChangedEvent() {
+        fireMapViewTranslationChangedEvent(new MapViewTranslationChangedEvent(this));
+    }
+
+    protected void fireMapViewTranslationChangedEvent(MapViewTranslationChangedEvent e) {
+        synchronized (mapViewChangedTranslationListeners) {
+            for (MapViewChangedTranslationListener l : mapViewChangedTranslationListeners) {
+                l.mapViewChanged(e);
+            }
+        }
     }
 
     @Override

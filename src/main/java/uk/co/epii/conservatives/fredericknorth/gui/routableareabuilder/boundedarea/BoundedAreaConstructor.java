@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
 import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.VertexExtensions;
 
@@ -21,6 +22,8 @@ import java.util.List;
 public class BoundedAreaConstructor extends AbstractBoundedArea implements ExtendableBoundedArea {
 
     private static final Logger LOG = LoggerFactory.getLogger(BoundedAreaConstructor.class);
+    private static final Logger LOG_POINT_BY_POINT =
+            LoggerFactory.getLogger(BoundedAreaConstructor.class.getName().concat("_PointByPoint"));
 
     private final BoundedArea parent;
     private List<BoundedArea> previousNeighbours;
@@ -54,6 +57,11 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
     }
 
     public void setCurrent(Point p, BoundedArea[] neighbours) {
+        LOG.debug("setCurrent: {}", p);
+        LOG.debug("neighbours.length: {}", neighbours.length);
+        if (neighbours.length == 1) {
+            p = PointExtensions.fromFloat(neighbours[0].getNearestGeoPoint(PointExtensions.toFloat(p)).point);
+        }
         List<Point> points = getPoints().get(0);
         Point previous = points.isEmpty() ? null : points.get(points.size() - 1);
         inbetweenPoints = new ArrayList<Point>();
@@ -61,7 +69,9 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
             for (BoundedArea neighbour : neighbours) {
                 if (!previousNeighbours.contains(neighbour)) continue;
                 NearestPoint nearestPointToPrevious = neighbour.getNearestGeoPoint(new Point2D.Float(previous.x, previous.y));
-                if (nearestPointToPrevious.dSquared > 1.5f) continue;
+                if (nearestPointToPrevious.dSquared > 1.5f) {
+                    LOG.warn("The previous point though registering as a neighbour was not nailed on the shared boundary");
+                };
                 calculateCurrentPointsBetween(new Point2D.Float(previous.x, previous.y), new Point2D.Float(p.x, p.y),
                         nearestPointToPrevious.polygon);
                 break;
@@ -84,9 +94,9 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
         if (currentPoint != null) {
             pointsToDraw.add(currentPoint);
         }
-        if (LOG.isDebugEnabled()) {
+        if (LOG_POINT_BY_POINT.isDebugEnabled()) {
             for (Point point : pointsToDraw) {
-                LOG.debug("DrawPoint: {}", point);
+                LOG_POINT_BY_POINT.debug("DrawPoint: {}", point);
             }
         }
         return pointsToDraw;
