@@ -6,6 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaOverlayItem;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaExtensions;
+import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.DummyMapViewGenerator;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -22,7 +23,7 @@ public class AbstractMapPanelModelTest {
 
     @Test
     public void canFindInterfaceForRendering() {
-        AbstractMapPanelModel abstractMapPanelModel = new AbstractMapPanelModel(null) {
+        AbstractMapPanelModel abstractMapPanelModel = new AbstractMapPanelModel(new DummyMapViewGenerator()) {
             @Override
             public void doubleClicked(MouseEvent e) {}
 
@@ -34,7 +35,7 @@ public class AbstractMapPanelModelTest {
         };
         HashMap<BoundedAreaType, Color> hashMap = new HashMap<BoundedAreaType, Color>();
         hashMap.put(BoundedAreaType.POLLING_DISTRICT, Color.RED);
-        abstractMapPanelModel.setOverlayRenderer(BoundedArea.class, BoundedAreaExtensions.getOverlayRenderer(hashMap));
+        abstractMapPanelModel.setOverlayRenderer(BoundedArea.class, BoundedAreaExtensions.getOverlayRenderer(hashMap, 5));
         BoundedAreaOverlayItem boundedAreaOverlayItem = new BoundedAreaOverlayItem(
                 new AbstractBoundedArea(BoundedAreaType.POLLING_DISTRICT, "Blah") {
             @Override

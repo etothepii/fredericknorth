@@ -7,6 +7,7 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,8 @@ import java.util.Map;
  * Time: 10:35
  */
 public class DummyMapPanelModel implements MapPanelModel {
+    private MapPanel mapPanel;
+
     @Override
     public void addOverlay(OverlayItem overlayItem) {}
 
@@ -86,7 +89,7 @@ public class DummyMapPanelModel implements MapPanelModel {
     }
 
     @Override
-    public void setRenderedOverlayBoundaries(Collection<? extends RenderedOverlayBoundary> renderedOverlays) {}
+    public void setRenderedOverlays(Collection<? extends RenderedOverlay> renderedOverlays) {}
 
     @Override
     public Point getMouseAt() {
@@ -120,4 +123,17 @@ public class DummyMapPanelModel implements MapPanelModel {
 
     @Override
     public void setMapImageObserver(MapImageObserver mapImageObserver) {}
+
+    @Override
+    public Collection<Rectangle> getRepaintAreas(MapPanel mapPanel) {
+        return Arrays.asList(new Rectangle[] {new Rectangle(mapPanel.getSize())});
+    }
+
+    @Override
+    public void monitorRepaintAreas() {}
+
+    @Override
+    public void setMapPanel(MapPanel mapPanel) {
+        this.mapPanel = mapPanel;
+    }
 }
