@@ -11,10 +11,14 @@ public class RenderedOverlay {
 
     private final Component component;
     private final RenderedOverlayBoundary boundary;
+    private final OverlayItem overlayItem;
+    private final boolean isReusable;
 
-    public RenderedOverlay(Component component, RenderedOverlayBoundary boundary) {
+    public RenderedOverlay(Component component, RenderedOverlayBoundary boundary, OverlayItem overlayItem, boolean reusable) {
         this.component = component;
         this.boundary = boundary;
+        this.overlayItem = overlayItem;
+        isReusable = reusable;
     }
 
     public RenderedOverlayBoundary getBoundary() {
@@ -23,5 +27,13 @@ public class RenderedOverlay {
 
     public Component getComponent() {
         return component;
+    }
+
+    public OverlayItem getOverlayItem() {
+        return overlayItem;
+    }
+
+    public boolean isReusable() {
+        return isReusable;
     }
 }

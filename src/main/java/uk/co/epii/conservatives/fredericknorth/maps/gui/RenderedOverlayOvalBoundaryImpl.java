@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
+import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
+
 import java.awt.*;
 
 /**
@@ -18,6 +20,7 @@ public class RenderedOverlayOvalBoundaryImpl implements RenderedOverlayBoundary 
     private Point mouseLocation;
     private boolean onEdge;
     private boolean inside;
+    private final double outsideRadius;
 
     public RenderedOverlayOvalBoundaryImpl(OverlayItem overlayItem, Point centre, double radius) {
         this(overlayItem, centre, radius, false, Double.NaN);
@@ -31,6 +34,7 @@ public class RenderedOverlayOvalBoundaryImpl implements RenderedOverlayBoundary 
                                             boolean canBeOnEdge, double edgeDistance) {
         this.overlayItem = overlayItem;
         this.centre = centre;
+        this.outsideRadius = edgeDistance + radius;
         this.radiusSquared = radius * radius;
         this.canBeOnEdge = canBeOnEdge;
         this.edgeOutsideSquared = (edgeDistance + radius) * (edgeDistance + radius);
@@ -49,6 +53,11 @@ public class RenderedOverlayOvalBoundaryImpl implements RenderedOverlayBoundary 
         return inside;
     }
 
+    @Override
+    public NearestPoint getNearestPoint() {
+        return null;
+    }
+
     private void setMouseLocation(Point mouseLocation) {
         if (this.mouseLocation != null && this.mouseLocation.equals(mouseLocation)) {
             return;
@@ -64,5 +73,14 @@ public class RenderedOverlayOvalBoundaryImpl implements RenderedOverlayBoundary 
     @Override
     public OverlayItem getOverlayItem() {
         return overlayItem;
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        return new Rectangle(
+                (int)Math.round(Math.floor(centre.x - outsideRadius)),
+                (int)Math.round(Math.floor(centre.y - outsideRadius)),
+                (int)Math.round(Math.floor(outsideRadius * 2)),
+                (int)Math.round(Math.floor(outsideRadius * 2)));
     }
 }

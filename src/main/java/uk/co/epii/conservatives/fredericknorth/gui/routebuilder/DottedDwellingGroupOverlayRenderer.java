@@ -28,7 +28,7 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
                 new RenderedOverlayOvalBoundaryImpl(
                         overlayItem,
                         imageAndGeoPointTranslator.getImageLocation(overlayItem.getGeoLocationOfCenter()),
-                        totalRadii));
+                        totalRadii), overlayItem, false);
     }
 
     private void setRadii(int[] radii) {

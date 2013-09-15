@@ -2,9 +2,10 @@ package uk.co.epii.conservatives.fredericknorth.maps.gui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
-import uk.co.epii.conservatives.fredericknorth.maps.MapView;
-import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
+import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleCollection;
+import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
@@ -19,7 +20,7 @@ import java.util.List;
  * Date: 19/07/2013
  * Time: 19:22
  */
-public abstract class AbstractMapPanelModel implements MapPanelModel {
+public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewChangedTranslationListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractMapPanelModel.class);
     private static final Logger LOG_SYNC = LoggerFactory.getLogger(AbstractMapPanelModel.class.getName().concat("_sync"));
@@ -36,7 +37,9 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     private ProgressTracker progressTracker;
     private final Object selectionChangingSync = new Object();
     private MapImageObserver mapImageObserver;
-    private Collection<? extends RenderedOverlayBoundary> renderedOverlayBoundaries;
+    protected final Map<OverlayItem, RenderedOverlay> renderedOverlays;
+    protected RectangleCollection rectanglesToRepaint;
+    protected MapPanel mapPanel;
 
     protected AbstractMapPanelModel(MapViewGenerator mapViewGenerator) {
         this.progressTracker = NullProgressTracker.NULL;
@@ -46,6 +49,29 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
         overlayRenderers = new HashMap<Class<?>, OverlayRenderer>();
         this.mapViewGenerator = mapViewGenerator;
         mapImageObserver = null;
+        rectanglesToRepaint = null;
+        renderedOverlays = new HashMap<OverlayItem, RenderedOverlay>();
+        mapPanel = null;
+        mapViewGenerator.addMapViewChangedListener(this);
+    }
+
+    @Override
+    public void mapViewChanged(MapViewTranslationChangedEvent e) {
+        rectanglesToRepaint = null;
+        renderedOverlays.clear();
+    }
+
+    @Override
+    public Collection<Rectangle> getRepaintAreas(MapPanel mapPanel) {
+        return rectanglesToRepaint == null ? Arrays.asList(new Rectangle[] {new Rectangle(mapPanel.getSize())}) :
+                rectanglesToRepaint;
+    }
+
+    @Override
+    public void monitorRepaintAreas() {
+        if (rectanglesToRepaint == null) {
+            rectanglesToRepaint = new RectangleCollection();
+        }
     }
 
     @Override
@@ -72,16 +98,24 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
     }
 
     @Override
-    public void setRenderedOverlayBoundaries(Collection<? extends RenderedOverlayBoundary> renderedOverlayBoundaries) {
+    public void setMapPanel(MapPanel mapPanel) {
+        this.mapPanel = mapPanel;
+    }
+
+    @Override
+    public void setRenderedOverlays(Collection<? extends RenderedOverlay> renderedOverlays) {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new RuntimeException("The Rendered Overlays can only be updated from the Event Dispatch Thread");
         }
-        for (RenderedOverlayBoundary renderedOverlayBoundary : renderedOverlayBoundaries) {
-            if (renderedOverlayBoundary == null) {
+        for (RenderedOverlay renderedOverlay : renderedOverlays) {
+            if (renderedOverlay.getBoundary() == null) {
                 throw new NullPointerException("No null RenderedOverlayBoundaries allowed");
             }
         }
-        this.renderedOverlayBoundaries = renderedOverlayBoundaries;
+        this.renderedOverlays.clear();
+        for (RenderedOverlay renderedOverlay : renderedOverlays) {
+            this.renderedOverlays.put(renderedOverlay.getOverlayItem(), renderedOverlay);
+        }
     }
 
     @Override
@@ -162,6 +196,14 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
 
     @Override
     public RenderedOverlay render(MapPanel mapPanel, OverlayItem overlayItem) {
+        RenderedOverlay renderedOverlay = renderedOverlays.get(overlayItem);
+        if (renderedOverlay != null && renderedOverlay.isReusable()) {
+            ReusableOverlay reusableOverlay = (ReusableOverlay)renderedOverlay.getComponent();
+            reusableOverlay.setMouseLocation(getMouseAt());
+            if (reusableOverlay.isStillUsable()) {
+                return renderedOverlay;
+            }
+        }
         return getOverlayRenderer(overlayItem.getItem().getClass())
                 .getOverlayRendererComponent(mapPanel, overlayItem, currentMapView, mouseAt);
     }
@@ -403,6 +445,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
             LOG_SYNC.debug("Released this");
         }
         if (fireMapChange) {
+            fireMapChanged();
         }
     }
 
@@ -424,7 +467,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
             throw new RuntimeException("The getImmutableOverlaysMouseOver method " +
                     "should only be called from the EventDispatchThread");
         }
-        if (renderedOverlayBoundaries == null) {
+        if (renderedOverlays == null) {
             return new HashMap<OverlayItem, MouseLocation>(0);
         }
         if (getMouseAt() == null) {
@@ -432,18 +475,30 @@ public abstract class AbstractMapPanelModel implements MapPanelModel {
             return new HashMap<OverlayItem, MouseLocation>(0);
         }
         Map<OverlayItem, MouseLocation> overlaysMouseOver =
-                new HashMap<OverlayItem, MouseLocation>(renderedOverlayBoundaries.size());
-        for (RenderedOverlayBoundary renderedOverlayBoundary : renderedOverlayBoundaries) {
-            OverlayItem overlayItem = renderedOverlayBoundary.getOverlayItem();
+                new HashMap<OverlayItem, MouseLocation>(renderedOverlays.size());
+        for (RenderedOverlay renderedOverlay : renderedOverlays.values()) {
+            OverlayItem overlayItem = renderedOverlay.getOverlayItem();
             if (overlayItem.getItem() == null) {
                 continue;
             }
-            boolean onEdge = renderedOverlayBoundary.isOnEdge(getMouseAt());
-            boolean inside = renderedOverlayBoundary.isInside(getMouseAt());
+            boolean onEdge = renderedOverlay.getBoundary().isOnEdge(getMouseAt());
+            boolean inside = renderedOverlay.getBoundary().isInside(getMouseAt());
             if (inside) {
-                overlaysMouseOver.put(overlayItem,
-                        new MouseLocationImpl(getMouseAt(),
-                                getCurrentMapView().getGeoLocation(getMouseAt()), onEdge));
+                LOG.debug("getMouseAt(): {}", getMouseAt());
+                LOG.debug("getCurrentMapView().getGeoLocation(getMouseAt()): {}",
+                        getCurrentMapView().getGeoLocation(getMouseAt()));
+                NearestPoint nearestPoint = renderedOverlay.getBoundary().getNearestPoint();
+                if (onEdge && nearestPoint != null) {
+                    Point imagePoint = PointExtensions.fromFloat(nearestPoint.point);
+                    LOG.debug("imagePoint: {}", imagePoint);
+                    overlaysMouseOver.put(overlayItem,
+                            new MouseLocationImpl(imagePoint, getCurrentMapView().getGeoLocation(imagePoint), true));
+                }
+                else {
+                    overlaysMouseOver.put(overlayItem,
+                            new MouseLocationImpl(getMouseAt(),
+                                    getCurrentMapView().getGeoLocation(getMouseAt()), onEdge));
+                }
                 if (overlaysMouseOver.size() == stopAt) {
                     break;
                 }

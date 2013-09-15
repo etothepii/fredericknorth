@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.AbstractMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanelMouseTracker;
@@ -102,8 +103,13 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
 
     @Override
     public void cancel() {
+        Rectangle currentSelection = RectangleExtensions.grow(
+                RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
         multiSelectionSquareDrawnFrom = null;
         setSelected(null);
+        if (rectanglesToRepaint != null) {
+            rectanglesToRepaint.add(currentSelection);
+        }
     }
 
     @Override
@@ -116,12 +122,21 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
 
     @Override
     public void mouseMovedTo(Point point) {
-        super.mouseMovedTo(point);
         if (multiSelectionSquareDrawnFrom == null) {
+            super.mouseMovedTo(point);
             mapPanelMouseTracker.setMouseLocation(point);
         }
         else {
+            Rectangle previous = RectangleExtensions.grow(
+                    RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
+            super.mouseMovedTo(point);
             selectedAreaExtendedTo(point);
+            Rectangle after = RectangleExtensions.grow(
+                    RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
+            if (rectanglesToRepaint != null) {
+                rectanglesToRepaint.add(previous);
+                rectanglesToRepaint.add(after);
+            }
         }
     }
 }

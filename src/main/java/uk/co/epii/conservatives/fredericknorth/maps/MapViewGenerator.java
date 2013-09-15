@@ -3,8 +3,6 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 
 /**
  * User: James Robinson
@@ -27,4 +25,7 @@ public interface MapViewGenerator {
                                        ProgressTracker progressTracker, MapImageObserver imageObserver);
     public boolean setScaleAndCenter(double newScale, Point newGeoCenter,
                                      ProgressTracker progressTracker, MapImageObserver imageObserver);
+
+    public void addMapViewChangedListener(MapViewChangedTranslationListener l);
+    public void removeMapViewChangedListener(MapViewChangedTranslationListener l);
 }

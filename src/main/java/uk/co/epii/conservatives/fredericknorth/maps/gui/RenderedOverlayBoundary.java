@@ -16,6 +16,7 @@ public interface RenderedOverlayBoundary {
 
     public boolean isOnEdge(Point mouseLocation);
     public boolean isInside(Point mouseLocation);
+    public NearestPoint getNearestPoint();
     public OverlayItem getOverlayItem();
-
+    public Rectangle getBounds();
 }
