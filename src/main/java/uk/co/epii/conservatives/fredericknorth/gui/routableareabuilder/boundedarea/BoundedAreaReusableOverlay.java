@@ -138,8 +138,12 @@ public class BoundedAreaReusableOverlay<T extends BoundedArea> extends ReusableO
     private Graphics2D getBufferGraphics() {
         LOG.debug("buffering image ({} x {})", getWidth(), getHeight());
         Point location = getLocation();
-        Rectangle intersection = new Rectangle(location, getSize()
-                                        ).intersection(new Rectangle(mapPanelModel.getCurrentMapView().getSize()));
+        Rectangle intersection = new Rectangle(location, getSize()).intersection(
+                new Rectangle(mapPanelModel.getCurrentMapView().getSize()));
+        if (intersection.width < 0 || intersection.height < 0) {
+            bufferedImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+            return bufferedImage.createGraphics();
+        }
         bufferedImage = new BufferedImage(intersection.width, intersection.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = bufferedImage.createGraphics();
         if (location.x < 0 || location.y < 0) {
