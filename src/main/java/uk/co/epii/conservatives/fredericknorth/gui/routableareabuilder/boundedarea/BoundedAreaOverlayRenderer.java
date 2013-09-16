@@ -85,7 +85,7 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> implements OverlayRender
                     PolygonExtensions.intersects(screenPolygons, mapPanelBounds);
             LOG.debug("polygonsVisible: {}", polygonsVisible);
             return new RenderedOverlay(currentlyProducing, polygonsVisible ?
-                    new RenderedOverlayPolygonBoundaryImpl(overlayItem, screenPolygons, currentlyProducing.getRadius()) :
+                    new RenderedOverlayPolygonBoundaryImpl(overlayItem, screenPolygons, currentlyProducing.getRadius() * 2) :
                     null, overlayItem, true);
         }
         finally {
