@@ -89,7 +89,6 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
     private void recalculateConstructorOverlay(Point point) {
         Map<BoundedArea, Point> boundedAreas =
                 new HashMap<BoundedArea, Point>();
-        int priority = Integer.MIN_VALUE;
         Map<OverlayItem, MouseLocation> itemsMouseOver =
                 builderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
         LOG.debug("itemsMouseOver.size(): {}", itemsMouseOver.size());
@@ -103,12 +102,7 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
             if (!mouseLocation.isMouseStuck()) {
                 continue;
             }
-            if (priority == overlay.getPriority() ) {
-                boundedAreas.put(overlay.getItem(), mouseLocation.getGeoLocation());
-            }
-            else if (overlay.getPriority() > priority && overlay.getItem() != constructorOverlay.getItem()) {
-                priority = overlay.getPriority();
-                boundedAreas.clear();
+            if (overlay.getItem() != constructorOverlay.getItem()) {
                 boundedAreas.put(overlay.getItem(), mouseLocation.getGeoLocation());
             }
         }
@@ -136,8 +130,9 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
         }
         else {
             LOG.warn("There are too many points: {}", points);
-            LOG.warn("Taking median");
-            constructorOverlay.getItem().setCurrent(PointExtensions.getMedian(boundedAreas.values()), neighbours);
+            Point median = PointExtensions.getMedian(boundedAreas.values());
+            LOG.warn("Taking median: {}", median);
+            constructorOverlay.getItem().setCurrent(median, neighbours);
         }
     }
 

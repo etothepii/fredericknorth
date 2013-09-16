@@ -64,12 +64,12 @@ public class DwellingProcessorRegistrar {
                 return textFileRexgex.matcher(name).matches();
             }
         });
-//        progressTracker.startSubsection(textFiles.length);
-//        for (String file : textFiles) {
-//            progressTracker.setMessage(String.format("Loading %s", file));
-//            loadDwellingsFromTextFile(new File(dwellingsFolder.toString() + File.separator + file));
-//            progressTracker.increment();
-//        }
+        progressTracker.startSubsection(textFiles.length);
+        for (String file : textFiles) {
+            progressTracker.setMessage(String.format("Loading %s", file));
+            loadDwellingsFromTextFile(new File(dwellingsFolder.toString() + File.separator + file));
+            progressTracker.increment();
+        }
     }
 
     private static void loadDwellingsFromTextFile(File file) {

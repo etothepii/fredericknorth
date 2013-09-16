@@ -59,21 +59,20 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
     public void setCurrent(Point p, BoundedArea[] neighbours) {
         LOG.debug("setCurrent: {}", p);
         LOG.debug("neighbours.length: {}", neighbours.length);
-        if (neighbours.length == 1) {
-            p = PointExtensions.fromFloat(neighbours[0].getNearestGeoPoint(PointExtensions.toFloat(p)).point);
-        }
         List<Point> points = getPoints().get(0);
         Point previous = points.isEmpty() ? null : points.get(points.size() - 1);
         inbetweenPoints = new ArrayList<Point>();
         if (previousNeighbours != null && !previousNeighbours.isEmpty()) {
             for (BoundedArea neighbour : neighbours) {
                 if (!previousNeighbours.contains(neighbour)) continue;
-                NearestPoint nearestPointToPrevious = neighbour.getNearestGeoPoint(new Point2D.Float(previous.x, previous.y));
+                NearestPoint nearestPointToPrevious = neighbour.getNearestGeoPoint(PointExtensions.toFloat(previous));
                 if (nearestPointToPrevious.dSquared > 1.5f) {
                     LOG.warn("The previous point though registering as a neighbour was not nailed on the shared boundary");
                 };
-                calculateCurrentPointsBetween(new Point2D.Float(previous.x, previous.y), new Point2D.Float(p.x, p.y),
+                NearestPoint nearestPointToThis = neighbour.getNearestGeoPoint(PointExtensions.toFloat(p));
+                calculateCurrentPointsBetween(nearestPointToPrevious.point, nearestPointToThis.point,
                         nearestPointToPrevious.polygon);
+                inbetweenPoints.add(0, PointExtensions.fromFloat(nearestPointToPrevious.point));
                 break;
             }
         }

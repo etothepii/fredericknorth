@@ -30,7 +30,7 @@ public class RenderedOverlayPolygonBoundaryImpl implements RenderedOverlayBounda
     }
 
     public RenderedOverlayPolygonBoundaryImpl(OverlayItem overlayItem, Polygon[] rendered, double edgeDistance) {
-        this(overlayItem, rendered, edgeDistance > 0, edgeDistance);
+        this(overlayItem, rendered, edgeDistance > 0, edgeDistance * edgeDistance);
     }
 
     private RenderedOverlayPolygonBoundaryImpl(OverlayItem overlayItem, Polygon[] rendered, boolean canBeOnEdge, double edgeDistanceSquared) {
