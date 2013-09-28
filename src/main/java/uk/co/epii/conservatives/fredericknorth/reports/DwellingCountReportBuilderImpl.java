@@ -83,10 +83,6 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
             polygons.add(imagePolygons);
         }
         BoundedAreaType[] boundedAreaTypes = masterArea.getBoundedAreaType().getAllPossibleDecendentTypes();
-        reverse(boundedAreaTypes);
-        for (BoundedAreaType boundedAreaType : boundedAreaTypes) {
-            LOG.debug("{}", boundedAreaType);
-        }
         BufferedImage map = mapView.getMap();
         Graphics2D g = (Graphics2D)map.getGraphics();
         g.setColor(new Color(255, 255, 255, 228));
@@ -96,31 +92,57 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
         int fontSize = 72;
         BasicStroke boundaryStroke;
         Stroke originalStroke = g.getStroke();
+        HashMap<String, Point2D.Float> drawAt = calculateDrawAtLocations(
+                g, font, fontSize, boundedAreaTypes, groupedPolygons, identifiers);
+        reverse(boundedAreaTypes);
         for (BoundedAreaType boundedAreaType : boundedAreaTypes) {
             g.setColor(colours.get(boundedAreaType));
             boundaryStroke = new BasicStroke(stroke);
             fontSize *= 3;
             fontSize /= 2;
             g.setFont(new Font(font.getName(), font.getStyle(), fontSize));
-            //stroke -= 2;
             List<Polygon[]> allPolygons = groupedPolygons.get(boundedAreaType);
+            if (allPolygons == null) {
+                continue;
+            }
             for (Polygon[] polygons : allPolygons) {
                 g.setStroke(boundaryStroke);
                 for (Polygon polygon : polygons) {
                     g.draw(polygon);
                 }
                 g.setStroke(originalStroke);
-                Point2D.Float centreOfGravity = PolygonExtensions.getCentreOfGravity(polygons);
                 String value = identifiers.get(polygons).toString();
-                drawIndex(value, g, centreOfGravity, boundedAreaType);
+                Point2D.Float drawStringAt = drawAt.get(value);
+                g.drawString(value, drawStringAt.x, drawStringAt.y);
             }
         }
         return map;
     }
 
+    private HashMap<String, Point2D.Float> calculateDrawAtLocations(Graphics2D g, Font font, int fontSize,
+                        BoundedAreaType[] boundedAreaTypes, Map<BoundedAreaType, List<Polygon[]>> groupedPolygons,
+                        Map<Polygon[], Integer> identifiers) {
+        HashMap<String, Point2D.Float> drawAt = new HashMap<String, Point2D.Float>();
+        for (BoundedAreaType boundedAreaType : boundedAreaTypes) {
+            fontSize *= 3;
+            fontSize /= 2;
+            g.setFont(new Font(font.getName(), font.getStyle(), fontSize));
+            List<Polygon[]> allPolygons = groupedPolygons.get(boundedAreaType);
+            if (allPolygons == null) {
+                continue;
+            }
+            for (Polygon[] polygons : allPolygons) {
+                Point2D.Float centreOfGravity = PolygonExtensions.getCentreOfGravity(polygons);
+                String value = identifiers.get(polygons).toString();
+                drawAt.put(value, drawIndex(value, g, centreOfGravity, boundedAreaType));
+            }
+        }
+        return drawAt;
+    }
+
     ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
 
-    private void drawIndex(String value, Graphics2D g, Point2D.Float centreOfGravity, BoundedAreaType boundedAreaType) {
+    private Point2D.Float drawIndex(String value, Graphics2D g, Point2D.Float centreOfGravity, BoundedAreaType boundedAreaType) {
         Rectangle bounds = getPixelBounds(value, g);
         int x = (int)(centreOfGravity.x - bounds.width / 2f);
         int y = (int)(centreOfGravity.y - bounds.height / 2f);
@@ -139,7 +161,7 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
         Point2D.Float drawFrom = new Point2D.Float(
                 centreOfGravity.x - bounds.width / 2f - bounds.x,
                 centreOfGravity.y - bounds.height / 2f - bounds.y);
-        g.drawString(value, drawFrom.x, drawFrom.y - offset);
+        return new Point2D.Float(drawFrom.x, drawFrom.y - offset);
     }
 
 
