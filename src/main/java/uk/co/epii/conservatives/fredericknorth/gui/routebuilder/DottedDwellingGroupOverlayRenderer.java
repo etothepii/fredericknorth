@@ -24,6 +24,7 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
         setRadii(overlayItem.getItem().getDot().getRadii());
         setColours(overlayItem.getItem().getDot().getColours());
         setSize(getPreferredSize());
+        setLocation(overlayItem.getTopLeft(new Dimension(totalRadii * 2, totalRadii * 2), imageAndGeoPointTranslator));
         return new RenderedOverlay(this,
                 new RenderedOverlayOvalBoundaryImpl(
                         overlayItem,
