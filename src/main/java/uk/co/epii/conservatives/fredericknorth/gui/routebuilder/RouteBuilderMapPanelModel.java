@@ -128,11 +128,13 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
         }
         else {
             Rectangle previous = RectangleExtensions.grow(
-                    RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
+                    RectangleExtensions.fromPoints(
+                            getCurrentMapView().getImageLocation(multiSelectionSquareDrawnFrom), getMouseAt()), 5);
             super.mouseMovedTo(point);
             selectedAreaExtendedTo(point);
             Rectangle after = RectangleExtensions.grow(
-                    RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
+                    RectangleExtensions.fromPoints(
+                            getCurrentMapView().getImageLocation(multiSelectionSquareDrawnFrom), getMouseAt()), 5);
             if (rectanglesToRepaint != null) {
                 rectanglesToRepaint.add(previous);
                 rectanglesToRepaint.add(after);
