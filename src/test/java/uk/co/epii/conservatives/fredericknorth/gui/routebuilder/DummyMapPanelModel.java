@@ -103,7 +103,7 @@ public class DummyMapPanelModel implements MapPanelModel {
     public void clicked(MouseEvent e) {}
 
     @Override
-    public Shape getSelectedArea() {
+    public Rectangle getSelectedArea() {
         return null;
     }
 

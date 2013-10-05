@@ -41,7 +41,7 @@ public interface MapPanelModel {
     public Point getMouseAt();
     public void doubleClicked(MouseEvent e);
     public void clicked(MouseEvent e);
-    public Shape getSelectedArea();
+    public Rectangle getSelectedArea();
     public boolean isMouseOverItems();
     public void cancel();
     public void setProgressTracker(ProgressTracker progressTracker);
