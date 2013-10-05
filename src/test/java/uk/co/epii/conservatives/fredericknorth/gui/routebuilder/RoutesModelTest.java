@@ -27,7 +27,7 @@ public class RoutesModelTest {
                 DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(1, 1, 1, 1)));
         DummyRoutableArea dummyRoutableArea = new DummyRoutableArea(null, null, "A Ward", "A");
         RoutesModel routesModel = new RoutesModel(
-                new RouteBuilderMapFrameModel(applicationContext));
+                new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null)));
         routesModel.setSelectedRoutableArea(dummyRoutableArea);
         routesModel.add("Route 1");
         routesModel.add("Route 2");

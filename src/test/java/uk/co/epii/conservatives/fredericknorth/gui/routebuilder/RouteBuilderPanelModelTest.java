@@ -20,7 +20,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,7 @@ import static org.junit.Assert.assertTrue;
  * Date: 10/07/2013
  * Time: 23:08
  */
-public class RouteBuilderMapFrameModelTest {
+public class RouteBuilderPanelModelTest {
 
     private static DummyDwellingGroup bRoad;
     private static DummyDwellingGroup bRoadFlats;
@@ -41,7 +40,7 @@ public class RouteBuilderMapFrameModelTest {
     private static DummyDwellingGroup eGrove;
     private static DummyDwellingGroup eGroveAppartments;
 
-    private RouteBuilderMapFrameModel routeBuilderMapFrameModel;
+    private RouteBuilderPanelModel routeBuilderPanelModel;
 
     @Before
     public void setUp() throws Exception {
@@ -74,15 +73,15 @@ public class RouteBuilderMapFrameModelTest {
         DotFactoryRegistrar.registerToContext(applicationContext);
         HashMap<BoundedArea, RoutableArea> routableAreas = new HashMap<BoundedArea, RoutableArea>();
         routableAreas.put(dummyRoutableArea.getBoundedArea(), dummyRoutableArea);
-        routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext, new DummyBoundedAreaSelectionModel(dummyRoutableArea.getBoundedArea()), routableAreas);
-        routeBuilderMapFrameModel.setSelectedBoundedArea(dummyRoutableArea.getBoundedArea());
-        routeBuilderMapFrameModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
-        routeBuilderMapFrameModel.getMapPanelModel().setViewportSize(new Dimension(50, 50));
-        routeBuilderMapFrameModel.getMapPanelModel().setScale(0.5);
-        routeBuilderMapFrameModel.getMapPanelModel().setGeoCenter(new Point(50, 50));
-        routeBuilderMapFrameModel.updateOverlays();
-        routeBuilderMapFrameModel.getMapPanelModel().getCurrentMapView();
-        final MapPanel mapPanel = new MapPanel(routeBuilderMapFrameModel.getMapPanelModel(), 1.2d);
+        routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(dummyRoutableArea.getBoundedArea()), routableAreas);
+        routeBuilderPanelModel.setSelectedBoundedArea(dummyRoutableArea.getBoundedArea());
+        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
+        routeBuilderPanelModel.getMapPanelModel().setViewportSize(new Dimension(50, 50));
+        routeBuilderPanelModel.getMapPanelModel().setScale(0.5);
+        routeBuilderPanelModel.getMapPanelModel().setGeoCenter(new Point(50, 50));
+        routeBuilderPanelModel.updateOverlays();
+        routeBuilderPanelModel.getMapPanelModel().getCurrentMapView();
+        final MapPanel mapPanel = new MapPanel(routeBuilderPanelModel.getMapPanelModel(), 1.2d);
         mapPanel.setSize(50, 50);
         SwingUtilities.invokeAndWait(new Runnable() {
             @Override
@@ -104,8 +103,8 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    ((RouteBuilderMapPanelModel) routeBuilderMapFrameModel.getMapPanelModel()).mouseStablized(new Point(4, 4));
-                    overlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlayItems();
+                    ((RouteBuilderMapPanelModel) routeBuilderPanelModel.getMapPanelModel()).mouseStablized(new Point(4, 4));
+                    overlays[0] = routeBuilderPanelModel.getMapPanelModel().getImmutableOverlayItems();
                 }
             });
         } catch (InterruptedException e) {
@@ -118,7 +117,7 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    mouseOverOverlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
+                    mouseOverOverlays[0] = routeBuilderPanelModel.getMapPanelModel().getImmutableOverlaysMouseOver();
                 }
             });
         } catch (InterruptedException e) {
@@ -131,7 +130,7 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    routedAndUnroutedToolTipModel[0] = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
+                    routedAndUnroutedToolTipModel[0] = routeBuilderPanelModel.getRoutedAndUnroutedToolTipModel();
                 }
             });
         }
@@ -150,7 +149,7 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    routeBuilderMapFrameModel.getUnroutedDwellingGroups().getRowCount();
+                    routeBuilderPanelModel.getUnroutedDwellingGroups().getRowCount();
                     selected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.SELECTED);
                     unselected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
                 }
@@ -175,8 +174,8 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    ((RouteBuilderMapPanelModel) routeBuilderMapFrameModel.getMapPanelModel()).mouseStablized(new Point(46, 4));
-                    overlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlayItems();
+                    ((RouteBuilderMapPanelModel) routeBuilderPanelModel.getMapPanelModel()).mouseStablized(new Point(46, 4));
+                    overlays[0] = routeBuilderPanelModel.getMapPanelModel().getImmutableOverlayItems();
                 }
             });
         } catch (InterruptedException e) {
@@ -189,7 +188,7 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    mouseOverOverlays[0] = routeBuilderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
+                    mouseOverOverlays[0] = routeBuilderPanelModel.getMapPanelModel().getImmutableOverlaysMouseOver();
                 }
             });
         } catch (InterruptedException e) {
@@ -202,7 +201,7 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    routedAndUnroutedToolTipModel[0] = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
+                    routedAndUnroutedToolTipModel[0] = routeBuilderPanelModel.getRoutedAndUnroutedToolTipModel();
                 }
             });
         } catch (InterruptedException e) {
@@ -219,7 +218,7 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    routeBuilderMapFrameModel.getUnroutedDwellingGroups().getRowCount();
+                    routeBuilderPanelModel.getUnroutedDwellingGroups().getRowCount();
                     selected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.SELECTED);
                     unselected[0] = routedAndUnroutedToolTipModel[0].getDwellingGroupModel().getSelected(SelectedState.UNSELECTED);
                 }
@@ -244,9 +243,9 @@ public class RouteBuilderMapFrameModelTest {
             SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    routedAndUnroutedToolTipModel[0] = routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel();
-                    routeBuilderMapFrameModel.getMapPanelModel().doubleClicked(new MouseEvent(new JPanel(), 0, 0l, 0, 46, 4, 1, false));
-                    routeBuilderMapFrameModel.getMapPanelModel().mouseMovedTo(new Point(45, 4));
+                    routedAndUnroutedToolTipModel[0] = routeBuilderPanelModel.getRoutedAndUnroutedToolTipModel();
+                    routeBuilderPanelModel.getMapPanelModel().doubleClicked(new MouseEvent(new JPanel(), 0, 0l, 0, 46, 4, 1, false));
+                    routeBuilderPanelModel.getMapPanelModel().mouseMovedTo(new Point(45, 4));
                 }
             });
         } catch (InterruptedException e) {

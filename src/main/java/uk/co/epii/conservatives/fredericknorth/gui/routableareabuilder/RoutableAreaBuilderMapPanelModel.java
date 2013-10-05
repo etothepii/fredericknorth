@@ -26,17 +26,17 @@ import java.util.Map;
  * Date: 21/07/2013
  * Time: 13:20
  */
-class BuilderMapPanelModel extends AbstractMapPanelModel {
+class RoutableAreaBuilderMapPanelModel extends AbstractMapPanelModel {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BuilderMapPanelModel.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RoutableAreaBuilderMapPanelModel.class);
 
-    private final BuilderMapFrameModel builderMapFrameModel;
+    private final RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel;
     private final ConstructorOverlay constructorOverlay;
     private final int onBoundaryDotRadius = 5;
 
-    BuilderMapPanelModel(MapViewGenerator mapViewGenerator, BuilderMapFrameModel builderMapFrameModel, ConstructorOverlay constructorOverlay) {
+    RoutableAreaBuilderMapPanelModel(MapViewGenerator mapViewGenerator, RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel, ConstructorOverlay constructorOverlay) {
         super(mapViewGenerator);
-        this.builderMapFrameModel = builderMapFrameModel;
+        this.routableAreaBuilderPanelModel = routableAreaBuilderPanelModel;
         this.constructorOverlay = constructorOverlay;
         enableOverlayRenderers();
     }
@@ -58,8 +58,8 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
     public void doubleClicked(MouseEvent e) {
         LOG.debug("You double clicked me");
         if (e.getButton() == MouseEvent.BUTTON1) {
-            builderMapFrameModel.getMapPanelModel().removeOverlay(constructorOverlay);
-            builderMapFrameModel.getBoundedAreaSelectionModel().add(
+            routableAreaBuilderPanelModel.getMapPanelModel().removeOverlay(constructorOverlay);
+            routableAreaBuilderPanelModel.getBoundedAreaSelectionModel().add(
                     constructorOverlay.getItem().getParent(), constructorOverlay.getItem().lockDown());
             constructorOverlay.setBoundedAreaConstructor(null);
         }
@@ -90,7 +90,7 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
         Map<BoundedArea, Point> boundedAreas =
                 new HashMap<BoundedArea, Point>();
         Map<OverlayItem, MouseLocation> itemsMouseOver =
-                builderMapFrameModel.getMapPanelModel().getImmutableOverlaysMouseOver();
+                routableAreaBuilderPanelModel.getMapPanelModel().getImmutableOverlaysMouseOver();
         LOG.debug("itemsMouseOver.size(): {}", itemsMouseOver.size());
         for (Map.Entry<OverlayItem, MouseLocation> entry : itemsMouseOver.entrySet()) {
             if (!(entry.getKey().getItem() instanceof BoundedArea)) {
@@ -108,7 +108,7 @@ class BuilderMapPanelModel extends AbstractMapPanelModel {
         }
         if (boundedAreas.isEmpty()) {
             constructorOverlay.getItem().setCurrent(
-                    builderMapFrameModel.getMapPanelModel().getCurrentMapView().getGeoLocation(point),
+                    routableAreaBuilderPanelModel.getMapPanelModel().getCurrentMapView().getGeoLocation(point),
                     new BoundedArea[0]);
             return;
         }
