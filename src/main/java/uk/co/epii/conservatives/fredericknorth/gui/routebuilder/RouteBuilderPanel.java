@@ -29,9 +29,9 @@ import java.lang.reflect.InvocationTargetException;
  * Date: 06/07/2013
  * Time: 14:00
  */
-public class RouteBuilderMapFrame extends JFrame {
+public class RouteBuilderPanel extends JPanel {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderMapFrame.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderPanel.class);
     private static final String ZoomRateKey = "MapPanelZoomRate";
     private static final String DwellingCountColumnWidthKey = "DwellingCountColumnWidth";
     private static final String WorkingDirectoryKey = "WorkingDirectory";
@@ -42,7 +42,7 @@ public class RouteBuilderMapFrame extends JFrame {
 
     private static final Point mouseOffset = new Point(10, 10);
 
-    private final RouteBuilderMapFrameModel routeBuilderMapFrameModel;
+    private final RouteBuilderPanelModel routeBuilderPanelModel;
     private final MapPanel mapPanel;
     private final JTable selectedDwellingGroups;
     private final JTable unselectedDwellingGroups;
@@ -56,7 +56,6 @@ public class RouteBuilderMapFrame extends JFrame {
     private final JButton export;
     private final ProgressTrackerJProgressBar progressTracker;
     private final JButton autoGenerate;
-    private final BoundedAreaSelectionPanel boundedAreaSelectionPanel;
     private final JComboBox routes;
     private final JScrollPane unselectedDwellingGroupsScrollPane;
     private final JScrollPane selectedDwellingGroupsScrollPane;
@@ -69,13 +68,13 @@ public class RouteBuilderMapFrame extends JFrame {
     private final JTextField targetSizeField;
     private final MapImageObserver mapImageObserver;
 
-    public RouteBuilderMapFrame(RouteBuilderMapFrameModel RouteBuilderMapFrameModel, ApplicationContext applicationContext) throws HeadlessException {
+    public RouteBuilderPanel(RouteBuilderPanelModel RouteBuilderPanelModel, ApplicationContext applicationContext) throws HeadlessException {
         progressTracker = new ProgressTrackerJProgressBar(1);
-        routeBuilderMapFrameModel = RouteBuilderMapFrameModel;
-        routeBuilderMapFrameModel.setProgressTracker(progressTracker);
+        routeBuilderPanelModel = RouteBuilderPanelModel;
+        routeBuilderPanelModel.setProgressTracker(progressTracker);
         double zoomRate = Double.parseDouble(applicationContext.getProperty(ZoomRateKey));
         int dwellingCountColumnWidth = Integer.parseInt(applicationContext.getProperty(DwellingCountColumnWidthKey));
-        mapPanel = new MapPanel(this.routeBuilderMapFrameModel.getMapPanelModel(), zoomRate);
+        mapPanel = new MapPanel(this.routeBuilderPanelModel.getMapPanelModel(), zoomRate);
         routeDataFilesFilter = new FileNameExtensionFilter(
                 applicationContext.getProperty(RouteDataFilesFilterDescriptionKey),
                 applicationContext.getProperty(RouteDataFilesFilterKey));
@@ -83,11 +82,11 @@ public class RouteBuilderMapFrame extends JFrame {
                 applicationContext.getProperty(RouteMapFilesFilterDescriptionKey),
                 applicationContext.getProperty(RouteMapFilesFilterKey));
         routedAndUnroutedToolTipFrame = new RoutedAndUnroutedToolTipFrame(
-                routeBuilderMapFrameModel.getRoutedAndUnroutedToolTipModel(), dwellingCountColumnWidth);
+                routeBuilderPanelModel.getRoutedAndUnroutedToolTipModel(), dwellingCountColumnWidth);
         workingDirectory = createWorkingDirectory(applicationContext);
         mapImageObserver = createMapImageObserver();
-        routeBuilderMapFrameModel.getMapPanelModel().setMapImageObserver(mapImageObserver);
-        this.routeBuilderMapFrameModel.getMapPanelModel().addMapPanelDataListener(new MapPanelDataListener() {
+        routeBuilderPanelModel.getMapPanelModel().setMapImageObserver(mapImageObserver);
+        this.routeBuilderPanelModel.getMapPanelModel().addMapPanelDataListener(new MapPanelDataListener() {
             @Override
             public void mapChanged(MapPanelDataEvent e) {
                 mapPanel.repaint();
@@ -111,9 +110,9 @@ public class RouteBuilderMapFrame extends JFrame {
                 routedAndUnroutedToolTipFrame.repaint();
             }
         });
-        routeBuilderMapFrameModel.addEnableStateChangedListener(new EnabledStateChangedListener<RouteBuilderMapFrameModel>() {
+        routeBuilderPanelModel.addEnableStateChangedListener(new EnabledStateChangedListener<RouteBuilderPanelModel>() {
             @Override
-            public void enabledStateChanged(final EnabledStateChangedEvent<RouteBuilderMapFrameModel> e) {
+            public void enabledStateChanged(final EnabledStateChangedEvent<RouteBuilderPanelModel> e) {
                 if (isEnabled() == e.isEnabled()) return;
                 LOG.debug("enabledStateChanged: {}", e.isEnabled());
                 if (SwingUtilities.isEventDispatchThread()) {
@@ -145,6 +144,7 @@ public class RouteBuilderMapFrame extends JFrame {
             public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
                 if (propertyChangeEvent.getPropertyName().equals("enabled")) {
                     boolean enabled = (Boolean) propertyChangeEvent.getNewValue();
+                    if (enabled == isEnabled()) return;
                     LOG.debug("The enabled status of the Frame has been changed: {}", enabled);
                     mapPanel.setEnabled(enabled);
                     selectedDwellingGroups.setEnabled(enabled);
@@ -158,13 +158,15 @@ public class RouteBuilderMapFrame extends JFrame {
                     load.setEnabled(enabled);
                     export.setEnabled(enabled);
                     autoGenerate.setEnabled(enabled);
-                    boundedAreaSelectionPanel.setEnabled(enabled);
                     routes.setEnabled(enabled);
                     unselectedDwellingGroupsScrollPane.setEnabled(enabled);
                     selectedDwellingGroupsScrollPane.setEnabled(enabled);
                     targetSizeSlider.setEnabled(enabled);
                     targetSizeField.setEnabled(enabled);
-                    routeBuilderMapFrameModel.setEnabled(enabled);
+                    routeBuilderPanelModel.setEnabled(enabled);
+                    if (getParent().isEnabled() != enabled) {
+                        getParent().setEnabled(enabled);
+                    }
                 }
             }
         });
@@ -173,17 +175,16 @@ public class RouteBuilderMapFrame extends JFrame {
         fileChooser = new JFileChooser(workingDirectory);
         fileChooser.addChoosableFileFilter(routeDataFilesFilter);
         fileChooser.addChoosableFileFilter(routeMapFilesFilter);
-        routeBuilderMapFrameModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
-        selectedDwellingGroups = createDwellingGroupTable(this.routeBuilderMapFrameModel.getRoutedDwellingGroups());
-        unselectedDwellingGroups = createDwellingGroupTable(this.routeBuilderMapFrameModel.getUnroutedDwellingGroups());
+        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
+        selectedDwellingGroups = createDwellingGroupTable(this.routeBuilderPanelModel.getRoutedDwellingGroups());
+        unselectedDwellingGroups = createDwellingGroupTable(this.routeBuilderPanelModel.getUnroutedDwellingGroups());
         unselectedDwellingGroupsScrollPane = new JScrollPane(unselectedDwellingGroups,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         selectedDwellingGroupsScrollPane = new JScrollPane(selectedDwellingGroups,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         TableHelper.forceColumnWidth(unselectedDwellingGroups.getColumnModel().getColumn(1), dwellingCountColumnWidth);
         TableHelper.forceColumnWidth(selectedDwellingGroups.getColumnModel().getColumn(1), dwellingCountColumnWidth);
-        boundedAreaSelectionPanel = new BoundedAreaSelectionPanel(routeBuilderMapFrameModel.getBoundedAreaSelectionModel());
-        routes = new JComboBox(this.routeBuilderMapFrameModel.getRoutesModel());
+        routes = new JComboBox(this.routeBuilderPanelModel.getRoutesModel());
         addRoute = new JButton("Add");
         renameRoute = new JButton("Rename");
         deleteRoute = new JButton("Delete");
@@ -197,8 +198,7 @@ public class RouteBuilderMapFrame extends JFrame {
         addListeners(this);
         updateRouteButtonsEnabledState();
         updateInOutButtonsEnabledState();
-        routeBuilderMapFrameModel.updateOverlays();
-        setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+        routeBuilderPanelModel.updateOverlays();
     }
 
     private MapImageObserver createMapImageObserver() {
@@ -236,12 +236,12 @@ public class RouteBuilderMapFrame extends JFrame {
         return dwellingGroupTable;
     }
 
-    private void addListeners(final RouteBuilderMapFrame routeBuilderMapFrame) {
+    private void addListeners(final RouteBuilderPanel routeBuilderPanel) {
         addRoute.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                routeBuilderMapFrameModel.getRoutesModel().add(getRouteName(routeBuilderMapFrameModel.getRoutesModel().getNextSuggestedRouteName()));
-                if (routeBuilderMapFrameModel.getRoutesModel().getSize() == 1) {
+                routeBuilderPanelModel.getRoutesModel().add(getRouteName(routeBuilderPanelModel.getRoutesModel().getNextSuggestedRouteName()));
+                if (routeBuilderPanelModel.getRoutesModel().getSize() == 1) {
                     updateInOutButtonsEnabledState();
                 }
             }
@@ -249,36 +249,34 @@ public class RouteBuilderMapFrame extends JFrame {
         renameRoute.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                routeBuilderMapFrameModel.getRoutesModel().rename(getRouteName(routeBuilderMapFrameModel.getRoutesModel().getSelectedItem().getName()));
+                routeBuilderPanelModel.getRoutesModel().rename(getRouteName(routeBuilderPanelModel.getRoutesModel().getSelectedItem().getName()));
             }
         });
         deleteRoute.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                routeBuilderMapFrameModel.getRoutesModel().delete();
+                routeBuilderPanelModel.getRoutesModel().delete();
             }
         });
         moveInToRoute.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                routeBuilderMapFrameModel.moveSelectedUnroutedDwellingGroupsInToRoute();
+                routeBuilderPanelModel.moveSelectedUnroutedDwellingGroupsInToRoute();
                 routes.repaint();
-                boundedAreaSelectionPanel.repaint();
             }
         });
         moveOutOfRoute.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                routeBuilderMapFrameModel.moveSelectedRoutedDwellingGroupsOutOfRoute();
+                routeBuilderPanelModel.moveSelectedRoutedDwellingGroupsOutOfRoute();
                 routes.repaint();
-                boundedAreaSelectionPanel.repaint();
             }
         });
         routes.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 updateRouteButtonsEnabledState();
-                routeBuilderMapFrameModel.updateOverlays();
+                routeBuilderPanelModel.updateOverlays();
             }
         });
         selectedDwellingGroups.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -286,7 +284,7 @@ public class RouteBuilderMapFrame extends JFrame {
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     updateInOutButtonsEnabledState();
-                    routeBuilderMapFrameModel.updateOverlays();
+                    routeBuilderPanelModel.updateOverlays();
                 }
             }
         });
@@ -295,7 +293,7 @@ public class RouteBuilderMapFrame extends JFrame {
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     updateInOutButtonsEnabledState();
-                    routeBuilderMapFrameModel.updateOverlays();
+                    routeBuilderPanelModel.updateOverlays();
                 }
             }
         });
@@ -310,10 +308,10 @@ public class RouteBuilderMapFrame extends JFrame {
                 } else {
                     fileChooser.setSelectedFile(saveTo);
                 }
-                int returnValue = fileChooser.showSaveDialog(routeBuilderMapFrame);
+                int returnValue = fileChooser.showSaveDialog(routeBuilderPanel);
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     saveTo = fileChooser.getSelectedFile();
-                    routeBuilderMapFrameModel.save(fileChooser.getSelectedFile());
+                    routeBuilderPanelModel.save(fileChooser.getSelectedFile());
                 }
             }
         });
@@ -328,10 +326,10 @@ public class RouteBuilderMapFrame extends JFrame {
                 } else {
                     fileChooser.setSelectedFile(loadFrom);
                 }
-                int returnValue = fileChooser.showOpenDialog(routeBuilderMapFrame);
+                int returnValue = fileChooser.showOpenDialog(routeBuilderPanel);
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     loadFrom = fileChooser.getSelectedFile();
-                    routeBuilderMapFrameModel.load(loadFrom);
+                    routeBuilderPanelModel.load(loadFrom);
                 }
             }
         });
@@ -381,7 +379,7 @@ public class RouteBuilderMapFrame extends JFrame {
         autoGenerate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                routeBuilderMapFrameModel.autoGenerate(targetSizeSlider.getValue(), true);
+                routeBuilderPanelModel.autoGenerate(targetSizeSlider.getValue(), true);
             }
         });
         export.addActionListener(new ActionListener() {
@@ -396,17 +394,17 @@ public class RouteBuilderMapFrame extends JFrame {
                 else {
                     fileChooser.setSelectedFile(exportTo);
                 }
-                int returnValue = fileChooser.showSaveDialog(routeBuilderMapFrame);
+                int returnValue = fileChooser.showSaveDialog(routeBuilderPanel);
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     exportTo = fileChooser.getSelectedFile();
-                    routeBuilderMapFrameModel.export(exportTo);
+                    routeBuilderPanelModel.export(exportTo);
                 }
             }
         });
         mapPanel.addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
-                if (routeBuilderMapFrameModel.getMapPanelModel().isMouseOverItems()) {
+                if (routeBuilderPanelModel.getMapPanelModel().isMouseOverItems()) {
                     for (MouseWheelListener l : routedAndUnroutedToolTipFrame.getScrollerListeners()) {
                         l.mouseWheelMoved(e);
                     }
@@ -418,17 +416,17 @@ public class RouteBuilderMapFrame extends JFrame {
 
     private void updateInOutButtonsEnabledState() {
         moveOutOfRoute.setEnabled(selectedDwellingGroups.getSelectedRows().length > 0);
-        moveInToRoute.setEnabled(routeBuilderMapFrameModel.getRoutesModel().getSelectedItem() != null &&
+        moveInToRoute.setEnabled(routeBuilderPanelModel.getRoutesModel().getSelectedItem() != null &&
                 unselectedDwellingGroups.getSelectedRows().length > 0);
     }
 
     private void updateRouteButtonsEnabledState() {
-        renameRoute.setEnabled(routeBuilderMapFrameModel.getRoutesModel().getSelectedItem() != null);
-        deleteRoute.setEnabled(routeBuilderMapFrameModel.getRoutesModel().getSelectedItem() != null);
+        renameRoute.setEnabled(routeBuilderPanelModel.getRoutesModel().getSelectedItem() != null);
+        deleteRoute.setEnabled(routeBuilderPanelModel.getRoutesModel().getSelectedItem() != null);
     }
 
     private void layoutContent() {
-        getContentPane().setLayout(new GridBagLayout());
+        setLayout(new GridBagLayout());
         routes.setRenderer(new RouteRenderer());
         JPanel routesAndButtons = new JPanel(new GridBagLayout());
         JPanel ioButtons = new JPanel(new GridBagLayout());
@@ -441,21 +439,19 @@ public class RouteBuilderMapFrame extends JFrame {
                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         routesAndButtons.add(deleteRoute, new GridBagConstraints(3, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-        getContentPane().add(boundedAreaSelectionPanel, new GridBagConstraints(0, 0, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
-                GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
-        getContentPane().add(routesAndButtons, new GridBagConstraints(0, 1, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
+        add(routesAndButtons, new GridBagConstraints(0, 1, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.HORIZONTAL, new Insets(0, 5, 5, 5), 0, 0));
-        getContentPane().add(mapPanel, new GridBagConstraints(0, 2, 1, 6, 1d, 1d, GridBagConstraints.CENTER,
+        add(mapPanel, new GridBagConstraints(0, 2, 1, 6, 1d, 1d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 5, 0), 0, 0));
-        getContentPane().add(progressTracker, new GridBagConstraints(0, 8, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
+        add(progressTracker, new GridBagConstraints(0, 8, 3, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 5, 5), 0, 0));
-        getContentPane().add(selectedDwellingGroupsScrollPane,
+        add(selectedDwellingGroupsScrollPane,
                 new GridBagConstraints(1, 2, 2, 1, 0d, 1d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 0, 5), 0, 0));
-        getContentPane().add(unselectedDwellingGroupsScrollPane,
+        add(unselectedDwellingGroupsScrollPane,
                 new GridBagConstraints(1, 4, 2, 1, 0d, 1d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 5, 0, 5), 0, 0));
-        getContentPane().add(inOutButtons, new GridBagConstraints(1, 3, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
+        add(inOutButtons, new GridBagConstraints(1, 3, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         inOutButtons.add(moveInToRoute, new GridBagConstraints(0, 0, 1, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
@@ -467,16 +463,16 @@ public class RouteBuilderMapFrame extends JFrame {
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         ioButtons.add(export, new GridBagConstraints(2, 0, 1, 1, 1d, 1d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-        getContentPane().add(autoGenerate, new GridBagConstraints(1, 7, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
+        add(autoGenerate, new GridBagConstraints(1, 7, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-        getContentPane().add(ioButtons, new GridBagConstraints(1, 5, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
+        add(ioButtons, new GridBagConstraints(1, 5, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         JPanel sliderPanel = new JPanel(new GridBagLayout());
         sliderPanel.add(targetSizeSlider, new GridBagConstraints(0, 0, 1, 1, 1d, 1d,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 5), 0, 0));
         sliderPanel.add(targetSizeField, new GridBagConstraints(1, 0, 1, 1, 1d, 1d,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-        getContentPane().add(sliderPanel, new GridBagConstraints(1, 6, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
+        add(sliderPanel, new GridBagConstraints(1, 6, 2, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         selectedDwellingGroupsScrollPane.setPreferredSize(new Dimension(300, 250));
         unselectedDwellingGroupsScrollPane.setPreferredSize(new Dimension(300, 250));
