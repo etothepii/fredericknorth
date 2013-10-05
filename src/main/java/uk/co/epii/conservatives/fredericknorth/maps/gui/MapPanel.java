@@ -45,6 +45,7 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
     }
 
     public void paint(Graphics2D g) {
+        long start = System.nanoTime();
         LOG_PAINT.debug("Painting");
         mapPanelModel.setViewportSize(getSize());
         LOG_PAINT.debug("Drawing map");
@@ -69,8 +70,18 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseMotionL
             renderedOverlays.add(renderedOverlay);
         }
         LOG_PAINT.debug("Drawn Overlays");
+        if (mapPanelModel.getSelectedArea() != null) {
+            Rectangle mapSelected = mapPanelModel.getCurrentMapView().getGeoToImageTransform(
+                    ).createTransformedShape(mapPanelModel.getSelectedArea()).getBounds();
+            g.setColor(new Color(0, 0, 255, 64));
+            g.fill(mapSelected);
+            g.setColor(new Color(0, 0, 255));
+            g.draw(mapSelected);
+        }
         mapPanelModel.setRenderedOverlays(renderedOverlays);
         mapPanelModel.monitorRepaintAreas();
+        long taken = System.nanoTime() - start;
+        LOG.debug("Time taken to paint: {}ns", taken);
     }
 
     @Override
