@@ -2,8 +2,8 @@ package uk.co.epii.conservatives.fredericknorth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BuilderMapFrame;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BuilderMapFrameModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.RoutableAreaBuilderMapFrame;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.RoutableAreaBuilderPanelModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapFrame;
 import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapFrameModel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
@@ -22,7 +22,7 @@ public class MainMenu extends JFrame {
     private static final Logger LOG = LoggerFactory.getLogger(MainMenu.class);
 
     private ApplicationContext applicationContext;
-    private BuilderMapFrame routableAreaBuilderMapFrame;
+    private RoutableAreaBuilderMapFrame routableAreaRoutableAreaBuilderMapFrame;
     private RouteBuilderMapFrame routeBuilderMapFrame;
     private JButton routableAreaBuilder;
     private JButton routeBuilder;
@@ -64,21 +64,21 @@ public class MainMenu extends JFrame {
     }
 
     private void openRoutableAreaBuilderMapFrame() {
-        if (routableAreaBuilderMapFrame == null) {
-            BuilderMapFrameModel builderMapFrameModel =
-                    new BuilderMapFrameModel(applicationContext);
-            routableAreaBuilderMapFrame =
-                    new BuilderMapFrame(applicationContext, builderMapFrameModel);
-            routableAreaBuilderMapFrame.setLocationRelativeTo(null);
-            routableAreaBuilderMapFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            routableAreaBuilderMapFrame.addWindowListener(new WindowAdapter() {
+        if (routableAreaRoutableAreaBuilderMapFrame == null) {
+            RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel =
+                    new RoutableAreaBuilderPanelModel(applicationContext);
+            routableAreaRoutableAreaBuilderMapFrame =
+                    new RoutableAreaBuilderMapFrame(applicationContext, routableAreaBuilderPanelModel);
+            routableAreaRoutableAreaBuilderMapFrame.setLocationRelativeTo(null);
+            routableAreaRoutableAreaBuilderMapFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            routableAreaRoutableAreaBuilderMapFrame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent windowEvent) {
                     childWindowClosed();
                 }
             });
         }
-        routableAreaBuilderMapFrame.setVisible(true);
+        routableAreaRoutableAreaBuilderMapFrame.setVisible(true);
 
     }
 

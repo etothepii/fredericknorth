@@ -52,18 +52,18 @@ public class BuilderMapFrameModelTest {
     @Test
     @Ignore
     public void loadDataIntoComboBoxesTest() {
-        BuilderMapFrameModel builderMapFrameModel =
-                new BuilderMapFrameModel(applicationContext, false);
-        builderMapFrameModel.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
-        assertEquals(2, builderMapFrameModel.getBoundedAreaSelectionModel()
+        RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel =
+                new RoutableAreaBuilderPanelModel(applicationContext, false);
+        routableAreaBuilderPanelModel.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
+        assertEquals(2, routableAreaBuilderPanelModel.getBoundedAreaSelectionModel()
                 .getComboBoxModel(BoundedAreaType.UNITARY_DISTRICT).getSize());
-        builderMapFrameModel.getBoundedAreaSelectionModel().getComboBoxModel(
+        routableAreaBuilderPanelModel.getBoundedAreaSelectionModel().getComboBoxModel(
                 BoundedAreaType.UNITARY_DISTRICT).setSelectedItem(
-                        builderMapFrameModel.getBoundedAreaSelectionModel().getComboBoxModel(
+                        routableAreaBuilderPanelModel.getBoundedAreaSelectionModel().getComboBoxModel(
                                 BoundedAreaType.UNITARY_DISTRICT).getElementAt(1));
-        assertEquals(18, builderMapFrameModel.getBoundedAreaSelectionModel()
+        assertEquals(18, routableAreaBuilderPanelModel.getBoundedAreaSelectionModel()
                 .getComboBoxModel(BoundedAreaType.UNITARY_DISTRICT_WARD).getSize());
-        assertEquals(1, builderMapFrameModel.getBoundedAreaSelectionModel()
+        assertEquals(1, routableAreaBuilderPanelModel.getBoundedAreaSelectionModel()
                 .getComboBoxModel(BoundedAreaType.POLLING_DISTRICT).getSize());
     }
 

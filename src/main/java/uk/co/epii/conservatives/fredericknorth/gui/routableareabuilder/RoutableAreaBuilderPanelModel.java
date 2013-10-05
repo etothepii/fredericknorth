@@ -34,10 +34,10 @@ import java.util.concurrent.Executors;
  * Date: 21/07/2013
  * Time: 13:22
  */
-public class BuilderMapFrameModel {
+public class RoutableAreaBuilderPanelModel {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BuilderMapFrameModel.class);
-    private static final Logger LOG_SYNC = LoggerFactory.getLogger(BuilderMapFrameModel.class.getName().concat("_sync"));
+    private static final Logger LOG = LoggerFactory.getLogger(RoutableAreaBuilderPanelModel.class);
+    private static final Logger LOG_SYNC = LoggerFactory.getLogger(RoutableAreaBuilderPanelModel.class.getName().concat("_sync"));
 
     private MapPanelModel mapPanelModel;
     private BoundedAreaSelectionModel boundedAreaSelectionModel;
@@ -49,16 +49,16 @@ public class BuilderMapFrameModel {
     private Executor executor;
     private final Object enabledSync = new Object();
     private boolean enabled = true;
-    private final List<EnabledStateChangedListener<BuilderMapFrameModel>> enabledStateChangedListeners;
+    private final List<EnabledStateChangedListener<RoutableAreaBuilderPanelModel>> enabledStateChangedListeners;
 
-    public BuilderMapFrameModel(ApplicationContext applicationContext) {
+    public RoutableAreaBuilderPanelModel(ApplicationContext applicationContext) {
         this(applicationContext, false);
     }
 
-    BuilderMapFrameModel(ApplicationContext applicationContext, boolean loadKnown) {
-        this.mapPanelModel = new BuilderMapPanelModel(
+    RoutableAreaBuilderPanelModel(ApplicationContext applicationContext, boolean loadKnown) {
+        this.mapPanelModel = new RoutableAreaBuilderMapFrameModel(
                 applicationContext.getDefaultInstance(MapViewGenerator.class), this, constructorOverlay);
-        enabledStateChangedListeners = new ArrayList<EnabledStateChangedListener<BuilderMapFrameModel>>();
+        enabledStateChangedListeners = new ArrayList<EnabledStateChangedListener<RoutableAreaBuilderPanelModel>>();
         executor = Executors.newSingleThreadExecutor();
         this.applicationContext = applicationContext;
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
@@ -160,8 +160,8 @@ public class BuilderMapFrameModel {
         try {
             synchronized (enabledStateChangedListeners) {
                 LOG_SYNC.debug("Received enabledStateChangedListeners");
-                EnabledStateChangedEvent<BuilderMapFrameModel> e =
-                        new EnabledStateChangedEvent<BuilderMapFrameModel>(this, isEnabled());
+                EnabledStateChangedEvent<RoutableAreaBuilderPanelModel> e =
+                        new EnabledStateChangedEvent<RoutableAreaBuilderPanelModel>(this, isEnabled());
                 for (EnabledStateChangedListener l : enabledStateChangedListeners) {
                     l.enabledStateChanged(e);
                 }
@@ -172,7 +172,7 @@ public class BuilderMapFrameModel {
         }
     }
 
-    public void addEnableStateChangedListener(EnabledStateChangedListener<BuilderMapFrameModel> l) {
+    public void addEnableStateChangedListener(EnabledStateChangedListener<RoutableAreaBuilderPanelModel> l) {
         LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
         try {
             synchronized (enabledStateChangedListeners) {
@@ -185,7 +185,7 @@ public class BuilderMapFrameModel {
         }
     }
 
-    public void removeEnableStateChangedListener(EnabledStateChangedListener<BuilderMapFrameModel> l) {
+    public void removeEnableStateChangedListener(EnabledStateChangedListener<RoutableAreaBuilderPanelModel> l) {
         LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
         try {
             synchronized (enabledStateChangedListeners) {
