@@ -28,8 +28,8 @@ public class MapPanelModelTest {
         ApplicationContext applicationContext = new TestApplicationContext();
         OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
-        RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
-        MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderMapFrameModel, 0);
+        RouteBuilderPanelModel routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
+        MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderPanelModel, 0);
         mapViewGenerator.setViewPortSize(new Dimension(150, 100), NullProgressTracker.NULL, null);
         mapViewGenerator.setScale(0.5, NullProgressTracker.NULL, null);
         mapViewGenerator.setGeoCenter(new Point(250, 400), NullProgressTracker.NULL, null);
@@ -48,8 +48,8 @@ public class MapPanelModelTest {
         ApplicationContext applicationContext = new TestApplicationContext();
         OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
-        RouteBuilderMapFrameModel routeBuilderMapFrameModel = new RouteBuilderMapFrameModel(applicationContext);
-        MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderMapFrameModel, 0);
+        RouteBuilderPanelModel routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
+        MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderPanelModel, 0);
         mapViewGenerator.setViewPortSize(new Dimension(150, 100), NullProgressTracker.NULL, null);
         mapViewGenerator.setScale(0.5, NullProgressTracker.NULL, null);
         mapViewGenerator.setGeoCenter(new Point(250, 400), NullProgressTracker.NULL, null);

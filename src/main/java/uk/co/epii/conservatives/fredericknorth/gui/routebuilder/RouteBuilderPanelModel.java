@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedEvent;
@@ -35,11 +36,11 @@ import java.util.concurrent.Executors;
  * Date: 01/07/2013
  * Time: 21:27
  */
-public class RouteBuilderMapFrameModel {
+public class RouteBuilderPanelModel implements Activateable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderMapFrameModel.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RouteBuilderPanelModel.class);
     private static final Logger LOG_SYNC =
-            LoggerFactory.getLogger(RouteBuilderMapFrameModel.class.getName().concat("_sync"));
+            LoggerFactory.getLogger(RouteBuilderPanelModel.class.getName().concat("_sync"));
 
     private static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
 
@@ -62,15 +63,16 @@ public class RouteBuilderMapFrameModel {
     private ProgressTracker progressTracker;
     private final Object enabledSync = new Object();
     private boolean enabled = true;
-    private final ArrayList<EnabledStateChangedListener<RouteBuilderMapFrameModel>> enabledStateChangedListeners =
-            new ArrayList<EnabledStateChangedListener<RouteBuilderMapFrameModel>>();
+    private final ArrayList<EnabledStateChangedListener<RouteBuilderPanelModel>> enabledStateChangedListeners =
+            new ArrayList<EnabledStateChangedListener<RouteBuilderPanelModel>>();
+    private boolean active = false;
 
-    public RouteBuilderMapFrameModel(ApplicationContext applicationContext) {
-        this(applicationContext, new DefaultBoundedAreaSelectionModel(applicationContext), new HashMap<BoundedArea, RoutableArea>());
+    public RouteBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel) {
+        this(applicationContext, boundedAreaSelectionModel, new HashMap<BoundedArea, RoutableArea>());
     }
 
-    RouteBuilderMapFrameModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel,
-                              HashMap<BoundedArea, RoutableArea> routableAreas) {
+    RouteBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel,
+                           HashMap<BoundedArea, RoutableArea> routableAreas) {
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
         executor = Executors.newSingleThreadExecutor();
         progressTracker = new NullProgressTracker();
@@ -207,8 +209,8 @@ public class RouteBuilderMapFrameModel {
         try {
             synchronized (enabledStateChangedListeners) {
                 LOG_SYNC.debug("Received enabledStateChangedListeners");
-                EnabledStateChangedEvent<RouteBuilderMapFrameModel> e =
-                        new EnabledStateChangedEvent<RouteBuilderMapFrameModel>(this, isEnabled());
+                EnabledStateChangedEvent<RouteBuilderPanelModel> e =
+                        new EnabledStateChangedEvent<RouteBuilderPanelModel>(this, isEnabled());
                 for (EnabledStateChangedListener l : enabledStateChangedListeners) {
                     l.enabledStateChanged(e);
                 }
@@ -232,7 +234,7 @@ public class RouteBuilderMapFrameModel {
         }
     }
 
-    public void addEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderMapFrameModel> l) {
+    public void addEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderPanelModel> l) {
         LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
         try {
             synchronized (enabledStateChangedListeners) {
@@ -245,7 +247,7 @@ public class RouteBuilderMapFrameModel {
         }
     }
 
-    public void removeEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderMapFrameModel> l) {
+    public void removeEnableStateChangedListener(EnabledStateChangedListener<RouteBuilderPanelModel> l) {
         LOG_SYNC.debug("Awaiting enabledStateChangedListeners");
         try {
             synchronized (enabledStateChangedListeners) {
@@ -483,5 +485,15 @@ public class RouteBuilderMapFrameModel {
         finally {
             LOG_SYNC.debug("Released enabledSync");
         }
+    }
+
+    @Override
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    @Override
+    public boolean getActive() {
+        return active;
     }
 }

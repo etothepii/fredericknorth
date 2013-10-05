@@ -16,14 +16,14 @@ class RoutedAndUnroutedToolTipModel {
     private static final Logger LOG = Logger.getLogger(RoutedAndUnroutedToolTipModel.class);
     private static final Logger LOG_SYNC = Logger.getLogger(RoutedAndUnroutedToolTipModel.class.getName().concat("_sync"));
 
-    private RouteBuilderMapFrameModel routeBuilderMapFrameModel;
+    private RouteBuilderPanelModel routeBuilderPanelModel;
     private DwellingGroupModel dwellingGroupModel;
     private final List<RoutedAndUnroutedToolTipDwellingGroupsUpdatedListener>
             routedAndUnroutedToolTipDwellingGroupsUpdatedListeners;
 
-    public RoutedAndUnroutedToolTipModel(RouteBuilderMapFrameModel routeBuilderMapFrameModel) {
-        this.routeBuilderMapFrameModel = routeBuilderMapFrameModel;
-        dwellingGroupModel = new DwellingGroupModel(new AlwaysAddOrRemoveListSelectionModel(), routeBuilderMapFrameModel.getApplicationContext());
+    public RoutedAndUnroutedToolTipModel(RouteBuilderPanelModel routeBuilderPanelModel) {
+        this.routeBuilderPanelModel = routeBuilderPanelModel;
+        dwellingGroupModel = new DwellingGroupModel(new AlwaysAddOrRemoveListSelectionModel(), routeBuilderPanelModel.getApplicationContext());
         routedAndUnroutedToolTipDwellingGroupsUpdatedListeners =
                 new ArrayList<RoutedAndUnroutedToolTipDwellingGroupsUpdatedListener>();
     }
@@ -36,7 +36,7 @@ class RoutedAndUnroutedToolTipModel {
         LOG.debug("Updating Dwelling Groups");
         boolean[] isSelected = new boolean[dwellingGroups.size()];
         for (int i = 0; i < dwellingGroups.size(); i++) {
-            isSelected[i] = routeBuilderMapFrameModel.getRoutedDwellingGroups().contains(dwellingGroups.get(i));
+            isSelected[i] = routeBuilderPanelModel.getRoutedDwellingGroups().contains(dwellingGroups.get(i));
         }
         dwellingGroupModel.setToContentsOf(dwellingGroups, isSelected);
         LOG.debug("Updating Dwelling Groups");

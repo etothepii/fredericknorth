@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaOverlayItem;
@@ -34,13 +35,13 @@ import java.util.concurrent.Executors;
  * Date: 21/07/2013
  * Time: 13:22
  */
-public class RoutableAreaBuilderPanelModel {
+public class RoutableAreaBuilderPanelModel implements Activateable {
 
     private static final Logger LOG = LoggerFactory.getLogger(RoutableAreaBuilderPanelModel.class);
     private static final Logger LOG_SYNC = LoggerFactory.getLogger(RoutableAreaBuilderPanelModel.class.getName().concat("_sync"));
 
     private MapPanelModel mapPanelModel;
-    private BoundedAreaSelectionModel boundedAreaSelectionModel;
+    private final BoundedAreaSelectionModel boundedAreaSelectionModel;
     private final Map<BoundedAreaType, Integer> priorities;
     private final ConstructorOverlay constructorOverlay = new ConstructorOverlay(null, 9999);
     private final ApplicationContext applicationContext;
@@ -50,25 +51,17 @@ public class RoutableAreaBuilderPanelModel {
     private final Object enabledSync = new Object();
     private boolean enabled = true;
     private final List<EnabledStateChangedListener<RoutableAreaBuilderPanelModel>> enabledStateChangedListeners;
+    private boolean active = false;
 
-    public RoutableAreaBuilderPanelModel(ApplicationContext applicationContext) {
-        this(applicationContext, false);
-    }
-
-    RoutableAreaBuilderPanelModel(ApplicationContext applicationContext, boolean loadKnown) {
-        this.mapPanelModel = new RoutableAreaBuilderMapFrameModel(
+    public RoutableAreaBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel) {
+        this.mapPanelModel = new RoutableAreaBuilderMapPanelModel(
                 applicationContext.getDefaultInstance(MapViewGenerator.class), this, constructorOverlay);
         enabledStateChangedListeners = new ArrayList<EnabledStateChangedListener<RoutableAreaBuilderPanelModel>>();
         executor = Executors.newSingleThreadExecutor();
         this.applicationContext = applicationContext;
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
         priorities = createPriorities();
-        boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
-        if (loadKnown) {
-            LOG.debug("Loading known instances");
-            boundedAreaSelectionModel.loadOSKnownInstances();
-            LOG.debug("Loaded known instances");
-        }
+        this.boundedAreaSelectionModel = boundedAreaSelectionModel;
         boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
             @Override
             public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
@@ -309,5 +302,15 @@ public class RoutableAreaBuilderPanelModel {
         else {
             disable();
         }
+    }
+
+    @Override
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    @Override
+    public boolean getActive() {
+        return active;
     }
 }

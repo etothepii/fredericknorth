@@ -26,15 +26,15 @@ import java.util.Map;
  * Date: 21/07/2013
  * Time: 13:20
  */
-class RoutableAreaBuilderMapFrameModel extends AbstractMapPanelModel {
+class RoutableAreaBuilderMapPanelModel extends AbstractMapPanelModel {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RoutableAreaBuilderMapFrameModel.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RoutableAreaBuilderMapPanelModel.class);
 
     private final RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel;
     private final ConstructorOverlay constructorOverlay;
     private final int onBoundaryDotRadius = 5;
 
-    RoutableAreaBuilderMapFrameModel(MapViewGenerator mapViewGenerator, RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel, ConstructorOverlay constructorOverlay) {
+    RoutableAreaBuilderMapPanelModel(MapViewGenerator mapViewGenerator, RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel, ConstructorOverlay constructorOverlay) {
         super(mapViewGenerator);
         this.routableAreaBuilderPanelModel = routableAreaBuilderPanelModel;
         this.constructorOverlay = constructorOverlay;

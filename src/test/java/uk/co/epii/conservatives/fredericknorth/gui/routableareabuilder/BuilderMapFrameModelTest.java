@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
+import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.DummyBoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
@@ -53,7 +54,7 @@ public class BuilderMapFrameModelTest {
     @Ignore
     public void loadDataIntoComboBoxesTest() {
         RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel =
-                new RoutableAreaBuilderPanelModel(applicationContext, false);
+                new RoutableAreaBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
         routableAreaBuilderPanelModel.load(new File("/Users/jrrpl/frederickNorth/towerHamletsBoundries.xml"));
         assertEquals(2, routableAreaBuilderPanelModel.getBoundedAreaSelectionModel()
                 .getComboBoxModel(BoundedAreaType.UNITARY_DISTRICT).getSize());
