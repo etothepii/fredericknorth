@@ -47,10 +47,7 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
 
     @Override
     public int getSize() {
-        if (selectedRoutableArea == null) {
-            return 0;
-        }
-        return selectedRoutableArea.getRoutes().size();
+        return routes.size();
     }
 
     @Override
@@ -177,5 +174,9 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
             }
         }
         return routes;
+    }
+
+    public void update() {
+        setSelectedRoutableArea(selectedRoutableArea);
     }
 }

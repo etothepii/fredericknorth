@@ -335,6 +335,7 @@ public class RouteBuilderPanelModel implements Activateable {
         LOG.debug("loadRoutableArea: boundedArea {}, parent {}", new Object[] {boundedArea.getName(), parent == null ?
                 "null" : parent.getBoundedArea().getName()});
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
+        progressTracker.startSubsection(2);
         if (parent != null) {
             progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
                     parent.getRoutedDwellingGroups().size());
@@ -363,6 +364,18 @@ public class RouteBuilderPanelModel implements Activateable {
                 }
                 progressTracker.increment();
             }
+        }
+        BoundedArea[] children = boundedArea.getChildren();
+        if (children.length > 0) {
+            progressTracker.startSubsection(children.length);
+            for (BoundedArea child : children) {
+                DefaultRoutableArea childRoutableArea = loadRoutableArea(child, routableArea);
+                routableAreas.put(child, childRoutableArea);
+                routableArea.addChild(childRoutableArea);
+            }
+        }
+        else {
+            progressTracker.increment();
         }
         return routableArea;
     }
@@ -466,7 +479,9 @@ public class RouteBuilderPanelModel implements Activateable {
         if (boundedArea == null) {
             return;
         }
-        getRoutableArea(boundedArea).autoGenerate(targetSize, unroutedOnly);
+        RoutableArea routableArea = getRoutableArea(boundedArea);
+        routableArea.autoGenerate(targetSize, unroutedOnly);
+        routesModel.update();
     }
 
     public void setProgressTracker(ProgressTracker progressTracker) {
