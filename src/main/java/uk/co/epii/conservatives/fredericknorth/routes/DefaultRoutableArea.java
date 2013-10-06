@@ -1,14 +1,17 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
+import com.tomgibara.cluster.gvm.dbl.DblClusters;
+import com.tomgibara.cluster.gvm.dbl.DblListKeyer;
+import com.tomgibara.cluster.gvm.dbl.DblResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
+import java.awt.*;
 import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -18,7 +21,7 @@ import java.util.HashSet;
 public class DefaultRoutableArea implements RoutableArea {
 
     private final BoundedArea boundedArea;
-    private final HashSet<RouteImpl> routes;
+    private final HashSet<Route> routes;
     private final RoutableArea parent;
     private final HashSet<DefaultRoutableArea> children;
     private final HashSet<DwellingGroup> unroutedDwellingGroups;
@@ -27,7 +30,7 @@ public class DefaultRoutableArea implements RoutableArea {
 
     public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
         this.boundedArea = boundedArea;
-        routes = new HashSet<RouteImpl>();
+        routes = new HashSet<Route>();
         this.parent = parent;
         children = new HashSet<DefaultRoutableArea>();
         routedDwellingGroups = new HashSet<DwellingGroup>();
@@ -67,13 +70,76 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public void autoGenerate(int targetSize, boolean unroutedOnly) {
-        throw new UnsupportedOperationException("This method has not yet been implemented");
+        if (!unroutedOnly) {
+            for (Route route : routes) {
+                removeRoute(route, this);
+            }
+        }
+        for (DefaultRoutableArea child : children) {
+            child.autoGenerate(targetSize, unroutedOnly);
+        }
+        routeUnrouted(targetSize);
+    }
+
+    private void routeUnrouted(int targetSize) {
+        int routes = calculateRoutesCount(targetSize);
+        DblClusters<List<DwellingGroup>> clusters = new DblClusters<List<DwellingGroup>>(2, routes);
+        clusters.setKeyer(new DblListKeyer<DwellingGroup>());
+        for (DwellingGroup dwellingGroup : unroutedDwellingGroups) {
+            Point geoLocation = dwellingGroup.getPostcode().getPoint();
+            double[] doubleGeoLocation = new double[] {geoLocation.getX(), geoLocation.getY()};
+            double weight = dwellingGroup.size();
+            ArrayList<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>();
+            dwellingGroups.add(dwellingGroup);
+            clusters.add(weight, doubleGeoLocation, dwellingGroups);
+        }
+        for (DblResult<List<DwellingGroup>> proposedRoute : clusters.results()) {
+            DwellingGroup largest = null;
+            for (DwellingGroup dwellingGroup : proposedRoute.getKey()) {
+                if (largest == null || largest.size() < dwellingGroup.size()) {
+                    largest = dwellingGroup;
+                }
+                else if (largest.size() == dwellingGroup.size()) {
+                    if (largest.getUniquePart().compareTo(dwellingGroup.getUniquePart()) < 0) {
+                        largest = dwellingGroup;
+                    }
+                }
+            }
+            Route route = createRoute(largest.getUniquePart());
+            route.addDwellingGroups(proposedRoute.getKey());
+        }
+    }
+
+
+    private int calculateRoutesCount(int targetSize) {
+        HashMap<Point, Integer> pointSizes = new HashMap<Point, Integer>(dwellingGroups.size());
+        for (DwellingGroup dwellingGroup : unroutedDwellingGroups) {
+            int count = 0;
+            if (pointSizes.containsKey(dwellingGroup.getPoint())) {
+                count += pointSizes.get(dwellingGroup.getPoint());
+            }
+            count += dwellingGroup.size();
+            pointSizes.put(dwellingGroup.getPoint(), count);
+        }
+        List<Integer> sizes = new ArrayList<Integer>(pointSizes.values());
+        Collections.sort(sizes);
+        int targetIndex = Collections.binarySearch(sizes, targetSize);
+        double size = 0;
+        int countTo = targetIndex < 0 ? ~targetIndex : targetIndex;
+        for (int i = 0; i < countTo; i++) {
+            size += sizes.get(i);
+        }
+        size += (sizes.size() - countTo) * targetSize;
+        return (int)Math.ceil(size / targetSize);
     }
 
     @Override
     public Route createRoute(String name) {
         RouteImpl route = new RouteImpl(this, name);
         routes.add(route);
+        if (parent != null) {
+            parent.addRoute(route, this);
+        }
         return route;
     }
 
@@ -97,6 +163,12 @@ public class DefaultRoutableArea implements RoutableArea {
     public void markAsRouted(DwellingGroup dwellingGroup) {
         if (unroutedDwellingGroups.remove(dwellingGroup)) {
             routedDwellingGroups.add(dwellingGroup);
+            if (parent != null) {
+                parent.markAsRouted(dwellingGroup, this);
+            }
+            for (DefaultRoutableArea child : children) {
+                child.markAsRouted(dwellingGroup, this);
+            }
         }
     }
 
@@ -104,6 +176,12 @@ public class DefaultRoutableArea implements RoutableArea {
     public void markAsUnrouted(DwellingGroup dwellingGroup) {
         if (routedDwellingGroups.remove(dwellingGroup)) {
             unroutedDwellingGroups.add(dwellingGroup);
+            if (parent != null) {
+                parent.markAsUnrouted(dwellingGroup, this);
+            }
+            for (DefaultRoutableArea child : children) {
+                child.markAsUnrouted(dwellingGroup, this);
+            }
         }
     }
 
@@ -183,6 +261,46 @@ public class DefaultRoutableArea implements RoutableArea {
     }
 
     @Override
+    public void addRoute(Route route, RoutableArea informant) {
+        if (routes.add(route)) {
+            if (informant == parent) {
+                for (DefaultRoutableArea child : children) {
+                    child.addRoute(route, this);
+                }
+            }
+            else if (children.contains(informant)) {
+                if (parent != null) {
+                    parent.addRoute(route, this);
+                }
+            }
+            else {
+                throw new IllegalArgumentException("The DefaultRoutableArea has been informed of a change of " +
+                        "routed status by an informant other than its parent or child");
+            }
+        }
+    }
+
+    @Override
+    public void removeRoute(Route route, RoutableArea informant) {
+        if (routes.remove(route)) {
+            if (informant == parent) {
+                for (DefaultRoutableArea child : children) {
+                    child.removeRoute(route, this);
+                }
+            }
+            else if (children.contains(informant)) {
+                if (parent != null) {
+                    parent.removeRoute(route, this);
+                }
+            }
+            else {
+                throw new IllegalArgumentException("The DefaultRoutableArea has been informed of a change of " +
+                        "routed status by an informant other than its parent or child");
+            }
+        }
+    }
+
+    @Override
     public void load(File selectedFile) {
         throw new UnsupportedOperationException("This method is not yet supported");
     }
@@ -212,5 +330,9 @@ public class DefaultRoutableArea implements RoutableArea {
         else {
             unroutedDwellingGroups.add(dwellingGroup);
         }
+    }
+
+    public void addChild(DefaultRoutableArea childRoutableArea) {
+        children.add(childRoutableArea);
     }
 }

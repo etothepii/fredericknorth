@@ -38,4 +38,6 @@ public interface RoutableArea {
     public RoutableArea getParent();
     public int getUnroutedDwellingCount();
     public int getDwellingCount();
+    public void addRoute(Route route, RoutableArea informant);
+    public void removeRoute(Route route, RoutableArea informant);
 }
