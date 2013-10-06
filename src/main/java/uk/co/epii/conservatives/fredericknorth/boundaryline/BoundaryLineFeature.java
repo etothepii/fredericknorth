@@ -32,8 +32,8 @@ public class BoundaryLineFeature extends AbstractBoundedArea {
             List<Point> points = new ArrayList<Point>(geometry.getNumPoints());
             allPoints.add(points);
             Coordinate[] coordinates = geometry.getCoordinates();
-            for (int j = 0; j < coordinates.length; i++) {
-                points.add(new Point((int)coordinates[i].x, (int)coordinates[i].y));
+            for (int j = 0; j < coordinates.length; j++) {
+                points.add(new Point((int)coordinates[j].x, (int)coordinates[j].y));
             }
         }
     }

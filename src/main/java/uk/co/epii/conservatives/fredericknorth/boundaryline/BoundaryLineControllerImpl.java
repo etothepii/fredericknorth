@@ -116,6 +116,7 @@ public class BoundaryLineControllerImpl implements BoundaryLineController {
                 getAllOSKnownBoundedAreas(type).features();
         while (simpleFeatures.hasNext()) {
             SimpleFeature simpleFeature = simpleFeatures.next();
+            LOG.debug("Checking: {}", simpleFeature.getAttribute("NAME"));
             BoundingBox boundingBox = simpleFeature.getBounds();
             if (boundingBox.contains(x, y)) {
                 BoundaryLineFeature boundaryLineFeature =
