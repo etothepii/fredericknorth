@@ -205,7 +205,20 @@ class PDFRendererImpl implements PDFRenderer {
         BoundedArea mainConstituency =
                 boundaryLineController.getContainingFeature(
                         BoundedAreaType.PARLIAMENTARY_CONSTITUENCY, median.getX(), median.getY());
-        return mainConstituency == null ? "An Association" : mainConstituency.getName();
+        if (mainConstituency == null) {
+            return "An Association";
+        }
+        String name = mainConstituency.getName();
+        if (name.endsWith(" Co Const")) {
+            return name.substring(0, name.length() - 9);
+        }
+        if (name.endsWith(" Boro Const")) {
+            return name.substring(0, name.length() - 11);
+        }
+        if (name.endsWith(" Burgh Const")) {
+            return name.substring(0, name.length() - 12);
+        }
+        return mainConstituency.getName();
     }
 
     private Element createDwellingList(List<RouteMapGrouping> routeMapGroupings) {
