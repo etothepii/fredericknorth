@@ -4,6 +4,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
+import uk.co.epii.conservatives.fredericknorth.routes.Route;
 
 import java.awt.*;
 import java.io.File;
@@ -123,6 +124,16 @@ public class DummyRoutableArea implements RoutableArea {
 
     @Override
     public int getDwellingCount() {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
+
+    @Override
+    public void addRoute(Route route, RoutableArea informant) {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
+
+    @Override
+    public void removeRoute(Route route, RoutableArea informant) {
         throw new UnsupportedOperationException("This operation is not supported in the Dummy");
     }
 
