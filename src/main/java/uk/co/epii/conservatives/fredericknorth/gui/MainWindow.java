@@ -26,10 +26,10 @@ public class MainWindow extends JFrame {
         this.mainWindowModel = mainWindowModel;
         boundedAreaSelectionPanel = new BoundedAreaSelectionPanel(mainWindowModel.getBoundedAreaSelectionModel());
         tabbedPane = new JTabbedPane();
-        routeBuilderPanel = new RouteBuilderPanel(mainWindowModel.getRouteBuilderPanelModel(), applicationContext);
-        tabbedPane.add("Routes", routeBuilderPanel);
         routableAreaBuilderPanel = new RoutableAreaBuilderPanel(applicationContext, mainWindowModel.getRoutableAreaBuilderPanelModel());
         tabbedPane.add("Areas", routableAreaBuilderPanel);
+        routeBuilderPanel = new RouteBuilderPanel(mainWindowModel.getRouteBuilderPanelModel(), applicationContext);
+        tabbedPane.add("Routes", routeBuilderPanel);
         getContentPane().setLayout(new GridBagLayout());
         getContentPane().add(boundedAreaSelectionPanel, new GridBagConstraints(0, 0, 1, 1, 1d, 0d,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));

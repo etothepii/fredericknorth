@@ -466,8 +466,19 @@ public class RouteBuilderPanelModel implements Activateable {
         getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(selectedFile);
     }
 
-    public void export(File selectedFile) {
-        pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile);
+    public void export(final File selectedFile) {
+        synchronized (pdfRenderer) {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (pdfRenderer) {
+                        pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile, progressTracker);
+                        setEnabled(true);
+                    }
+                }
+            });
+            setEnabled(false);
+        }
     }
 
     public void invertSelectionInRoutedAndUnrouted() {
