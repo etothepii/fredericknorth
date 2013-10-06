@@ -126,7 +126,7 @@ public class RouteBuilderPanelModelTest {
         tidyInvokeAndWait(new Runnable() {
             @Override
             public void run() {
-                ((RouteBuilderMapPanelModel) routeBuilderPanelModel.getMapPanelModel()).mouseStablized(new Point(20, 20));
+                ((RouteBuilderMapPanelModel) routeBuilderPanelModel.getMapPanelModel()).mouseMovedTo(new Point(20, 20));
                 mouseOverOverlays[0] = routeBuilderPanelModel.getMapPanelModel().getImmutableOverlaysMouseOver();
             }
         });
