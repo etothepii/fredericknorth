@@ -25,7 +25,7 @@ public class DwellingProcessorRegistrar {
     private static final String DwellingsDataDirectoryKey = "DwellingsDataDirectory";
 
     private static final Pattern dwellingsRegex =
-            Pattern.compile("([^,]*), *(.*),  ([A-Z][A-Z0-9]* [0-9][A-Z][A-Z])~([A-I])~");
+            Pattern.compile("([^,]*), (.*), (.*) ([A-Z][A-Z0-9]* [0-9][A-Z][A-Z])~([A-I])~");
     private static final Pattern textFileRexgex =
             Pattern.compile("^(.*)\\.[Tt][xX][tT]$");
 
@@ -147,9 +147,12 @@ public class DwellingProcessorRegistrar {
 
     private static void processDwelling(String dwelling) {
         Matcher matcher = dwellingsRegex.matcher(dwelling);
-        if (!matcher.find()) return;
+        if (!matcher.find()) {
+            return;
+        }
         String dwellingName = matcher.group(1);
         String dwellingGroupName = matcher.group(2);
+        String county = matcher.group(3);
         if (dwellingGroupsCommonEnding == null) {
             dwellingGroupsCommonEnding = dwellingGroupName;
         }
@@ -164,8 +167,8 @@ public class DwellingProcessorRegistrar {
                 }
             }
         }
-        String postCode = matcher.group(3);
-        String band = matcher.group(4);
+        String postCode = matcher.group(4);
+        String band = matcher.group(5);
         DwellingGroup dwellingGroup = getOrCreateDwellingGroup(postCode, dwellingGroupName);
         dwellingGroup.add(new DwellingImpl(dwellingName, band.charAt(0), dwellingGroup));
     }
