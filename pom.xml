@@ -4,7 +4,7 @@
 
   <groupId>uk.co.epii.conservatives</groupId>
   <artifactId>fredericknorth</artifactId>
-  <version>0.0.1a</version>
+  <version>0.1.0</version>
   <packaging>jar</packaging>
   
   <description>A leaflet route making application</description>
