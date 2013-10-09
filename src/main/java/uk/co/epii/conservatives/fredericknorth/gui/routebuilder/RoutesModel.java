@@ -13,15 +13,15 @@ import java.util.*;
  * Time: 20:24
  */
 class RoutesModel extends AbstractListModel implements ComboBoxModel {
-    private final RouteBuilderMapFrameModel routeBuilderMapFrameModel;
+    private final RouteBuilderPanelModel routeBuilderPanelModel;
     private final List<Route> routes;
     private final Set<String> routeNames;
     private final HashMap<Route, Integer> routesIndexMap;
     private RoutableArea selectedRoutableArea;
     private int currentIndex;
 
-    public RoutesModel(RouteBuilderMapFrameModel routeBuilderMapFrameModel) {
-        this.routeBuilderMapFrameModel = routeBuilderMapFrameModel;
+    public RoutesModel(RouteBuilderPanelModel routeBuilderPanelModel) {
+        this.routeBuilderPanelModel = routeBuilderPanelModel;
         routesIndexMap = new HashMap<Route, Integer>();
         routes = new ArrayList<Route>();
         routeNames = new HashSet<String>();
@@ -47,10 +47,7 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
 
     @Override
     public int getSize() {
-        if (selectedRoutableArea == null) {
-            return 0;
-        }
-        return selectedRoutableArea.getRoutes().size();
+        return routes.size();
     }
 
     @Override
@@ -62,9 +59,9 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
         int oldSize = getSize();
         this.selectedRoutableArea = selectedRoutableArea;
         routes.clear();
-        routeBuilderMapFrameModel.getUnroutedDwellingGroups().clear();
+        routeBuilderPanelModel.getUnroutedDwellingGroups().clear();
         if (selectedRoutableArea != null) {
-            routeBuilderMapFrameModel.getUnroutedDwellingGroups().setToContentsOf(selectedRoutableArea.getUnroutedDwellingGroups());
+            routeBuilderPanelModel.getUnroutedDwellingGroups().setToContentsOf(selectedRoutableArea.getUnroutedDwellingGroups());
             routes.addAll(this.selectedRoutableArea.getRoutes());
         }
         updateRoutesIndexMap();
@@ -125,11 +122,11 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
     public void setSelectedRoute(Route selectedRoute) {
         if (selectedRoute == null) {
             currentIndex = -1;
-            routeBuilderMapFrameModel.getRoutedDwellingGroups().clear();
+            routeBuilderPanelModel.getRoutedDwellingGroups().clear();
         }
         else if (routesIndexMap.containsKey(selectedRoute)) {
             currentIndex = routesIndexMap.get(selectedRoute);
-            routeBuilderMapFrameModel.getRoutedDwellingGroups().setToContentsOf(getSelectedItem().getDwellingGroups());
+            routeBuilderPanelModel.getRoutedDwellingGroups().setToContentsOf(getSelectedItem().getDwellingGroups());
         }
         else {
             throw new IllegalArgumentException("Unknown Route: " + selectedRoute.getName());
@@ -152,16 +149,16 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
     }
 
     public void moveInToRoute(List<? extends DwellingGroup> dwellingGroups) {
-        Set<DwellingGroup> toMove = routeBuilderMapFrameModel.getUnroutedDwellingGroups().intersect(dwellingGroups);
-        routeBuilderMapFrameModel.getUnroutedDwellingGroups().removeAll(toMove);
-        routeBuilderMapFrameModel.getRoutedDwellingGroups().addAll(toMove);
+        Set<DwellingGroup> toMove = routeBuilderPanelModel.getUnroutedDwellingGroups().intersect(dwellingGroups);
+        routeBuilderPanelModel.getUnroutedDwellingGroups().removeAll(toMove);
+        routeBuilderPanelModel.getRoutedDwellingGroups().addAll(toMove);
         getSelectedItem().addDwellingGroups(toMove);
     }
 
     public void moveOutOfRoute(List<? extends DwellingGroup> dwellingGroups) {
-        Set<DwellingGroup> toMove = routeBuilderMapFrameModel.getRoutedDwellingGroups().intersect(dwellingGroups);
-        routeBuilderMapFrameModel.getRoutedDwellingGroups().removeAll(toMove);
-        routeBuilderMapFrameModel.getUnroutedDwellingGroups().addAll(toMove);
+        Set<DwellingGroup> toMove = routeBuilderPanelModel.getRoutedDwellingGroups().intersect(dwellingGroups);
+        routeBuilderPanelModel.getRoutedDwellingGroups().removeAll(toMove);
+        routeBuilderPanelModel.getUnroutedDwellingGroups().addAll(toMove);
         getSelectedItem().removeDwellingGroups(toMove);
     }
 
@@ -177,5 +174,9 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
             }
         }
         return routes;
+    }
+
+    public void update() {
+        setSelectedRoutableArea(selectedRoutableArea);
     }
 }

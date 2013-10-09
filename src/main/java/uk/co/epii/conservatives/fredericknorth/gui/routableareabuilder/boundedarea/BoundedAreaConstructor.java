@@ -72,9 +72,9 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
                 NearestPoint nearestPointToThis = neighbour.getNearestGeoPoint(PointExtensions.toFloat(p));
                 calculateCurrentPointsBetween(nearestPointToPrevious.point, nearestPointToThis.point,
                         nearestPointToPrevious.polygon);
-                Point nearestOnLine = PointExtensions.fromFloat(nearestPointToPrevious.point);
-                if (!nearestOnLine.equals(previous)) {
-                    inbetweenPoints.add(0, nearestOnLine);
+                Point firstOnPoygon = PointExtensions.fromFloat(nearestPointToPrevious.point);
+                if (!previous.equals(firstOnPoygon)) {
+                    inbetweenPoints.add(0, firstOnPoygon);
                 }
                 break;
             }

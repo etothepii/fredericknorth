@@ -2,6 +2,8 @@ package uk.co.epii.conservatives.fredericknorth;
 
 import org.apache.log4j.Logger;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
+import uk.co.epii.conservatives.fredericknorth.gui.MainWindow;
+import uk.co.epii.conservatives.fredericknorth.gui.MainWindowModel;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
@@ -77,10 +79,12 @@ public class Main
             System.exit(1);
         }
         progress("Starting ...");
-        MainMenu mainMenu = new MainMenu(applicationContext);
-        mainMenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainMenu.setLocationRelativeTo(null);
-        mainMenu.setVisible(true);
+        MainWindowModel mainWindowModel = new MainWindowModel(applicationContext);
+        MainWindow mainWindow = new MainWindow(applicationContext, mainWindowModel);
+        mainWindow.setLocationRelativeTo(null);
+        mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        mainWindow.setVisible(true);
+        mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         progressTracker.setVisible(false);
         progressTracker.dispose();
     }

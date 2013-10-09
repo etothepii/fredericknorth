@@ -25,12 +25,12 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
     private Point multiSelectionSquareDrawnFrom = null;
     private Point stablePoint = null;
 
-    private final RouteBuilderMapFrameModel routeBuilderMapFrameModel;
+    private final RouteBuilderPanelModel routeBuilderPanelModel;
     private final MapPanelMouseTracker mapPanelMouseTracker;
 
-    public RouteBuilderMapPanelModel(RouteBuilderMapFrameModel routeBuilderMapFrameModel, long stationaryMouseRequirement) {
-        super(routeBuilderMapFrameModel.getMapViewGenerator());
-        this.routeBuilderMapFrameModel = routeBuilderMapFrameModel;
+    public RouteBuilderMapPanelModel(RouteBuilderPanelModel routeBuilderPanelModel, long stationaryMouseRequirement) {
+        super(routeBuilderPanelModel.getMapViewGenerator());
+        this.routeBuilderPanelModel = routeBuilderPanelModel;
         mapPanelMouseTracker = new MapPanelMouseTracker(stationaryMouseRequirement);
         mapPanelMouseTracker.addMouseStableListener(new MouseStableListener() {
             @Override
@@ -92,7 +92,7 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
             multiSelectionSquareDrawnFrom = getCurrentMapView().getGeoLocation(e.getPoint());
         }
         else {
-            routeBuilderMapFrameModel.invertSelectionInRoutedAndUnrouted();
+            routeBuilderPanelModel.invertSelectionInRoutedAndUnrouted();
             multiSelectionSquareDrawnFrom = null;
             setSelected(null);
         }
@@ -128,11 +128,13 @@ class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
         }
         else {
             Rectangle previous = RectangleExtensions.grow(
-                    RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
+                    RectangleExtensions.fromPoints(
+                            getCurrentMapView().getImageLocation(multiSelectionSquareDrawnFrom), getMouseAt()), 5);
             super.mouseMovedTo(point);
             selectedAreaExtendedTo(point);
             Rectangle after = RectangleExtensions.grow(
-                    RectangleExtensions.fromPoints(multiSelectionSquareDrawnFrom, getMouseAt()), 1);
+                    RectangleExtensions.fromPoints(
+                            getCurrentMapView().getImageLocation(multiSelectionSquareDrawnFrom), getMouseAt()), 5);
             if (rectanglesToRepaint != null) {
                 rectanglesToRepaint.add(previous);
                 rectanglesToRepaint.add(after);

@@ -18,6 +18,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 import uk.co.epii.conservatives.williampittjr.LogoGenerator;
 
 import java.awt.*;
@@ -131,24 +132,31 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     @Override
-    public void buildRoutesGuide(Collection<? extends Route> routesCollection, File file)  {
+    public void buildRoutesGuide(Collection<? extends Route> routesCollection, File file, ProgressTracker progressTracker)  {
         ArrayList<Route> routes = new ArrayList<Route>(routesCollection);
+        progressTracker.startSubsection(routes.size());
         Collections.sort(routes, routeNameComparator);
         this.file = file;
         try {
             createDocument();
             boolean first = true;
             for (Route route : routes) {
-                if (route.getDwellingGroups().isEmpty()) {
-                    continue;
+                progressTracker.setMessage(route.getName());
+                try {
+                    if (route.getDwellingGroups().isEmpty()) {
+                        continue;
+                    }
+                    if (first) {
+                        first = false;
+                    }
+                    else {
+                        document.newPage();
+                    }
+                    addRouteContent(route);
                 }
-                if (first) {
-                    first = false;
+                finally {
+                    progressTracker.increment();
                 }
-                else {
-                    document.newPage();
-                }
-                addRouteContent(route);
             }
             closeDocument();
         }
@@ -158,8 +166,8 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     @Override
-    public void buildRoutesGuide(RoutableArea routableArea, File file) {
-        buildRoutesGuide(routableArea.getRoutes(), file);
+    public void buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker) {
+        buildRoutesGuide(routableArea.getRoutes(), file, progressTracker);
     }
 
     @Override
@@ -197,7 +205,20 @@ class PDFRendererImpl implements PDFRenderer {
         BoundedArea mainConstituency =
                 boundaryLineController.getContainingFeature(
                         BoundedAreaType.PARLIAMENTARY_CONSTITUENCY, median.getX(), median.getY());
-        return mainConstituency == null ? "An Association" : mainConstituency.getName();
+        if (mainConstituency == null) {
+            return "An Association";
+        }
+        String name = mainConstituency.getName();
+        if (name.endsWith(" Co Const")) {
+            return name.substring(0, name.length() - 9);
+        }
+        if (name.endsWith(" Boro Const")) {
+            return name.substring(0, name.length() - 11);
+        }
+        if (name.endsWith(" Burgh Const")) {
+            return name.substring(0, name.length() - 12);
+        }
+        return mainConstituency.getName();
     }
 
     private Element createDwellingList(List<RouteMapGrouping> routeMapGroupings) {
@@ -287,7 +308,7 @@ class PDFRendererImpl implements PDFRenderer {
 
     private Image getLogo(String constituency) {
         Image logo = cachedLogos.get(constituency);
-        if (logo != null) {
+        if (logo == null) {
             try {
                 BufferedImage conLogo = logoGenerator.getLogo(constituency);
                 logo = Image.getInstance(Toolkit.getDefaultToolkit().createImage(conLogo.getSource()), null);

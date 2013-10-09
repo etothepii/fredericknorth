@@ -33,7 +33,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     private boolean mapViewIsDirty;
     private Point geoDragFrom;
     private Point mouseAt;
-    private Shape selected;
+    private Rectangle selected;
     private ProgressTracker progressTracker;
     private final Object selectionChangingSync = new Object();
     private MapImageObserver mapImageObserver;
@@ -483,7 +483,8 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
             }
             boolean onEdge = renderedOverlay.getBoundary().isOnEdge(getMouseAt());
             boolean inside = renderedOverlay.getBoundary().isInside(getMouseAt());
-            if (inside) {
+            boolean overlaySelected  = inside || (selected != null && selected.contains(overlayItem.getGeoLocationOfCenter()));
+            if (overlaySelected) {
                 LOG.debug("getMouseAt(): {}", getMouseAt());
                 LOG.debug("getCurrentMapView().getGeoLocation(getMouseAt()): {}",
                         getCurrentMapView().getGeoLocation(getMouseAt()));
@@ -519,7 +520,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     }
 
     @Override
-    public Shape getSelectedArea() {
+    public Rectangle getSelectedArea() {
         LOG_SYNC.debug("Awaiting selectionChangingSync");
         try {
             synchronized (selectionChangingSync) {
@@ -535,7 +536,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     @Override
     public abstract void clicked(MouseEvent e);
 
-    public void setSelected(Shape selected) {
+    public void setSelected(Rectangle selected) {
         LOG_SYNC.debug("Awaiting selectionChangingSync");
         try {
             synchronized (selectionChangingSync) {
