@@ -4,7 +4,7 @@
 
   <groupId>uk.co.epii.conservatives</groupId>
   <artifactId>fredericknorth</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <packaging>jar</packaging>
   
   <description>A leaflet route making application</description>
@@ -15,8 +15,8 @@
     <slf4j.version>1.6.4</slf4j.version>
     <log4j.version>1.2.12</log4j.version>
     <junit.version>4.11</junit.version>
-    <spencerperceval.version>0.0.1a</spencerperceval.version>
-    <williamcavendishbentinck.version>0.0.1a</williamcavendishbentinck.version>
+    <spencerperceval.version>0.0.3</spencerperceval.version>
+    <williamcavendishbentinck.version>0.0.2</williamcavendishbentinck.version>
     <williampittjr.version>1.0.0</williampittjr.version>
     <commonsio.version>2.4</commonsio.version>
     <itextpdf.version>5.1.3</itextpdf.version>
