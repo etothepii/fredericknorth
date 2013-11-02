@@ -23,7 +23,7 @@ public class PostcodeDatumFactoryImpl implements PostcodeDatumFactory {
     private final Pattern postcodePrefixPattern = Pattern.compile("([A-Z]+)[0-9]+.*");
 
     @Override
-    public PostcodeDatum getInstance(String postcode) {
+    public PostcodeDatumImpl getInstance(String postcode) {
         return getImplementation(postcode);
     }
 

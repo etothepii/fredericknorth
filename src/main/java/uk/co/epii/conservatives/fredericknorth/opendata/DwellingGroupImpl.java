@@ -20,14 +20,14 @@ class DwellingGroupImpl implements DwellingGroup {
     private final String name;
     private String displayName;
     private String uniquePart;
-    private PostcodeDatum postcode;
+    private PostcodeDatumImpl postcode;
     private final List<Dwelling> dwellings;
     private NumericIdentifierSummary numericIdentifierSummary;
     private NonNumericIdentifierSummary nonNumericsIdentifierSummary;
     private Point point;
     private String identifierSummary;
 
-    public DwellingGroupImpl(String name, String displayName, PostcodeDatum postcode) {
+    public DwellingGroupImpl(String name, String displayName, PostcodeDatumImpl postcode) {
         this.name = name;
         this.displayName = displayName;
         this.postcode = postcode;
@@ -36,7 +36,10 @@ class DwellingGroupImpl implements DwellingGroup {
 
     @Override
     public String getName() {
-        return name;
+        if (size() == 0) {
+            return name;
+        }
+        return String.format("%s %s", establishIdentifierSummary(), name);
     }
 
     public void setUniquePart(String uniquePart) {
@@ -55,13 +58,13 @@ class DwellingGroupImpl implements DwellingGroup {
 
     public void add(Dwelling dwelling) {
         dwellings.add(dwelling);
-        postcode.addHouse(dwelling.getCouncilTaxBand());
+        postcode.add(dwelling);
     }
 
     void load(ApplicationContext applicationContext, Element dwellingGroupElt) {
         if (!dwellingGroupElt.getTagName().equals("DwellingGroup")) throw new IllegalArgumentException("You have not provided a Route node");
         String postcode = dwellingGroupElt.getElementsByTagName("Postcode").item(0).getTextContent();
-        if (!this.postcode.getPostcode().equals(postcode)) {
+        if (!this.postcode.getName().equals(postcode)) {
             throw new RuntimeException("This is not the DwellingGroup for this node as the Postcodes differ");
         }
         String name = dwellingGroupElt.getElementsByTagName("Name").item(0).getTextContent();
@@ -74,7 +77,7 @@ class DwellingGroupImpl implements DwellingGroup {
         Element dwellingGroupElt = document.createElement("DwellingGroup");
         Element dwellingGroupPostcode = document.createElement("Postcode");
         dwellingGroupElt.appendChild(dwellingGroupPostcode);
-        dwellingGroupPostcode.setTextContent(postcode.getPostcode());
+        dwellingGroupPostcode.setTextContent(postcode.getName());
         Element dwellingGroupName = document.createElement("Name");
         dwellingGroupElt.appendChild(dwellingGroupName);
         dwellingGroupName.setTextContent(getName());

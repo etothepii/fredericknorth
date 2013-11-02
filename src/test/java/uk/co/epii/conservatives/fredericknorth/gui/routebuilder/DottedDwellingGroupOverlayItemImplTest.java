@@ -24,8 +24,6 @@ public class DottedDwellingGroupOverlayItemImplTest {
     public void compareTwoBuildingsOnChapelHouseTest() {
         TestApplicationContext testApplicationContext = new TestApplicationContext();
         PostcodeDatumFactoryRegistrar.registerToContext(testApplicationContext);
-        PostcodeProcessorRegistrar.registerToContext(testApplicationContext,
-                DottedDwellingGroupOverlayItemImplTest.class.getResourceAsStream("/chapelHouseStreetPostcodes.txt"), 0);
         DwellingProcessorRegistrar.registerToContext(testApplicationContext, new NullProgressTracker(),
                 DottedDwellingGroupOverlayItemImplTest.class.getResourceAsStream("/chapelHouseStreetDwellings.txt"));
         DotFactoryRegistrar.registerToContext(testApplicationContext);

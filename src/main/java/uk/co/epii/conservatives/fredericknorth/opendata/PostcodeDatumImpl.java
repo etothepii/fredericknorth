@@ -1,7 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -12,31 +14,26 @@ import java.util.Arrays;
 class PostcodeDatumImpl implements PostcodeDatum {
 
     private final String postcode;
-    private String wardCode;
     private Point location;
     private int[] councilBandCount;
-    private int dwellingCount;
+    private List<Dwelling> dwellings;
+    private Point point;
 
     PostcodeDatumImpl(String postcode) {
         if (postcode == null) throw new NullPointerException("The postcode is null!");
         this.postcode = postcode;
         councilBandCount = new int[9];
+        this.dwellings = new ArrayList<Dwelling>();
     }
 
-    PostcodeDatumImpl(String postcode, String wardCode, Point location) {
+    PostcodeDatumImpl(String postcode, Point location) {
         this(postcode);
-        this.wardCode = wardCode;
         this.location = location;
     }
 
     @Override
-    public String getPostcode() {
+    public String getName() {
         return postcode;
-    }
-
-    @Override
-    public void setWardCode(String wardCode) {
-        this.wardCode = wardCode;
     }
 
     @Override
@@ -45,31 +42,19 @@ class PostcodeDatumImpl implements PostcodeDatum {
     }
 
     @Override
-    public String getWardCode() {
-        return wardCode;
-    }
-
-    @Override
     public int[] getCouncilBandCount() {
         return Arrays.copyOf(councilBandCount, councilBandCount.length);
     }
 
     @Override
-    public int getDwellingCount() {
-        return dwellingCount;
+    public Iterable<Dwelling> getDwellings() {
+        return dwellings;
     }
 
     @Override
-    public void setPoint(Point location) {
-        this.location = location;
+    public int size() {
+        return dwellings.size();
     }
-
-    @Override
-    public void addHouse(char band) {
-        councilBandCount[getArrayIndexForCouncilBand(band)]++;
-        dwellingCount++;
-    }
-
     private int getArrayIndexForCouncilBand(char band) {
         int councilTaxBandIndex = band - 65;
         if (Math.abs(councilTaxBandIndex - 4) > 4) throw new IllegalArgumentException("Only bands A through I are supported: " + band);
@@ -91,5 +76,15 @@ class PostcodeDatumImpl implements PostcodeDatum {
     @Override
     public int hashCode() {
         return postcode.hashCode();
+    }
+
+    public void add(Dwelling dwelling) {
+        dwellings.add(dwelling);
+        char band = dwelling.getCouncilTaxBand();
+        councilBandCount[getArrayIndexForCouncilBand(band)]++;
+    }
+
+    public void setPoint(Point point) {
+        this.point = point;
     }
 }

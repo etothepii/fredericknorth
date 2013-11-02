@@ -358,7 +358,7 @@ public class RouteBuilderPanelModel implements Activateable {
             for (PostcodeDatum postcode : postcodes) {
                 if (postcode.getPoint() != null &&
                         PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
-                    for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getPostcode())) {
+                    for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
                         routableArea.addDwellingGroup(dwellingGroup, false);
                     }
                 }

@@ -32,7 +32,7 @@ public class DwellingProcessorRegistrar {
     private static String dwellingGroupsCommonEnding = null;
     private static HashMap<String, HashMap<String, DwellingGroupImpl>> activeDwellingGroups;
     private static HashMap<String, HashMap<String, DwellingGroupImpl>> allDwellingGroups;
-    private static PostcodeDatumFactory postcodeDatumFactory;
+    private static PostcodeDatumFactoryImpl postcodeDatumFactory;
 
     public static void registerToContext(ApplicationContext applicationContext, @NotNull ProgressTracker progressTracker) {
         registerToContext(applicationContext, progressTracker, new File(
@@ -43,7 +43,7 @@ public class DwellingProcessorRegistrar {
     public static void registerToContext(ApplicationContext applicationContext,
                                          @NotNull ProgressTracker progressTracker, Object data) {
         allDwellingGroups = new HashMap<String, HashMap<String, DwellingGroupImpl>>();
-        postcodeDatumFactory = applicationContext.getDefaultInstance(PostcodeDatumFactory.class);
+        postcodeDatumFactory = (PostcodeDatumFactoryImpl)applicationContext.getDefaultInstance(PostcodeDatumFactory.class);
         LOG.info("Loading dwelling data");
         if (data instanceof File) {
             loadDwellingsFolder((File)data, progressTracker);

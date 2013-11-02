@@ -11,7 +11,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactoryRegistrar;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRendererRegistrar;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
 import uk.co.epii.conservatives.fredericknorth.utilities.DefaultApplicationContext;
@@ -36,7 +35,7 @@ public class Main
 	public static void main(final String[] args) throws Exception
 	{
         progressTracker = new ProgressTrackerFrame(
-                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 21);
+                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 20);
         progressTracker.setVisible(true);
         progress("Loading Config");
         ApplicationContext springContext = new ClassPathXmlApplicationContext("applicationContext.xml");
@@ -55,8 +54,6 @@ public class Main
             DwellingProcessorRegistrar.registerToContext(applicationContext, progressTracker);
             progress("Loading OS Map Locator");
             OSMapLocatorRegistrar.registerToContext(applicationContext);
-            progress("Loading Postcode Processor");
-            PostcodeProcessorRegistrar.registerToContext(applicationContext);
             progress("Loading Location Factory");
             LocationFactoryRegistrar.registerToContext(applicationContext);
             progress("Loading Map Label Factory");

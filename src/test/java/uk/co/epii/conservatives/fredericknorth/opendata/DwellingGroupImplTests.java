@@ -16,7 +16,7 @@ public class DwellingGroupImplTests {
 
     @Before
     public void setUp() throws Exception {
-        dwellingGroup = new DwellingGroupImpl("A Street", null, new DummyPostcodeDatum("A1 1AA"));
+        dwellingGroup = new DwellingGroupImpl("A Street", null, new PostcodeDatumImpl("A1 1AA"));
     }
 
     @Test

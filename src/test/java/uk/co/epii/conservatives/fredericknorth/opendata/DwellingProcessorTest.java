@@ -26,8 +26,6 @@ public class DwellingProcessorTest {
     public static void setUpClass() throws Exception {
         TestApplicationContext applicationContext = new TestApplicationContext();
         PostcodeDatumFactoryRegistrar.registerToContext(applicationContext);
-        PostcodeProcessorRegistrar.registerToContext(
-                applicationContext, PostcodeProcessorRegistrar.class.getResourceAsStream("/smallPostcodeSet.txt"), 0);
         DwellingProcessorRegistrar.registerToContext(
                 applicationContext, new NullProgressTracker(), DwellingProcessorTest.class.getResourceAsStream("/smallDwellingSet.txt"));
         dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
@@ -56,7 +54,7 @@ public class DwellingProcessorTest {
     public void getDwellingGroupTest() {
         DwellingGroup result = dwellingProcessor.getDwellingGroup("E1 3BE", "DRAKE HOUSE 118, STEPNEY WAY, LONDON");
         assertEquals(result.size(), 3);
-        assertEquals(result.getName(), "DRAKE HOUSE 118, STEPNEY WAY, LONDON");
+        assertEquals(result.getName(), "1 - 5 ODDS ONLY DRAKE HOUSE 118, STEPNEY WAY, LONDON");
     }
 
     @Test

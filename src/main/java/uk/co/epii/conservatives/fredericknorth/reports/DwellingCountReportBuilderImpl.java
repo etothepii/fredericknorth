@@ -206,7 +206,7 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
         int[] count = new int[10];
         for (PostcodeDatum postcodeDatum : postcodes) {
             if (postcodeDatum.getPoint() == null) {
-                LOG.debug("{}", postcodeDatum.getPostcode());
+                LOG.debug("{}", postcodeDatum.getName());
                 continue;
             }
             if (PolygonExtensions.contains(boundedArea.getAreas(), postcodeDatum.getPoint())) {
