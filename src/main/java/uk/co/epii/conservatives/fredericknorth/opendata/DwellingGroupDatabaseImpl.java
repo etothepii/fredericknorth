@@ -13,7 +13,7 @@ import java.util.List;
  * Date: 02/11/2013
  * Time: 15:18
  */
-public class DwellingGroupDatabaseImpl implements DwellingGroup, Group<DwellingDatabaseImpl> {
+public class DwellingGroupDatabaseImpl implements DwellingGroup {
 
     private String displayName;
 
@@ -32,7 +32,7 @@ public class DwellingGroupDatabaseImpl implements DwellingGroup, Group<DwellingD
 
     @Override
     public String getName() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return get
     }
 
     @Override
@@ -51,6 +51,11 @@ public class DwellingGroupDatabaseImpl implements DwellingGroup, Group<DwellingD
     }
 
     @Override
+    public int size() {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
     public PostcodeDatum getPostcode() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -58,6 +63,11 @@ public class DwellingGroupDatabaseImpl implements DwellingGroup, Group<DwellingD
     @Override
     public List<? extends Dwelling> getDwellings() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void add(Dwelling dwelling) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

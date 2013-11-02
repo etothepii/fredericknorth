@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.opendata;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.BLPU;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Postcode;
+import uk.co.epii.spencerperceval.extensions.ArrayExtensions;
 import uk.co.epii.spencerperceval.util.Groupable;
 
 import java.awt.*;
@@ -13,7 +14,7 @@ import java.awt.geom.Point2D;
  * Date: 02/11/2013
  * Time: 15:04
  */
-public class DwellingDatabaseImpl implements Dwelling, Groupable<DwellingDatabaseImpl> {
+public class DwellingDatabaseImpl implements Dwelling {
 
     private uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling dbDwelling;
     private BLPU blpu;
@@ -63,20 +64,5 @@ public class DwellingDatabaseImpl implements Dwelling, Groupable<DwellingDatabas
             return PointExtensions.fromFloat(new Point2D.Float(postcode.getXCoordinate(), postcode.getYCoordinate()));
         }
         return null;
-    }
-
-    @Override
-    public int d(DwellingDatabaseImpl dwellingDatabase) {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public DwellingDatabaseImpl getCommon(DwellingDatabaseImpl dwellingDatabase) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public String getDifference(DwellingDatabaseImpl dwellingDatabase) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }
