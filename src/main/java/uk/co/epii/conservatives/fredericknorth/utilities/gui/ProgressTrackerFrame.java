@@ -2,10 +2,13 @@ package uk.co.epii.conservatives.fredericknorth.utilities.gui;
 
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +32,11 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
     };
 
     private final ProgressTrackerJProgressBar progressBar;
-    private final BufferedImage background;
+    private BufferedImage background;
+
+    public ProgressTrackerFrame() {
+        this(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), 1);
+    }
 
     public ProgressTrackerFrame(BufferedImage background, int maximum) throws HeadlessException {
         progressBar = new ProgressTrackerJProgressBar(maximum);
@@ -40,8 +47,35 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
         getContentPane().add(progressBar, new GridBagConstraints(0, 1, 1, 1, 1d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         setUndecorated(true);
+        init();
+    }
+
+    private void init() {
         pack();
         setLocationRelativeTo(null);
+    }
+
+    public void setProgressBarSteps(int steps) {
+        progressBar.finish();
+        progressBar.startSubsection(steps);
+    }
+
+    public void setImageResourceLocation(String imageResourceLocation) {
+        try {
+            background = ImageIO.read(ProgressTrackerFrame.class.getResourceAsStream(imageResourceLocation));
+        }
+        catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    public void setImageLocation(String imageLocation) {
+        try {
+            background = ImageIO.read(new File(imageLocation));
+        }
+        catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
     }
 
     @Override

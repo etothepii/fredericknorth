@@ -2,8 +2,6 @@ package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import org.apache.log4j.Logger;
 import uk.co.epii.conservatives.fredericknorth.Keys;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.utilities.BufferedResourceReader;
 import uk.co.epii.conservatives.fredericknorth.maps.OSMapLocator;
 
 import java.awt.*;

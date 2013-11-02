@@ -1,16 +1,20 @@
 package uk.co.epii.conservatives.fredericknorth;
 
 import org.apache.log4j.Logger;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindow;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindowModel;
+import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.*;
+import uk.co.epii.conservatives.fredericknorth.pdf.PDFRenderer;
+import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilder;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessorRegistrar;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactoryRegistrar;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRendererRegistrar;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.DefaultApplicationContext;
@@ -19,7 +23,10 @@ import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerFram
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Properties;
 
 /**
  * An awesome fredericknorth
@@ -29,19 +36,112 @@ public class Main
 {
 	private static final Logger LOG = Logger.getLogger(Main.class);
 
-    private static ProgressTrackerFrame progressTracker;
+    private ProgressTrackerFrame progressTracker;
+    private BoundaryLineController boundaryLineController;
+    private PostcodeDatumFactory postcodeDatumFactory;
+    private DwellingProcessor dwellingProcessor;
+    private OSMapLocator osMapLocator;
+    private PostcodeProcessor postcodeProcessor;
+    private LocationFactory locationFactory;
+    private MapLabelFactory mapLabelFactory;
+    private DotFactory dotFactory;
+    private XMLSerializer xmlSerializer;
+    private OSMapLoader osMapLoader;
+    private MapViewGenerator screenMapGenerator;
+    private MapViewGenerator pdfMapGenerator;
+    private MapImageFactory mapImageFactory;
+    private PDFRenderer pdfRenderer;
+    private BoundedAreaFactory boundedAreaFactory;
+    private DwellingCountReportBuilder dwellingCountReportBuilder;
 
-	public static void main(final String[] args) throws Exception
-	{
-        progressTracker = new ProgressTrackerFrame(
-                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 21);
-        progressTracker.setVisible(true);
-        progress("Loading Config");
-        ApplicationContext applicationContext =
-                new DefaultApplicationContext(DefaultApplicationContext.DEFAULT_CONFIG_LOCATION);
+    public void setConfigPropertiesResourcesLocation(String configPropertiesResourcesLocation) {
+        Properties config = new Properties();
         try {
-            progress("Finding Data Folder");
-            applicationContext.registerNamedInstance(File.class, Keys.DATA_FOLDER, findDataFolder());
+            config.load(Main.class.getClassLoader().getResourceAsStream(configPropertiesResourcesLocation));
+            Enumeration<?> names = config.propertyNames();
+            while (names.hasMoreElements()) {
+                String name = (String)names.nextElement();
+                System.setProperty(name, config.getProperty(name));
+            }
+        }
+        catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    public void setProgressTracker(ProgressTrackerFrame progressTracker) {
+        this.progressTracker = progressTracker;
+    }
+
+    public void setBoundaryLineController(BoundaryLineController boundaryLineController) {
+        this.boundaryLineController = boundaryLineController;
+    }
+
+    public void setPostcodeDatumFactory(PostcodeDatumFactory postcodeDatumFactory) {
+        this.postcodeDatumFactory = postcodeDatumFactory;
+    }
+
+    public void setDwellingProcessor(DwellingProcessor dwellingProcessor) {
+        this.dwellingProcessor = dwellingProcessor;
+    }
+
+    public void setOsMapLocator(OSMapLocator osMapLocator) {
+        this.osMapLocator = osMapLocator;
+    }
+
+    public void setPostcodeProcessor(PostcodeProcessor postcodeProcessor) {
+        this.postcodeProcessor = postcodeProcessor;
+    }
+
+    public void setLocationFactory(LocationFactory locationFactory) {
+        this.locationFactory = locationFactory;
+    }
+
+    public void setMapLabelFactory(MapLabelFactory mapLabelFactory) {
+        this.mapLabelFactory = mapLabelFactory;
+    }
+
+    public void setDotFactory(DotFactory dotFactory) {
+        this.dotFactory = dotFactory;
+    }
+
+    public void setXmlSerializer(XMLSerializer xmlSerializer) {
+        this.xmlSerializer = xmlSerializer;
+    }
+
+    public void setOsMapLoader(OSMapLoader osMapLoader) {
+        this.osMapLoader = osMapLoader;
+    }
+
+    public void setScreenMapGenerator(MapViewGenerator screenMapGenerator) {
+        this.screenMapGenerator = screenMapGenerator;
+    }
+
+    public void setPdfMapGenerator(MapViewGenerator pdfMapGenerator) {
+        this.pdfMapGenerator = pdfMapGenerator;
+    }
+
+    public void setMapImageFactory(MapImageFactory mapImageFactory) {
+        this.mapImageFactory = mapImageFactory;
+    }
+
+    public void setPdfRenderer(PDFRenderer pdfRenderer) {
+        this.pdfRenderer = pdfRenderer;
+    }
+
+    public void setBoundedAreaFactory(BoundedAreaFactory boundedAreaFactory) {
+        this.boundedAreaFactory = boundedAreaFactory;
+    }
+
+    public void setDwellingCountReportBuilder(DwellingCountReportBuilder dwellingCountReportBuilder) {
+        this.dwellingCountReportBuilder = dwellingCountReportBuilder;
+    }
+
+    public static void main(final String[] args) throws Exception
+	{
+        ApplicationContext context = new ClassPathXmlApplicationContext("/applicationContext.xml");
+        Main main = (Main)context.getBean("main");
+        try {
             progress("Loading Boundary Line Controller");
             BoundaryLineControllerRegistrar.registerToContext(applicationContext);
             progress("Loading Postcode Data");

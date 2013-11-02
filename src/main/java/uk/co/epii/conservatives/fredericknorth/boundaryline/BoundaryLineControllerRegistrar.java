@@ -16,16 +16,6 @@ public class BoundaryLineControllerRegistrar {
 
     private static final String BoundaryLineDataDirectoryKey = "BoundaryLineDataDirectory";
 
-    public static void registerToContext(ApplicationContext applicationContext) {
-        String boundaryLineDirectory = applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString() +
-                File.separator + applicationContext.getProperty(BoundaryLineDataDirectoryKey);
-        Map<BoundedAreaType, DataSet> dataSets = new EnumMap<BoundedAreaType, DataSet>(BoundedAreaType.class);
-        for (BoundedAreaType boundedAreaType : BoundedAreaType.values()) {
-            if (boundedAreaType.getFileName() == null) continue;
-            dataSets.put(boundedAreaType,
-                    DataSet.createFromFile(new File(boundaryLineDirectory + boundedAreaType.getFileName())));
-        }
-        applicationContext.registerDefaultInstance(BoundaryLineController.class, new BoundaryLineControllerImpl(dataSets));
 
     }
 

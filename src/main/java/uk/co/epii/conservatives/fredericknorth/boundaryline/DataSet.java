@@ -32,6 +32,7 @@ public class DataSet {
     private static final Logger LOG_SYNC = LoggerFactory.getLogger(DataSet.class.getName().concat("_sync"));
 
     public final static EnumMap<FileType, String> EXTENSIONS;
+
     static {
         EXTENSIONS = new EnumMap<FileType, String>(FileType.class);
         EXTENSIONS.put(FileType.DBF, "dbf");
@@ -40,10 +41,14 @@ public class DataSet {
         EXTENSIONS.put(FileType.SHX, "shx");
     }
 
-    private final EnumMap<FileType, File> files;
     private final FilterFactory filterFactory;
+    private EnumMap<FileType, File> files;
     private SimpleFeatureSource featureSource;
     private DBF dbf;
+
+    public DataSet() {
+        filterFactory = CommonFactoryFinder.getFilterFactory(null);
+    }
 
     private DataSet(EnumMap<FileType, File> files) {
         this.files = files;
@@ -52,6 +57,38 @@ public class DataSet {
 
     public File getFile(FileType fileType) {
         return files.get(fileType);
+    }
+
+    public void setShpFile(String shpFile) {
+        LOG.debug("{}", shpFile);
+        EnumMap<FileType, File> files = new EnumMap<FileType, File>(FileType.class);
+        for (FileType fileType : FileType.values()) {
+            LOG.debug("{}", EXTENSIONS.get(fileType));
+            File file = new File(shpFile.substring(0, shpFile.length() - 3) + EXTENSIONS.get(fileType));
+            files.put(fileType, file);
+        }
+        this.files = files;
+    }
+
+    public void setShpURL(URL shpURL) {
+        LOG.debug("{}", shpURL);
+        EnumMap<FileType, File> files = new EnumMap<FileType, File>(FileType.class);
+        for (FileType fileType : FileType.values()) {
+            LOG.debug("{}", EXTENSIONS.get(fileType));
+            String fileString = shpURL.toString();
+            try {
+                URL copyFrom = new URL(fileString.substring(0, fileString.length() - 3) + EXTENSIONS.get(fileType));
+                File file = new File(copyFrom.toURI());
+                files.put(fileType, file);
+            }
+            catch (MalformedURLException mue) {
+                throw new RuntimeException(mue);
+            }
+            catch (URISyntaxException uriSE) {
+                throw new RuntimeException(uriSE);
+            }
+        }
+        this.files = files;
     }
 
     public DBF getDatabase() {

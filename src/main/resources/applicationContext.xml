@@ -1,0 +1,124 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean id="databaseSession" class="uk.co.epii.conservatives.williamcavendishbentinck.DatabaseSessionImpl" init-method="init">
+        <property name="connection" value="jdbc:mysql://localhost/frederickNorth"/>
+        <property name="username" value="frederickNorth"/>
+        <property name="password" value="frederickNorth1"/>
+    </bean>
+
+    <bean id="progressTracker" class="uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerFrame">
+        <property name="imageResourceLocation" value="/letterbox.jpg"/>
+        <property name="progressBarSteps" value="21"/>
+        <property name="visible" value="true"/>
+    </bean>
+
+    <bean id="boundaryLineController" class="uk.co.epii.conservatives.fredericknorth.boundaryline.BoundaryLineControllerImpl">
+        <constructor-arg index="0">
+            <map>
+                <entry>
+                    <key>
+                        <value type="uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType">NEIGHBOURHOOD</value>
+                    </key>
+                    <value>
+
+                    </value>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="boundedAreaTypePriorities" class="java.util.EnumMap">
+        <constructor-arg>
+            <map key-type="uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType" value-type="java.lang.Integer">
+                <entry key="NEIGHBOURHOOD" value="40" />
+                <entry key="POLLING_DISTRICT" value="30" />
+                <entry key="UNITARY_DISTRICT_WARD" value="20" />
+                <entry key="PARLIAMENTARY_CONSTITUENCY" value="10" />
+                <entry key="UNITARY_DISTRICT" value="10" />
+                <entry key="COUNTY_WARD" value="20" />
+                <entry key="COUNTY" value="10" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="boundedAreaTypeShpFiles" class="java.util.EnumMap">
+        <constructor-arg>
+            <map key-type="uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType" value-type="java.lang.String">
+                <entry key="UNITARY_DISTRICT_WARD" value="district_borough_unitary_ward_region.shp" />
+                <entry key="PARLIAMENTARY_CONSTITUENCY" value="westminster_const_region.shp" />
+                <entry key="UNITARY_DISTRICT" value="district_borough_unitary_region.shp" />
+                <entry key="COUNTY_WARD" value="county_electoral_division_region.shp" />
+                <entry key="COUNTY" value="county_region.shp" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="yellow" class="java.awt.Color">
+        <constructor-arg type="int" index="0" value="255"/>
+        <constructor-arg type="int" index="1" value="255"/>
+        <constructor-arg type="int" index="2" value="0"/>
+    </bean>
+
+    <bean id="red" class="java.awt.Color">
+        <constructor-arg type="int" index="0" value="255"/>
+        <constructor-arg type="int" index="1" value="0"/>
+        <constructor-arg type="int" index="2" value="0"/>
+    </bean>
+
+    <bean id="green" class="java.awt.Color">
+        <constructor-arg type="int" index="0" value="0"/>
+        <constructor-arg type="int" index="1" value="255"/>
+        <constructor-arg type="int" index="2" value="0"/>
+    </bean>
+
+    <bean id="blue" class="java.awt.Color">
+        <constructor-arg type="int" index="0" value="0"/>
+        <constructor-arg type="int" index="1" value="0"/>
+        <constructor-arg type="int" index="2" value="255"/>
+    </bean>
+
+    <bean id="boundedAreaTypeColours" class="java.util.EnumMap">
+        <constructor-arg>
+            <map key-type="uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType" value-type="java.awt.Color">
+                <entry key="NEIGHBOURHOOD" value-ref="yellow" />
+                <entry key="POLLING_DISTRICT" value-ref="green" />
+                <entry key="UNITARY_DISTRICT_WARD" value-ref="blue" />
+                <entry key="PARLIAMENTARY_CONSTITUENCY" value-ref="red" />
+                <entry key="UNITARY_DISTRICT" value-ref="red" />
+                <entry key="COUNTY_WARD" value-ref="blue" />
+                <entry key="COUNTY" value-ref="red" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <!--NEIGHBOURHOOD("Neighbourhood", null, null, 40, Color.YELLOW),-->
+    <!--POLLING_DISTRICT("Polling District", NEIGHBOURHOOD, null, 30, Color.GREEN),-->
+    <!--UNITARY_DISTRICT_WARD("Unitary District Ward", POLLING_DISTRICT, "district_borough_unitary_ward_region.shp", 20, Color.BLUE),-->
+    <!--PARLIAMENTARY_CONSTITUENCY("Parliamentary Constituency", POLLING_DISTRICT, "westminster_const_region.shp", 10, Color.RED),-->
+    <!--UNITARY_DISTRICT("Unitary District", UNITARY_DISTRICT_WARD, "district_borough_unitary_region.shp", 10, Color.RED),-->
+    <!--COUNTY_WARD("County Ward", POLLING_DISTRICT, "county_electoral_division_region.shp", 20, Color.BLUE),-->
+    <!--COUNTY("County", COUNTY_WARD, "county_region.shp", 10, Color.RED);-->
+
+
+    <!--public static void registerToContext(ApplicationContext applicationContext) {-->
+    <!--String boundaryLineDirectory = applicationContext.getNamedInstance(File.class, Keys.DATA_FOLDER).toString() +-->
+    <!--File.separator + applicationContext.getProperty(BoundaryLineDataDirectoryKey);-->
+    <!--Map<BoundedAreaType, DataSet> dataSets = new EnumMap<BoundedAreaType, DataSet>(BoundedAreaType.class);-->
+    <!--for (BoundedAreaType boundedAreaType : BoundedAreaType.values()) {-->
+    <!--if (boundedAreaType.getFileName() == null) continue;-->
+    <!--dataSets.put(boundedAreaType,-->
+    <!--DataSet.createFromFile(new File(boundaryLineDirectory + boundedAreaType.getFileName())));-->
+    <!--}-->
+    <!--applicationContext.registerDefaultInstance(BoundaryLineController.class, new BoundaryLineControllerImpl(dataSets));-->
+
+
+
+    <bean id="main" class="uk.co.epii.conservatives.fredericknorth.Main">
+        <property name="configPropertiesResourcesLocation" value="/config.properties"/>
+        <property name="progressTrackerFrame" ref="progressTrackerFrame"/>
+    </bean>
+
+</beans>
