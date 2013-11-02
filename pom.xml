@@ -324,6 +324,11 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+    <repository>
+        <id>etothepii</id>
+        <name>etothepii-release</name>
+        <url>http://www.epii.co.uk/artifactory/libs-release-local</url>
+    </repository>
   </repositories>
   <distributionManagement>
     <repository>
