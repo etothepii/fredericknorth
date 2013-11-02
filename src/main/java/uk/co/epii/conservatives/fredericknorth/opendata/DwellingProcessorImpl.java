@@ -1,6 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import org.apache.log4j.Logger;
+import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,6 +38,15 @@ class DwellingProcessorImpl implements DwellingProcessor {
         Map<String, DwellingGroupImpl> postcodeDwellingGroups = dwellingGroups.get(postcode);
         if (postcodeDwellingGroups == null) return null;
         return postcodeDwellingGroups.get(dwellingGroupName);
+    }
+
+    @Override
+    public DwellingGroup load(String postcode, String dwellingGroupName, ApplicationContext applicationContext, Element dwellingGroupElt) {
+        Map<String, DwellingGroupImpl> postcodeDwellingGroups = dwellingGroups.get(postcode);
+        if (postcodeDwellingGroups == null) return null;
+        DwellingGroupImpl dwellingGroupImpl = postcodeDwellingGroups.get(dwellingGroupName);
+        dwellingGroupImpl.load(applicationContext, dwellingGroupElt);
+        return dwellingGroupImpl;
     }
 
     @Override

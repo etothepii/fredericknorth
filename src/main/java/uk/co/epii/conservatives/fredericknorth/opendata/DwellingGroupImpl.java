@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.w3c.dom.Document;
 
 /**
  * User: James Robinson
@@ -34,36 +35,12 @@ class DwellingGroupImpl implements DwellingGroup {
     }
 
     @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String getDisplayName() {
-        if (displayName == null) {
-            StringBuilder stringBuilder = new StringBuilder(getIdentifierSummary());
-            if (stringBuilder.length() > 0) {
-                stringBuilder.append(" ");
-            }
-            stringBuilder.append(getUniquePart());
-            return stringBuilder.toString();
-        }
-        return displayName;
-    }
-
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public void setUniquePart(String uniquePart) {
         this.uniquePart = uniquePart;
-    }
-
-    @Override
-    public void setPoint(Point point) {
-        this.point = point;
     }
 
     @Override
@@ -76,14 +53,12 @@ class DwellingGroupImpl implements DwellingGroup {
         return dwellings.size();
     }
 
-    @Override
     public void add(Dwelling dwelling) {
         dwellings.add(dwelling);
         postcode.addHouse(dwelling.getCouncilTaxBand());
     }
 
-    @Override
-    public void load(ApplicationContext applicationContext, Element dwellingGroupElt) {
+    void load(ApplicationContext applicationContext, Element dwellingGroupElt) {
         if (!dwellingGroupElt.getTagName().equals("DwellingGroup")) throw new IllegalArgumentException("You have not provided a Route node");
         String postcode = dwellingGroupElt.getElementsByTagName("Postcode").item(0).getTextContent();
         if (!this.postcode.getPostcode().equals(postcode)) {
@@ -95,12 +70,15 @@ class DwellingGroupImpl implements DwellingGroup {
         }
     }
 
-    @Override
-    public String getIdentifierSummary() {
-        if (identifierSummary == null) {
-            identifierSummary = establishIdentifierSummary();
-        }
-        return identifierSummary;
+    public Element toXml(Document document) {
+        Element dwellingGroupElt = document.createElement("DwellingGroup");
+        Element dwellingGroupPostcode = document.createElement("Postcode");
+        dwellingGroupElt.appendChild(dwellingGroupPostcode);
+        dwellingGroupPostcode.setTextContent(postcode.getPostcode());
+        Element dwellingGroupName = document.createElement("Name");
+        dwellingGroupElt.appendChild(dwellingGroupName);
+        dwellingGroupName.setTextContent(getName());
+        return dwellingGroupElt;
     }
 
     private String establishIdentifierSummary() {
@@ -108,7 +86,7 @@ class DwellingGroupImpl implements DwellingGroup {
             throw new RuntimeException("Impossible to get summary from no houses");
         }
         if (dwellings.size() == 1) {
-            return dwellings.get(0).getIdentifier();
+            return dwellings.get(0).getName();
         }
         filterIdentifierSummaries();
         if (nonNumericsIdentifierSummary.isEmpty()) {
@@ -130,11 +108,6 @@ class DwellingGroupImpl implements DwellingGroup {
             return stringBuilder.toString();
         }
         return "";
-    }
-
-    @Override
-    public String getUniquePart() {
-        return uniquePart == null ? name : uniquePart;
     }
 
     private String getNumericIdentifierSummary(
@@ -233,7 +206,7 @@ class DwellingGroupImpl implements DwellingGroup {
         nonNumericsIdentifierSummary = new NonNumericIdentifierSummary();
         for (Dwelling dwelling : dwellings) {
             try {
-                int number = Integer.parseInt(dwelling.getIdentifier());
+                int number = Integer.parseInt(dwelling.getName());
                 numericIdentifierSummary.all.add(number);
                 if (number % 2 == 0) {
                     numericIdentifierSummary.evens.add(number);
@@ -243,7 +216,7 @@ class DwellingGroupImpl implements DwellingGroup {
                 }
             }
             catch (NumberFormatException nfe) {
-                nonNumericsIdentifierSummary.add(dwelling.getIdentifier());
+                nonNumericsIdentifierSummary.add(dwelling.getName());
             }
         }
         numericIdentifierSummary.sort();
@@ -378,11 +351,6 @@ class DwellingGroupImpl implements DwellingGroup {
     }
 
     @Override
-    public PostcodeDatum getPostcode() {
-        return postcode;
-    }
-
-    @Override
     public List<? extends Dwelling> getDwellings() {
         return dwellings;
     }
@@ -406,6 +374,6 @@ class DwellingGroupImpl implements DwellingGroup {
 
     @Override
     public int compareTo(DwellingGroup o) {
-        return getDisplayName().compareTo(o.getDisplayName());
+        return getName().compareTo(o.getName());
     }
 }

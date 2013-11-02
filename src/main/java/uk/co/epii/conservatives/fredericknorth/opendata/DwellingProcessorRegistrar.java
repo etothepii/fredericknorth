@@ -97,7 +97,7 @@ public class DwellingProcessorRegistrar {
             HashMap<String, DwellingGroupImpl> dwellingGroups = allDwellingGroups.get(entry.getKey());
             if (dwellingGroups != null) {
                 for (Map.Entry<String, DwellingGroupImpl> reentry : entry.getValue().entrySet()) {
-                    DwellingGroup dwellingGroup = dwellingGroups.get(reentry.getKey());
+                    DwellingGroupImpl dwellingGroup = dwellingGroups.get(reentry.getKey());
                     if (dwellingGroup != null) {
                         for (Dwelling dwelling : reentry.getValue().getDwellings()) {
                             dwellingGroup.add(dwelling);
@@ -169,7 +169,7 @@ public class DwellingProcessorRegistrar {
         }
         String postCode = matcher.group(4);
         String band = matcher.group(5);
-        DwellingGroup dwellingGroup = getOrCreateDwellingGroup(postCode, dwellingGroupName);
+        DwellingGroupImpl dwellingGroup = getOrCreateDwellingGroup(postCode, dwellingGroupName);
         dwellingGroup.add(new DwellingImpl(dwellingName, band.charAt(0), dwellingGroup));
     }
 
@@ -182,7 +182,7 @@ public class DwellingProcessorRegistrar {
         }
     }
 
-    private static void removeCommonEnding(DwellingGroup dwellingGroup, Pattern commonEndingRemover) {
+    private static void removeCommonEnding(DwellingGroupImpl dwellingGroup, Pattern commonEndingRemover) {
         Matcher matcher = commonEndingRemover.matcher(dwellingGroup.getName());
         if (matcher.find()) {
             dwellingGroup.setUniquePart(matcher.group(1));
@@ -192,7 +192,7 @@ public class DwellingProcessorRegistrar {
         }
     }
 
-    private static DwellingGroup getOrCreateDwellingGroup(String postcode, String dwellingGroupName) {
+    private static DwellingGroupImpl getOrCreateDwellingGroup(String postcode, String dwellingGroupName) {
         HashMap<String, DwellingGroupImpl> dwellingGroups = activeDwellingGroups.get(postcode);
         if (dwellingGroups == null) {
             dwellingGroups = new HashMap<String, DwellingGroupImpl>();

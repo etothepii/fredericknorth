@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class DwellingGroupImplTests {
 
-    private DwellingGroup dwellingGroup;
+    private DwellingGroupImpl dwellingGroup;
 
     @Before
     public void setUp() throws Exception {
@@ -30,7 +30,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("7", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("9", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "1 - 9 A Street";
         assertEquals(expected, result);
     }
@@ -42,7 +42,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("5", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("7", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("9", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "1 - 9 ODDS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -53,7 +53,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("4", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("6", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "2 - 8 EVENS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -72,7 +72,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("24", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("26", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("28", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "2 - 8, 12 - 18 & 22 - 28 EVENS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -84,7 +84,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("6", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("12", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "2 - 8 & 12 EVENS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -99,7 +99,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("14", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("16", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("18", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "2 - 8 & 12 - 18 EVENS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -118,7 +118,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("23", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("25", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("27", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "1 - 7, 11 - 17 & 21 - 27 ODDS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -133,7 +133,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("13", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("15", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("17", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "1 - 7 & 11 - 17 ODDS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -152,7 +152,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("FLAT 23", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 25", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 27", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "FLATS 1 - 7, 11 - 17 & 21 - 27 ODDS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -173,7 +173,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("FLAT 23", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 25", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 27", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "FLATS 1 - 27 ODDS ONLY A Street";
         assertEquals(expected, result);
     }
@@ -208,7 +208,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("FLAT 24", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 26", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 28", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "FLATS 1 - 28 A Street";
         assertEquals(expected, result);
     }
@@ -243,7 +243,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("FLAT 24 AT 7", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 26 AT 7", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("FLAT 28 AT 7", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "FLATS 1 - 28 AT 7 A Street";
         assertEquals(expected, result);
     }
@@ -260,7 +260,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("9", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("7A", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "1 - 9 & 7A A Street";
         assertEquals(expected, result);
     }
@@ -307,7 +307,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("65", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("67", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("HARBINGER PRIMARY SCHOOL HOUSE", 'A', dwellingGroup));
-        String result = dwellingGroup.getDisplayName();
+        String result = dwellingGroup.getName();
         String expected = "8 - 54 EVENS ONLY, 39 - 67 ODDS ONLY & HARBINGER PRIMARY SCHOOL HOUSE A Street";
         assertEquals(expected, result);
     }

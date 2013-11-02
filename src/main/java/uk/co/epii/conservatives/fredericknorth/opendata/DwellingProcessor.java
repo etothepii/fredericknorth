@@ -1,5 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+
 import java.util.Collection;
 
 /**
@@ -11,5 +14,6 @@ public interface DwellingProcessor {
 
     public Collection<? extends DwellingGroup> getDwellingGroups(String postcode);
     public DwellingGroup getDwellingGroup(String postcode, String dwellingGroupName);
+    public DwellingGroup load(String postcode, String dwellingGroupName, ApplicationContext applicationContext, Element dwellingGroupElt);
     public Collection<String> getDwellingGroups();
 }

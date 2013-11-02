@@ -57,7 +57,6 @@ public class DwellingProcessorTest {
         DwellingGroup result = dwellingProcessor.getDwellingGroup("E1 3BE", "DRAKE HOUSE 118, STEPNEY WAY, LONDON");
         assertEquals(result.size(), 3);
         assertEquals(result.getName(), "DRAKE HOUSE 118, STEPNEY WAY, LONDON");
-        assertEquals(result.getPostcode().getPostcode(), "E1 3BE");
     }
 
     @Test

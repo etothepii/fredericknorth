@@ -86,8 +86,8 @@ class RouteImpl implements Route {
             Element dwellingGroupElt = (Element)dwellingGroupNodeList.item(i);
             String dwellingGroupName = dwellingGroupElt.getElementsByTagName("Name").item(0).getTextContent();
             String dwellingGroupPostcode = dwellingGroupElt.getElementsByTagName("Postcode").item(0).getTextContent();
-            DwellingGroup dwellingGroup = dwellingProcessor.getDwellingGroup(dwellingGroupPostcode, dwellingGroupName);
-            dwellingGroup.load(applicationContext, dwellingGroupElt);
+            DwellingGroup dwellingGroup =
+                    dwellingProcessor.load(dwellingGroupPostcode, dwellingGroupName, applicationContext, dwellingGroupElt);
             dwellingGroups.add(dwellingGroup);
         }
         addDwellingGroups(dwellingGroups);
@@ -134,14 +134,7 @@ class RouteImpl implements Route {
         Element dwellingGroupsElt = document.createElement("DwellingGroups");
         route.appendChild(dwellingGroupsElt);
         for (DwellingGroup dwellingGroup : dwellingGroups) {
-            Element dwellingGroupElt = document.createElement("DwellingGroup");
-            dwellingGroupsElt.appendChild(dwellingGroupElt);
-            Element dwellingGroupPostcode = document.createElement("Postcode");
-            dwellingGroupElt.appendChild(dwellingGroupPostcode);
-            dwellingGroupPostcode.setTextContent(dwellingGroup.getPostcode().getPostcode());
-            Element dwellingGroupName = document.createElement("Name");
-            dwellingGroupElt.appendChild(dwellingGroupName);
-            dwellingGroupName.setTextContent(dwellingGroup.getName());
+            dwellingGroupsElt.appendChild(dwellingGroup.toXml(document));
         }
         return route;
     }

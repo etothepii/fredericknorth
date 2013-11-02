@@ -10,9 +10,7 @@ import java.awt.*;
  * Time: 23:46
  */
 public interface Dwelling extends Location {
-    public String getIdentifier();
-    public DwellingGroup getDwellingGroup();
+
     public char getCouncilTaxBand();
-    public void setDwellingGroup(DwellingGroup dwellingGroup);
-    public void setPoint(Point point);
+
 }
