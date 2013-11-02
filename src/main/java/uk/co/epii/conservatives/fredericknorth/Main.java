@@ -12,7 +12,6 @@ import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactoryRegi
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRendererRegistrar;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.DefaultApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerFrame;
 
@@ -37,7 +36,8 @@ public class Main
                 ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 21);
         progressTracker.setVisible(true);
         progress("Loading Config");
-        ApplicationContext applicationContext =
+
+        DefaultApplicationContext applicationContext =
                 new DefaultApplicationContext(DefaultApplicationContext.DEFAULT_CONFIG_LOCATION);
         try {
             progress("Finding Data Folder");
