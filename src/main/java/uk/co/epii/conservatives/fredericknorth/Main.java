@@ -1,6 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth;
 
 import org.apache.log4j.Logger;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindow;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindowModel;
@@ -14,6 +16,7 @@ import uk.co.epii.conservatives.fredericknorth.pdf.PDFRendererRegistrar;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
 import uk.co.epii.conservatives.fredericknorth.utilities.DefaultApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerFrame;
+import uk.co.epii.conservatives.williamcavendishbentinck.DatabaseSession;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -36,10 +39,12 @@ public class Main
                 ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 21);
         progressTracker.setVisible(true);
         progress("Loading Config");
-
+        ApplicationContext springContext = new ClassPathXmlApplicationContext("applicationContext.xml");
         DefaultApplicationContext applicationContext =
                 new DefaultApplicationContext(DefaultApplicationContext.DEFAULT_CONFIG_LOCATION);
         try {
+            applicationContext.registerDefaultInstance(DatabaseSession.class,
+                    (DatabaseSession)springContext.getBean("databaseSession"));
             progress("Finding Data Folder");
             applicationContext.registerNamedInstance(File.class, Keys.DATA_FOLDER, findDataFolder());
             progress("Loading Boundary Line Controller");
