@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
@@ -353,7 +354,8 @@ public class RouteBuilderPanelModel implements Activateable {
             }
         }
         else {
-            Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes();
+            Rectangle bounds = PolygonExtensions.getBounds(boundedArea.getAreas());
+            Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes(bounds);
             progressTracker.startSubsection(postcodes.size());
             for (PostcodeDatum postcode : postcodes) {
                 if (postcode.getPoint() != null &&
