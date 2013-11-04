@@ -38,9 +38,9 @@ class RouteMapGrouping implements WeightedPoint {
             throw new IllegalArgumentException("The supplied Dwelling does not share a location with this grouping");
         }
         if (dwellingGroupList.isEmpty()) {
-            commonName = dwellingGroup.getDisplayName();
+            commonName = dwellingGroup.getName();
         }
-        else if (!dwellingGroup.getDisplayName().equals(commonName)) {
+        else if (!dwellingGroup.getName().equals(commonName)) {
             commonName = null;
         }
         dwellingGroupList.add(dwellingGroup);

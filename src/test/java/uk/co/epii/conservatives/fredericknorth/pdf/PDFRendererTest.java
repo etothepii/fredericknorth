@@ -4,17 +4,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.Keys;
-import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.maps.*;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessorRegistrar;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactoryRegistrar;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeProcessorRegistrar;
-import uk.co.epii.conservatives.fredericknorth.routes.Route;
-import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
-import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 
 import java.awt.*;
 import java.io.File;

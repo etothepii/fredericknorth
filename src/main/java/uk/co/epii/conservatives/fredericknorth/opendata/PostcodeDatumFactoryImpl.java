@@ -3,6 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.opendata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,19 +25,25 @@ public class PostcodeDatumFactoryImpl implements PostcodeDatumFactory {
     private final Pattern postcodePrefixPattern = Pattern.compile("([A-Z]+)[0-9]+.*");
 
     @Override
-    public PostcodeDatum getInstance(String postcode) {
+    public PostcodeDatumImpl getInstance(String postcode) {
         return getImplementation(postcode);
     }
 
     @Override
-    public Collection<? extends PostcodeDatum> getPostcodes() {
-        return postcodes.values();
+    public Collection<? extends PostcodeDatum> getPostcodes(Rectangle bounds) {
+        ArrayList<PostcodeDatumImpl> postcodeDatumList = new ArrayList<PostcodeDatumImpl>();
+        for (PostcodeDatumImpl postcode : postcodes.values()) {
+            if (bounds.contains(postcode.getPoint())) {
+                postcodeDatumList.add(postcode);
+            }
+        }
+        return postcodeDatumList;
     }
 
-    @Override
-    public String[] getRequiredPostcodePrefices() {
-        return postCodePreficesRequired.toArray(new String[postCodePreficesRequired.size()]);
-    }
+//    @Override
+//    public String[] getRequiredPostcodePrefices() {
+//        return postCodePreficesRequired.toArray(new String[postCodePreficesRequired.size()]);
+//    }
 
     private PostcodeDatumImpl getImplementation(String postcode) {
         PostcodeDatumImpl postcodeDatum = postcodes.get(postcode);

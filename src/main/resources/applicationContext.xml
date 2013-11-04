@@ -1,0 +1,20 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean id="databaseSession" class="uk.co.epii.conservatives.williamcavendishbentinck.DatabaseSessionImpl" init-method="init">
+        <property name="connection" value="jdbc:mysql://localhost/frederickNorth"/>
+        <property name="username" value="frederickNorth"/>
+        <property name="password" value="frederickNorth1"/>
+    </bean>
+
+    <bean id="postcodeDatumFactory" class="uk.co.epii.conservatives.fredericknorth.opendata.db.PostcodeDatumFactoryDatabaseImpl">
+        <property name="databaseSession" ref="databaseSession"/>
+    </bean>
+
+    <bean id="dwellingProcessor" class="uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingProcessorDatabaseImpl">
+        <property name="postcodeDatumFactory" ref="postcodeDatumFactory" />
+    </bean>
+
+</beans>

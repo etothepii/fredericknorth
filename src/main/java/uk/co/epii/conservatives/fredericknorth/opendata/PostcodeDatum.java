@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
+
 import java.awt.*;
 
 /**
@@ -7,13 +9,10 @@ import java.awt.*;
  * Date: 21/06/13
  * Time: 00:21
  */
-public interface PostcodeDatum {
-    public String getPostcode();
-    public Point getPoint();
-    public String getWardCode();
+public interface PostcodeDatum extends Location {
+
+    public Iterable<Dwelling> getDwellings();
+    public int size();
     public int[] getCouncilBandCount();
-    public int getDwellingCount();
-    public void addHouse(char councilTaxBand);
-    public void setWardCode(String wardCode);
-    public void setPoint(Point location);
+
 }

@@ -31,10 +31,6 @@ class DottedDwellingGroupOverlayItemImpl extends AbstractOverlayItem<DottedDwell
 
     @Override
     protected int compareToSameGeneric(OverlayItem<DottedDwellingGroup> o) {
-        int comparison = getItem().getDwellingGroup().getPostcode().getPostcode().compareTo(
-                o.getItem().getDwellingGroup().getPostcode().getPostcode());
-        if (comparison != 0) return comparison;
-        return getItem().getDwellingGroup().getName().compareTo(
-                o.getItem().getDwellingGroup().getName());
+        return getItem().getDwellingGroup().compareTo(o.getItem().getDwellingGroup());
     }
 }

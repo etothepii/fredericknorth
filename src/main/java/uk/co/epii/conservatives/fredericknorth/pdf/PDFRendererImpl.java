@@ -238,7 +238,7 @@ class PDFRendererImpl implements PDFRenderer {
             }
             else {
                 for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
-                    cell = new PdfPCell(getChunk(dwellingGroup.getDisplayName(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
+                    cell = new PdfPCell(getChunk(dwellingGroup.getName(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
                     table.addCell(cell);
                     String orderedIdentifiers = toCommaSeperatedString(getOrderedIdentifiers(dwellingGroup));
                     cell = new PdfPCell(getChunk(orderedIdentifiers, SMALL_FONT_SIZE, true, BaseColor.BLACK));
@@ -261,7 +261,7 @@ class PDFRendererImpl implements PDFRenderer {
         List<String> dwellings = new ArrayList<String>(size);
         for (DwellingGroup dwellingGroup : dwellingGroups) {
             for (Dwelling dwelling : dwellingGroup.getDwellings()) {
-                dwellings.add(dwelling.getIdentifier());
+                dwellings.add(dwelling.getName());
             }
         }
         Collections.sort(dwellings, dwellingIdentifierComparator);
@@ -418,7 +418,7 @@ class PDFRendererImpl implements PDFRenderer {
                 cell.setRowspan(routeMapGrouping.getDwellingGroupList().size());
                 table.addCell(cell);
                 for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
-                    table.addCell(getChunk(dwellingGroup.getDisplayName()));
+                    table.addCell(getChunk(dwellingGroup.getName()));
                     PdfPCell dwellings = new PdfPCell(getChunk(dwellingGroup.size() + ""));
                     dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
                     table.addCell(dwellings);

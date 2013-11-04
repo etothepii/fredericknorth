@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
@@ -29,28 +30,8 @@ public class DummyDwellingGroup implements DwellingGroup {
     }
 
     @Override
-    public void setDisplayName(String displayName) {
-        throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
-    }
-
-    @Override
-    public String getDisplayName() {
-        return name;
-    }
-
-    @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public void setUniquePart(String uniquePart) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void setPoint(Point point) {
-        this.point = point;
     }
 
     @Override
@@ -63,11 +44,6 @@ public class DummyDwellingGroup implements DwellingGroup {
         return dwellings.size();
     }
 
-    @Override
-    public PostcodeDatum getPostcode() {
-        return postcode;
-    }
-
     public void setPostcode(PostcodeDatum postcode) {
         this.postcode = postcode;
     }
@@ -78,23 +54,8 @@ public class DummyDwellingGroup implements DwellingGroup {
     }
 
     @Override
-    public void add(Dwelling dwelling) {
-        dwellings.add(dwelling);
-    }
-
-    @Override
-    public void load(ApplicationContext applicationContext, Element dwellingGroupElt) {
+    public Element toXml(Document document) {
         throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
-    }
-
-    @Override
-    public String getIdentifierSummary() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public String getUniquePart() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

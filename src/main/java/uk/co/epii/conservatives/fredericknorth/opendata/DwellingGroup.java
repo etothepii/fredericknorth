@@ -1,6 +1,8 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.maps.Location;
 
@@ -14,16 +16,8 @@ import java.util.List;
  */
 public interface DwellingGroup extends Location, Comparable<DwellingGroup> {
 
-    public void setDisplayName(String displayName);
-    public String getDisplayName();
-    public String getName();
-    public void setUniquePart(String uniquePart);
-    public void setPoint(Point point);
     public int size();
-    public PostcodeDatum getPostcode();
-    public List<? extends Dwelling> getDwellings();
-    public void add(Dwelling dwelling);
-    public void load(ApplicationContext applicationContext, Element dwellingGroupElt);
-    public String getIdentifierSummary();
-    public String getUniquePart();
+    public Iterable<? extends Dwelling> getDwellings();
+    public Element toXml(Document document);
+
 }

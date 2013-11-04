@@ -86,7 +86,7 @@ public class DefaultRoutableArea implements RoutableArea {
         DblClusters<List<DwellingGroup>> clusters = new DblClusters<List<DwellingGroup>>(2, routes);
         clusters.setKeyer(new DblListKeyer<DwellingGroup>());
         for (DwellingGroup dwellingGroup : unroutedDwellingGroups) {
-            Point geoLocation = dwellingGroup.getPostcode().getPoint();
+            Point geoLocation = dwellingGroup.getPoint();
             double[] doubleGeoLocation = new double[] {geoLocation.getX(), geoLocation.getY()};
             double weight = dwellingGroup.size();
             ArrayList<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>();
@@ -100,12 +100,12 @@ public class DefaultRoutableArea implements RoutableArea {
                     largest = dwellingGroup;
                 }
                 else if (largest.size() == dwellingGroup.size()) {
-                    if (largest.getUniquePart().compareTo(dwellingGroup.getUniquePart()) < 0) {
+                    if (largest.compareTo(dwellingGroup) < 0) {
                         largest = dwellingGroup;
                     }
                 }
             }
-            Route route = createRoute(largest.getUniquePart());
+            Route route = createRoute(largest.getName());
             route.addDwellingGroups(proposedRoute.getKey());
         }
     }

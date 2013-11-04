@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import java.awt.*;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -11,6 +12,5 @@ import java.util.HashMap;
 public interface PostcodeDatumFactory {
 
     public PostcodeDatum getInstance(String postcode);
-    public Collection<? extends PostcodeDatum> getPostcodes();
-    public String[] getRequiredPostcodePrefices();
+    public Collection<? extends PostcodeDatum> getPostcodes(Rectangle bounds);
 }

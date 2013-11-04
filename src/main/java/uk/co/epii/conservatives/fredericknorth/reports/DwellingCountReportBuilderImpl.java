@@ -41,7 +41,8 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
 
     @Override
     public Map<BoundedArea, int[]> countDwellings(BoundedArea boundedArea) {
-        return countDwellings(boundedArea, postcodeDatumFactory.getPostcodes());
+        return countDwellings(boundedArea, postcodeDatumFactory.getPostcodes(
+                PolygonExtensions.getBounds(boundedArea.getAreas())));
     }
 
     @Override
@@ -206,7 +207,7 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
         int[] count = new int[10];
         for (PostcodeDatum postcodeDatum : postcodes) {
             if (postcodeDatum.getPoint() == null) {
-                LOG.debug("{}", postcodeDatum.getPostcode());
+                LOG.debug("{}", postcodeDatum.getName());
                 continue;
             }
             if (PolygonExtensions.contains(boundedArea.getAreas(), postcodeDatum.getPoint())) {
