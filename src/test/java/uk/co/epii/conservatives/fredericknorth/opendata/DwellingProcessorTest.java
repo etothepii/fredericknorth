@@ -32,19 +32,6 @@ public class DwellingProcessorTest {
     }
 
     @Test
-    public void getPostcodeTest()  {
-        Collection<String> results = dwellingProcessor.getDwellingGroups();
-        Collection<String> expectedPostcodes = new ArrayList<String>();
-        expectedPostcodes.add("E14 0DG");
-        expectedPostcodes.add("E1 3BE");
-        for (String result : results) {
-            assertTrue(result + " in expectedPostcodes", expectedPostcodes.contains(result));
-        }
-        assertEquals(expectedPostcodes.size(), results.size());
-
-    }
-
-    @Test
     public void getDwellingGroupsTest() {
         Collection<? extends DwellingGroup> result = dwellingProcessor.getDwellingGroups("E1 3BE");
         assertEquals(result.size(), 7);
@@ -55,20 +42,6 @@ public class DwellingProcessorTest {
         DwellingGroup result = dwellingProcessor.getDwellingGroup("E1 3BE", "DRAKE HOUSE 118, STEPNEY WAY, LONDON");
         assertEquals(result.size(), 3);
         assertEquals(result.getName(), "1 - 5 ODDS ONLY DRAKE HOUSE 118, STEPNEY WAY, LONDON");
-    }
-
-    @Test
-    public void getMax() {
-        String maxPostcode = null;
-        int max = 0;
-        for (String postcode : dwellingProcessor.getDwellingGroups()) {
-            int dwellingCount = dwellingProcessor.getDwellingGroups(postcode).size();
-            if (dwellingCount > max) {
-                max = dwellingCount;
-                maxPostcode = postcode;
-            }
-        }
-        LOG.info(maxPostcode);
     }
 
 }

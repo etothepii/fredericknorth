@@ -48,9 +48,4 @@ class DwellingProcessorImpl implements DwellingProcessor {
         dwellingGroupImpl.load(applicationContext, dwellingGroupElt);
         return dwellingGroupImpl;
     }
-
-    @Override
-    public Collection<String> getDwellingGroups() {
-        return dwellingGroups.keySet();
-    }
 }

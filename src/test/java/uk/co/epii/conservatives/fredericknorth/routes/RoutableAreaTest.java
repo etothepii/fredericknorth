@@ -10,8 +10,8 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupTestFactory
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * User: James Robinson

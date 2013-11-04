@@ -15,5 +15,5 @@ public interface DwellingProcessor {
     public Collection<? extends DwellingGroup> getDwellingGroups(String postcode);
     public DwellingGroup getDwellingGroup(String postcode, String dwellingGroupName);
     public DwellingGroup load(String postcode, String dwellingGroupName, ApplicationContext applicationContext, Element dwellingGroupElt);
-    public Collection<String> getDwellingGroups();
+
 }
