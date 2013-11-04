@@ -1,20 +1,25 @@
 package uk.co.epii.conservatives.fredericknorth;
 
 import org.apache.log4j.Logger;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindow;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindowModel;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
+import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingProcessorDatabaseImpl;
+import uk.co.epii.conservatives.fredericknorth.opendata.db.PostcodeDatumFactoryDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactoryRegistrar;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeProcessorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRendererRegistrar;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.DefaultApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.gui.ProgressTrackerFrame;
+import uk.co.epii.conservatives.williamcavendishbentinck.DatabaseSession;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -34,24 +39,27 @@ public class Main
 	public static void main(final String[] args) throws Exception
 	{
         progressTracker = new ProgressTrackerFrame(
-                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 21);
+                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 20);
         progressTracker.setVisible(true);
         progress("Loading Config");
-        ApplicationContext applicationContext =
+        ApplicationContext springContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+        DefaultApplicationContext applicationContext =
                 new DefaultApplicationContext(DefaultApplicationContext.DEFAULT_CONFIG_LOCATION);
         try {
+            applicationContext.registerDefaultInstance(DatabaseSession.class,
+                    (DatabaseSession)springContext.getBean("databaseSession"));
             progress("Finding Data Folder");
             applicationContext.registerNamedInstance(File.class, Keys.DATA_FOLDER, findDataFolder());
             progress("Loading Boundary Line Controller");
             BoundaryLineControllerRegistrar.registerToContext(applicationContext);
             progress("Loading Postcode Data");
-            PostcodeDatumFactoryRegistrar.registerToContext(applicationContext);
+            applicationContext.registerDefaultInstance(PostcodeDatumFactory.class,
+                    (PostcodeDatumFactory)springContext.getBean("postcodeDatumFactory"));
             progress("Loading Dwelling Processor");
-            DwellingProcessorRegistrar.registerToContext(applicationContext, progressTracker);
+            applicationContext.registerDefaultInstance(DwellingProcessor.class,
+                    (DwellingProcessor)springContext.getBean("dwellingProcessor"));
             progress("Loading OS Map Locator");
             OSMapLocatorRegistrar.registerToContext(applicationContext);
-            progress("Loading Postcode Processor");
-            PostcodeProcessorRegistrar.registerToContext(applicationContext);
             progress("Loading Location Factory");
             LocationFactoryRegistrar.registerToContext(applicationContext);
             progress("Loading Map Label Factory");

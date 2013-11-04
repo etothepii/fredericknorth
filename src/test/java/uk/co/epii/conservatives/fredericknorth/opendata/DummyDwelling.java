@@ -19,28 +19,8 @@ public class DummyDwelling implements Dwelling {
     }
 
     @Override
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public DwellingGroup getDwellingGroup() {
-        return dwellingGroup;
-    }
-
-    @Override
     public char getCouncilTaxBand() {
         return 'A';
-    }
-
-    @Override
-    public void setDwellingGroup(DwellingGroup dwellingGroup) {
-        this.dwellingGroup = dwellingGroup;
-    }
-
-    @Override
-    public void setPoint(Point point) {
-        this.point = point;
     }
 
     @Override

@@ -38,10 +38,17 @@ public abstract class AbstractOverlayItem<T> implements OverlayItem<T> {
     @Override
     public int compareTo(OverlayItem o) {
         if (priority != o.getPriority()) return priority - o.getPriority();
-        if (getGeoLocationOfCenter().x != o.getGeoLocationOfCenter().x)
-            return getGeoLocationOfCenter().x - o.getGeoLocationOfCenter().x;
-        if (getGeoLocationOfCenter().y != o.getGeoLocationOfCenter().y)
-            return getGeoLocationOfCenter().y - o.getGeoLocationOfCenter().y;
+        Point location = getGeoLocationOfCenter();
+        Point thatLocation = o.getGeoLocationOfCenter();
+        if (location == null ^ thatLocation == null) {
+            return location == null ? -1 : 1;
+        }
+        if (location != null && thatLocation != null) {
+            if (getGeoLocationOfCenter().x != o.getGeoLocationOfCenter().x)
+                return getGeoLocationOfCenter().x - o.getGeoLocationOfCenter().x;
+            if (getGeoLocationOfCenter().y != o.getGeoLocationOfCenter().y)
+                return getGeoLocationOfCenter().y - o.getGeoLocationOfCenter().y;
+        }
         try {
             return compareToSameGeneric((OverlayItem<T>) o);
         }
@@ -58,11 +65,8 @@ public abstract class AbstractOverlayItem<T> implements OverlayItem<T> {
         if (o == null || getClass() != o.getClass()) return false;
 
         AbstractOverlayItem that = (AbstractOverlayItem) o;
-
         if (priority != that.priority) return false;
-        if (!getGeoLocationOfCenter().equals(that.getGeoLocationOfCenter())) return false;
         if (!t.equals(that.t)) return false;
-
         return true;
     }
 

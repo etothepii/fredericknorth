@@ -16,7 +16,7 @@ public class DummyPostcodeDatum implements PostcodeDatum {
     }
 
     @Override
-    public String getPostcode() {
+    public String getName() {
         return postcode;
     }
 
@@ -26,31 +26,17 @@ public class DummyPostcodeDatum implements PostcodeDatum {
     }
 
     @Override
-    public String getWardCode() {
+    public Iterable<Dwelling> getDwellings() {
+        throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
+    }
+
+    @Override
+    public int size() {
         throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
     }
 
     @Override
     public int[] getCouncilBandCount() {
-        throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
-    }
-
-    @Override
-    public int getDwellingCount() {
-        throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
-    }
-
-    @Override
-    public void addHouse(char councilTaxBand) {
-    }
-
-    @Override
-    public void setWardCode(String wardCode) {
-        throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
-    }
-
-    @Override
-    public void setPoint(Point location) {
         throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
     }
 }

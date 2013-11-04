@@ -55,7 +55,7 @@ class DwellingGroupModel extends AbstractTableModel {
                     LOG.debug(String.format("DwellingGroups: %d", dwellingGroups.size()));
                     for (int i = 0; i < dwellingGroups.size(); i++) {
                         DwellingGroup dwellingGroup = dwellingGroups.get(i);
-                        LOG.debug(String.format("%s: %s", dwellingGroup.getDisplayName(),
+                        LOG.debug(String.format("%s: %s", dwellingGroup.getName(),
                                 ((ListSelectionModel) e.getSource()).isSelectedIndex(rowSorter.convertRowIndexToView(i))));
                     }
                 }
@@ -188,17 +188,13 @@ class DwellingGroupModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        switch (columnIndex) {
-            case 0: return true;
-            case 1: return false;
-            default: throw new IllegalArgumentException("You have asked for a non-existant column");
-        }
+        return false;
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-            return dwellingGroups.get(rowIndex).getDisplayName();
+            return dwellingGroups.get(rowIndex).getName();
         }
         if (columnIndex == 1) {
             return dwellingGroups.get(rowIndex).size();
@@ -208,15 +204,7 @@ class DwellingGroupModel extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        if (columnIndex == 0 && aValue instanceof String) {
-            dwellingGroups.get(rowIndex).setDisplayName((String)aValue);
-            return;
-        }
-        if (!isCellEditable(rowIndex, columnIndex)) {
-            throw new IllegalArgumentException("The desired cell is not editable");
-        }
-        throw new IllegalArgumentException("only strings are currently supported as set values");
-
+        throw new IllegalArgumentException("Setting values is not currently supported");
     }
 
     public DwellingGroup getDwellingGroup(int index) {
