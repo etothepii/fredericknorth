@@ -42,7 +42,7 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         return create(databaseSession.getPostcode(postcode));
     }
 
-    private PostcodeDatumDatabaseImpl create(Postcode postcode) {
+    private PostcodeDatumDatabaseImpl    create(Postcode postcode) {
         List<Duple<Dwelling, BLPU>> dwellings =
                 databaseSession.fromPostcode(postcode.getPostcode(), Dwelling.class, BLPU.class, "UPRN", "UPRN");
         Map<StubDwelling, Duple<Dwelling, BLPU>> map =
@@ -82,13 +82,13 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         return postcodeImpl;
     }
 
-    private Point calculateMedian(ArrayList<Integer> xCoords, ArrayList<Integer> yCoords) {
+    Point calculateMedian(List<Integer> xCoords, List<Integer> yCoords) {
         Collections.sort(xCoords);
         Collections.sort(yCoords);
         return xCoords.size() % 2 == 1 ?
                 new Point(xCoords.get(xCoords.size() / 2), yCoords.get(yCoords.size() / 2)) :
-                new Point((xCoords.get(xCoords.size() / 2) + xCoords.get(xCoords.size() / 2 - 1) / 2),
-                          (yCoords.get(yCoords.size() / 2) + yCoords.get(yCoords.size() / 2 - 1) / 2));
+                new Point((xCoords.get(xCoords.size() / 2) + xCoords.get(xCoords.size() / 2 - 1)) / 2,
+                          (yCoords.get(yCoords.size() / 2) + yCoords.get(yCoords.size() / 2 - 1)) / 2);
     }
 
     @Override
