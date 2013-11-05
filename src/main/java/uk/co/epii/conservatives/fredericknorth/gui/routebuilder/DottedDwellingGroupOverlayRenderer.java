@@ -2,7 +2,9 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
+import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
 
 /**
@@ -10,19 +12,22 @@ import java.awt.*;
  * Date: 10/07/2013
  * Time: 12:58
  */
-class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRenderer<DottedDwellingGroup> {
+class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRenderer<DwellingGroup> {
 
-    private int[] radii;
-    private Color[] colours;
+    private static Color UNSELECTED_COLOUR = Color.BLUE;
+    private static Color SELECTED_COLOUR = Color.GREEN;
+
+    private final int[] radii = new int[] {0, 2};
+    private final Color[] colours = new Color[] {null, Color.WHITE};
     private int totalDiameter;
     private int totalRadii;
-    private Point mouseGeo;
 
     @Override
-    public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<DottedDwellingGroup> overlayItem,
-                                                 ImageAndGeoPointTranslator imageAndGeoPointTranslator, Point geoPointOfMouse) {
-        setRadii(overlayItem.getItem().getDot().getRadii());
-        setColours(overlayItem.getItem().getDot().getColours());
+    public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<DwellingGroup> overlayItem,
+                                                 ImageAndGeoPointTranslator imageAndGeoPointTranslator,
+                                                 Point geoPointOfMouse, boolean selected, boolean focused) {
+        setRadii(overlayItem.getItem());
+        setColours(selected ? SELECTED_COLOUR : UNSELECTED_COLOUR);
         setSize(getPreferredSize());
         Point overlayCenter = imageAndGeoPointTranslator.getImageLocation(overlayItem.getGeoLocationOfCenter());
         setLocation(new Point(overlayCenter.x - totalRadii, overlayCenter.y - totalRadii));
@@ -33,17 +38,14 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
                         totalRadii), overlayItem, false);
     }
 
-    private void setRadii(int[] radii) {
-        this.radii = radii;
-        totalRadii = 0;
-        for (int radius : radii) {
-            totalRadii += radius;
-        }
+    private void setRadii(DwellingGroup dwellingGroup) {
+        radii[0] = (int)Math.round(Math.sqrt(dwellingGroup.size()));
+        totalRadii = 2 + radii[0];
         totalDiameter = totalRadii * 2;
     }
 
-    private void setColours(Color[] colours) {
-        this.colours = colours;
+    private void setColours(Color colour) {
+        this.colours[0] = colour;
     }
 
     @Override

@@ -113,9 +113,9 @@ public class RouteBuilderPanelModel implements Activateable {
                 List<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>(overlayItemList.size());
                 for (Map.Entry<OverlayItem, MouseLocation> entry : overlayItemList.entrySet()) {
                     OverlayItem overlayItem = entry.getKey();
-                    if (overlayItem.getItem() instanceof DottedDwellingGroup) {
-                        DottedDwellingGroup dottedDwellingGroup = (DottedDwellingGroup) overlayItem.getItem();
-                        dwellingGroups.add(dottedDwellingGroup.getDwellingGroup());
+                    if (overlayItem.getItem() instanceof DwellingGroup) {
+                        DwellingGroup dottedDwellingGroup = (DwellingGroup) overlayItem.getItem();
+                        dwellingGroups.add(dottedDwellingGroup);
                     }
                 }
                 routedAndUnroutedToolTipModel.updateDwellingGroups(dwellingGroups);
@@ -420,11 +420,7 @@ public class RouteBuilderPanelModel implements Activateable {
         for (int i = 0; i < dwellingGroupLists.size(); i++) {
             for (DwellingGroup dwellingGroup : dwellingGroupLists.get(i)) {
                 overlayItems.add(
-                        new DottedDwellingGroupOverlayItemImpl(
-                                new DottedDwellingGroup(
-                                        dwellingGroup,
-                                        dotFactory.getStandardDot(colors[i])),
-                                i));
+                        new DottedDwellingGroupOverlayItemImpl(dwellingGroup, i));
             }
         }
         return overlayItems;

@@ -5,6 +5,7 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.Dot;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.RenderedOverlay;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
 import java.awt.*;
 
@@ -39,21 +40,15 @@ public class DottedDwellingGroupOverlayRendererTest {
 
         MapPanel mapPanel = new MapPanel(new DummyMapPanelModel(), 1.2);
         mapPanel.setSize(100, 100);
-        DummyOverlayItem dummyOverlayItem = new DummyOverlayItem<DottedDwellingGroup>(
-                new DottedDwellingGroup(
-                        null,
-                        new Dot(
-                                new int[] {5, 2},
-                                new Color[] {Color.RED, Color.WHITE}
-                        )
-                )
+        DummyOverlayItem dummyOverlayItem = new DummyOverlayItem<DwellingGroup>(
+                new DummyDwellingGroup("A", 25, new Point())
         );
         dummyOverlayItem.setGeoLocationOfCenter(new Point(7,7));
         RenderedOverlay renderedOverlay = new DottedDwellingGroupOverlayRenderer().getOverlayRendererComponent(
                 mapPanel,
                 dummyOverlayItem,
                 new DummyImageAndGeoPointTranslator(),
-                null);
+                null, false, true);
 
         for (int x = 0; x < 18; x++) {
             for (int y = 0; y < 18; y++) {

@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.AbstractOverlayItem;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
 import java.awt.*;
 
@@ -11,26 +12,26 @@ import java.awt.*;
  * Date: 10/07/2013
  * Time: 12:40
  */
-class DottedDwellingGroupOverlayItemImpl extends AbstractOverlayItem<DottedDwellingGroup> {
+class DottedDwellingGroupOverlayItemImpl extends AbstractOverlayItem<DwellingGroup> {
 
-    DottedDwellingGroupOverlayItemImpl(DottedDwellingGroup dottedDwellingGroup, int priority) {
+    DottedDwellingGroupOverlayItemImpl(DwellingGroup dottedDwellingGroup, int priority) {
         super(dottedDwellingGroup, priority);
     }
 
     @Override
     public Point getTopLeft(Dimension size, ImageAndGeoPointTranslator imageAndGeoPointTranslator) {
-        Point imageLocation = imageAndGeoPointTranslator.getImageLocation(getItem().getDwellingGroup().getPoint());
+        Point imageLocation = imageAndGeoPointTranslator.getImageLocation(getItem().getPoint());
         return new Point(imageLocation.x - size.width / 2,
                 imageLocation.y - size.height / 2);
     }
 
     @Override
     public Point getGeoLocationOfCenter() {
-        return getItem().getDwellingGroup().getPoint();
+        return getItem().getPoint();
     }
 
     @Override
-    protected int compareToSameGeneric(OverlayItem<DottedDwellingGroup> o) {
-        return getItem().getDwellingGroup().compareTo(o.getItem().getDwellingGroup());
+    protected int compareToSameGeneric(OverlayItem<DwellingGroup> o) {
+        return getItem().compareTo(o.getItem());
     }
 }

@@ -7,6 +7,7 @@ import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAr
 import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
@@ -175,7 +176,7 @@ public class RouteBuilderPanel extends JPanel {
         fileChooser = new JFileChooser(workingDirectory);
         fileChooser.addChoosableFileFilter(routeDataFilesFilter);
         fileChooser.addChoosableFileFilter(routeMapFilesFilter);
-        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
+        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
         selectedDwellingGroups = createDwellingGroupTable(this.routeBuilderPanelModel.getRoutedDwellingGroups());
         unselectedDwellingGroups = createDwellingGroupTable(this.routeBuilderPanelModel.getUnroutedDwellingGroups());
         unselectedDwellingGroupsScrollPane = new JScrollPane(unselectedDwellingGroups,
