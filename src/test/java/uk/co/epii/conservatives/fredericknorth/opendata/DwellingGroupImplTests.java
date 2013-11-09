@@ -43,7 +43,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("7", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("9", 'A', dwellingGroup));
         String result = dwellingGroup.getName();
-        String expected = "1 - 9 ODDS ONLY A Street";
+        String expected = "1, 3, 5, 7 & 9 A Street";
         assertEquals(expected, result);
     }
 
@@ -54,7 +54,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("6", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
         String result = dwellingGroup.getName();
-        String expected = "2 - 8 EVENS ONLY A Street";
+        String expected = "2, 4, 6 & 8 A Street";
         assertEquals(expected, result);
     }
 
@@ -85,7 +85,7 @@ public class DwellingGroupImplTests {
         dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
         dwellingGroup.add(new DwellingImpl("12", 'A', dwellingGroup));
         String result = dwellingGroup.getName();
-        String expected = "2 - 8 & 12 EVENS ONLY A Street";
+        String expected = "2, 4, 6, 8 & 12 A Street";
         assertEquals(expected, result);
     }
 
@@ -312,5 +312,91 @@ public class DwellingGroupImplTests {
         assertEquals(expected, result);
     }
 
+    @Test
+    public void getIdentifierSummaryTest15() {
+        dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("10", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "8 & 10 A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest16() {
+        dwellingGroup.add(new DwellingImpl("8", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("10", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("11", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("13", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "8, 10, 11 & 13 A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest17() {
+        dwellingGroup.add(new DwellingImpl("1", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("3", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("5", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("7", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("11", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("13", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("15", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "1, 3, 5, 7, 11, 13 & 15 A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest18() {
+        dwellingGroup.add(new DwellingImpl("1", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("3", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("5", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("7", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("9", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("11", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "1 - 11 ODDS ONLY A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest19() {
+        dwellingGroup.add(new DwellingImpl("11", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("13", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("15", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("17", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "11, 13, 15 & 17 A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest20() {
+        dwellingGroup.add(new DwellingImpl("11", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("13", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("15", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("17", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("19", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "11 - 19 ODDS ONLY A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest21() {
+        dwellingGroup.add(new DwellingImpl("1", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("2", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "1 & 2 A Street";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest22() {
+        dwellingGroup.add(new DwellingImpl("1", 'A', dwellingGroup));
+        String result = dwellingGroup.getName();
+        String expected = "1 A Street";
+        assertEquals(expected, result);
+    }
 
 }

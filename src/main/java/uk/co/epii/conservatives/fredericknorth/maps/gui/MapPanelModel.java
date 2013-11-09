@@ -51,8 +51,8 @@ public interface MapPanelModel {
     public void monitorRepaintAreas();
     public void setMapPanel(MapPanel mapPanel);
     public boolean hasFocus();
-    public void select(OverlayItem overlayItem);
-    public void deselect(OverlayItem overlayItem);
+    public void select(Object item);
+    public void deselect(Object item);
     public void clearSelections();
 
 }

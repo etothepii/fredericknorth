@@ -481,6 +481,14 @@ public class RouteBuilderPanelModel implements Activateable {
 
     public void invertSelectionInRoutedAndUnrouted() {
         routedAndUnroutedToolTipModel.invertSelection();
+        for (DwellingGroup dwellingGroup :
+                routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.SELECTED)) {
+            mapPanelModel.select(dwellingGroup);
+        }
+        for (DwellingGroup dwellingGroup :
+                routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.UNSELECTED)) {
+            mapPanelModel.deselect(dwellingGroup);
+        }
     }
 
     public void autoGenerate(int targetSize, boolean unroutedOnly) {

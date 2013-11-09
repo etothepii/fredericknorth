@@ -29,7 +29,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     private final Set<MapPanelDataListener> mapPanelDataListeners;
     private final Map<Class<?>, OverlayRenderer> overlayRenderers;
     private final MapViewGenerator mapViewGenerator;
-    private final HashSet<OverlayItem> selectedOverlays;
+    private final HashSet selectedOverlays;
     private MapView currentMapView;
     private boolean mapViewIsDirty;
     private Point geoDragFrom;
@@ -54,7 +54,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
         rectanglesToRepaint = null;
         renderedOverlays = new HashMap<OverlayItem, RenderedOverlay>();
         mapPanel = null;
-        selectedOverlays = new HashSet<OverlayItem>();
+        selectedOverlays = new HashSet();
         mapViewGenerator.addMapViewChangedListener(this);
     }
 
@@ -208,7 +208,8 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
             }
         }
         return getOverlayRenderer(overlayItem.getItem().getClass())
-                .getOverlayRendererComponent(mapPanel, overlayItem, currentMapView, mouseAt, selectedOverlays.contains(overlayItem), hasFocus());
+                .getOverlayRendererComponent(mapPanel, overlayItem, currentMapView, mouseAt,
+                        selectedOverlays.contains(overlayItem.getItem()), hasFocus());
     }
 
     public OverlayRenderer getOverlayRenderer(Class<?> overlayRendererClassStartingPoint) {
@@ -573,16 +574,17 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
 
     @Override
     public boolean hasFocus() {
+        return true;
     }
 
     @Override
-    public void select(OverlayItem overlayItem) {
-        selectedOverlays.add(overlayItem);
+    public void select(Object item) {
+        selectedOverlays.add(item);
     }
 
     @Override
-    public void deselect(OverlayItem overlayItem) {
-        selectedOverlays.remove(overlayItem);
+    public void deselect(Object item) {
+        selectedOverlays.remove(item);
     }
 
     @Override

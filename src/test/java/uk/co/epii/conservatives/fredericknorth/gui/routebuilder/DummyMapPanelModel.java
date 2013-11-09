@@ -143,8 +143,11 @@ public class DummyMapPanelModel implements MapPanelModel {
     }
 
     @Override
-    public void select(OverlayItem overlayItem) {}
+    public void select(Object item) {}
 
     @Override
-    public void deselect(OverlayItem overlayItem) {}
+    public void deselect(Object item) {}
+
+    @Override
+    public void clearSelections() {}
 }
