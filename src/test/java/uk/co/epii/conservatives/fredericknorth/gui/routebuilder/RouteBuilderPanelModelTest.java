@@ -77,7 +77,7 @@ public class RouteBuilderPanelModelTest {
         routableAreas.put(dummyRoutableArea.getBoundedArea(), dummyRoutableArea);
         routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(dummyRoutableArea.getBoundedArea()), routableAreas);
         routeBuilderPanelModel.setSelectedBoundedArea(dummyRoutableArea.getBoundedArea());
-        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DottedDwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
+        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
         routeBuilderPanelModel.getMapPanelModel().setViewportSize(new Dimension(50, 50));
         routeBuilderPanelModel.getMapPanelModel().setScale(0.5);
         routeBuilderPanelModel.getMapPanelModel().setGeoCenter(new Point(50, 50));

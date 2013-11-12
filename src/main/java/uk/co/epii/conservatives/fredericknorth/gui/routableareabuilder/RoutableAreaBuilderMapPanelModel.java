@@ -151,4 +151,6 @@ class RoutableAreaBuilderMapPanelModel extends AbstractMapPanelModel {
     public void cancel() {
         constructorOverlay.setBoundedAreaConstructor(null);
     }
+
+
 }

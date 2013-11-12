@@ -136,4 +136,18 @@ public class DummyMapPanelModel implements MapPanelModel {
     public void setMapPanel(MapPanel mapPanel) {
         this.mapPanel = mapPanel;
     }
+
+    @Override
+    public boolean hasFocus() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void select(Object item) {}
+
+    @Override
+    public void deselect(Object item) {}
+
+    @Override
+    public void clearSelections() {}
 }

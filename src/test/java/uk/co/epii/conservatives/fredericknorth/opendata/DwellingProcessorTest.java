@@ -41,7 +41,8 @@ public class DwellingProcessorTest {
     public void getDwellingGroupTest() {
         DwellingGroup result = dwellingProcessor.getDwellingGroup("E1 3BE", "DRAKE HOUSE 118, STEPNEY WAY, LONDON");
         assertEquals(result.size(), 3);
-        assertEquals(result.getName(), "1 - 5 ODDS ONLY DRAKE HOUSE 118, STEPNEY WAY, LONDON");
+        String expectedName = "1, 3 & 5 DRAKE HOUSE 118, STEPNEY WAY, LONDON";
+        assertEquals(expectedName, result.getName());
     }
 
 }

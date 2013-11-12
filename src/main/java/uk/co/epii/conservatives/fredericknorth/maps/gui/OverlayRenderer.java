@@ -12,5 +12,5 @@ import java.awt.*;
 public interface OverlayRenderer<T> {
     public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<T> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                                                 Point mouseGeoLocation);
+                                                 Point mouseGeoLocation, boolean selected, boolean inFocus);
 }
