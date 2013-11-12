@@ -50,7 +50,7 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(totalDiameter, totalDiameter);
+        return new Dimension(totalDiameter, totalDiameter + (radii[0] == 1 ? 1 : 0));
     }
 
     @Override
@@ -67,6 +67,15 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
 
     @Override
     public void paint(Graphics g) {
+        executePaint(g);
+        if (radii[0] == 1) {
+            g.setClip(0, totalRadii + 1, totalDiameter, totalRadii);
+            g.translate(0, 1);
+            executePaint(g);
+        }
+    }
+
+    private void executePaint(Graphics g) {
         int indent = 0;
         for (int index = colours.length - 1; index >= 0; index--) {
             g.setColor(colours[index]);

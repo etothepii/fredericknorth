@@ -6,10 +6,16 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.MapPanel;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.RenderedOverlay;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingGroupDatabaseImpl;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * User: James Robinson
@@ -64,6 +70,40 @@ public class DottedDwellingGroupOverlayRendererTest {
         }
     }
 
-
+    @Test
+    public void singleDwellingTest() {
+        DwellingGroup dwellingGroup = new DummyDwellingGroup("A Street", 1, new Point(0, 0));
+        DottedDwellingGroupOverlayItemImpl overlayItem = new DottedDwellingGroupOverlayItemImpl(dwellingGroup, 0);
+        DottedDwellingGroupOverlayRenderer overlayRenderer = new DottedDwellingGroupOverlayRenderer();
+        RenderedOverlay renderedOverlay =
+                overlayRenderer.getOverlayRendererComponent(null, overlayItem, new DummyImageAndGeoPointTranslator(),
+                        new Point(0, 0), false, false);
+        Component component = renderedOverlay.getComponent();
+        BufferedImage bufferedImage = new BufferedImage(
+                component.getPreferredSize().width, component.getPreferredSize().height, BufferedImage.TYPE_INT_ARGB);
+        Graphics g = bufferedImage.createGraphics();
+        component.paint(g);
+        int w = bufferedImage.getWidth();
+        int h = bufferedImage.getHeight();
+        int[][] result = new int[h][w];
+        for(int i = 0; i < h; i++) {
+            for(int j = 0; j < w; j++) {
+                result[i][j] = bufferedImage.getRGB( j, i );
+                System.out.print(result[i][j]);
+                System.out.print(" ");
+            }
+            System.out.println();
+        }
+        int[][] expected = new int[][] {
+                new int[] {0, 0, 0, 0, 0, 0},
+                new int[] {0, -1, -1, -1, -1, -1},
+                new int[] {0, -1, -1, -1, -1, -1},
+                new int[] {-1, -1, -16776961, -16776961, -1, -1},
+                new int[] {-1, -1, -16776961, -16776961, -1, -1},
+                new int[] {0, -1, -1, -1, -1, -1},
+                new int[] {0, -1, -1, -1, -1, -1}
+        };
+        assertArrayEquals(expected, result);
+    }
 
 }
