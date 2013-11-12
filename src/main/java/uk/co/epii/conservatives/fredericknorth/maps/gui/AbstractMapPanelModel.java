@@ -29,6 +29,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     private final Set<MapPanelDataListener> mapPanelDataListeners;
     private final Map<Class<?>, OverlayRenderer> overlayRenderers;
     private final MapViewGenerator mapViewGenerator;
+    private final HashSet selectedOverlays;
     private MapView currentMapView;
     private boolean mapViewIsDirty;
     private Point geoDragFrom;
@@ -40,6 +41,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     protected final Map<OverlayItem, RenderedOverlay> renderedOverlays;
     protected RectangleCollection rectanglesToRepaint;
     protected MapPanel mapPanel;
+    protected boolean focus = true;
 
     protected AbstractMapPanelModel(MapViewGenerator mapViewGenerator) {
         this.progressTracker = NullProgressTracker.NULL;
@@ -52,6 +54,7 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
         rectanglesToRepaint = null;
         renderedOverlays = new HashMap<OverlayItem, RenderedOverlay>();
         mapPanel = null;
+        selectedOverlays = new HashSet();
         mapViewGenerator.addMapViewChangedListener(this);
     }
 
@@ -205,7 +208,8 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
             }
         }
         return getOverlayRenderer(overlayItem.getItem().getClass())
-                .getOverlayRendererComponent(mapPanel, overlayItem, currentMapView, mouseAt);
+                .getOverlayRendererComponent(mapPanel, overlayItem, currentMapView, mouseAt,
+                        selectedOverlays.contains(overlayItem.getItem()), hasFocus());
     }
 
     public OverlayRenderer getOverlayRenderer(Class<?> overlayRendererClassStartingPoint) {
@@ -566,6 +570,26 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
             }
         }
        return true;
+    }
+
+    @Override
+    public boolean hasFocus() {
+        return true;
+    }
+
+    @Override
+    public void select(Object item) {
+        selectedOverlays.add(item);
+    }
+
+    @Override
+    public void deselect(Object item) {
+        selectedOverlays.remove(item);
+    }
+
+    @Override
+    public void clearSelections() {
+        selectedOverlays.clear();
     }
 
     private class MouseLocationImpl implements MouseLocation  {

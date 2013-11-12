@@ -169,7 +169,7 @@
 
 
   <build>
-    <finalName>${project.groupId}.${project.artifactId}-${project.version}-r${buildNumber}</finalName>
+    <finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -289,6 +289,7 @@
               <goal>shade</goal>
             </goals>  
             <configuration>
+	      <argLine>-Xmx1024m</argLine>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>

@@ -194,7 +194,8 @@ class DwellingGroupModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-            return dwellingGroups.get(rowIndex).getName();
+            String value = dwellingGroups.get(rowIndex).getName();
+            return value;
         }
         if (columnIndex == 1) {
             return dwellingGroups.get(rowIndex).size();

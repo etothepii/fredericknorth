@@ -61,4 +61,8 @@ public class PointExtensions {
     public static Point fromDouble(Point2D.Double point) {
         return new Point((int)Math.round(point.x), (int)Math.round(point.y));
     }
+
+    public static String getLocationString(Point point) {
+        return String.format("E%sN%s", point.x, point.y);
+    }
 }

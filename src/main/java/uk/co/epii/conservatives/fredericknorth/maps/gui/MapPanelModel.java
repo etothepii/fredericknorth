@@ -50,4 +50,9 @@ public interface MapPanelModel {
     public Collection<Rectangle> getRepaintAreas(MapPanel mapPanel);
     public void monitorRepaintAreas();
     public void setMapPanel(MapPanel mapPanel);
+    public boolean hasFocus();
+    public void select(Object item);
+    public void deselect(Object item);
+    public void clearSelections();
+
 }

@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import sun.util.LocaleServiceProviderPool;
+import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 
@@ -53,19 +55,21 @@ public class PostcodeDatumFactoryDatabaseImplTest {
         assertEquals(expected, result);
     }
 
-    @Test
-    public void getPostcodeDatumsWithBoundsTest() {
-        Rectangle rectangle = new Rectangle(537820, 178220, 210, 120);
-        Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes(rectangle);
-        for (PostcodeDatum postcodeDatum : postcodes) {
-            PostcodeDatumDatabaseImpl impl = (PostcodeDatumDatabaseImpl)postcodeDatum;
-            for (DwellingGroupDatabaseImpl dwellingGroup : impl.getDwellingGroups().values()) {
-                LOG.debug("{} {}: ({}, {})", new Object[] {postcodeDatum.getName(), dwellingGroup.getName(),
-                        dwellingGroup.getPoint().getX(), dwellingGroup.getPoint().getY()});
-                assertTrue(String.format("%s in %s: ", dwellingGroup.getPoint(), rectangle),
-                        rectangle.contains(dwellingGroup.getPoint()));
+    private Rectangle getExtents(PostcodeDatum dwellingGroup) {
+        int minX = dwellingGroup.getPoint().x;
+        int maxX = dwellingGroup.getPoint().x;
+        int minY = dwellingGroup.getPoint().y;
+        int maxY = dwellingGroup.getPoint().y;
+        for (Dwelling dwelling : dwellingGroup.getDwellings()) {
+            if (dwelling.getPoint() == null) {
+                continue;
             }
+            if (dwelling.getPoint().x < minX) minX = dwelling.getPoint().x;
+            if (dwelling.getPoint().x > maxX) maxX = dwelling.getPoint().x;
+            if (dwelling.getPoint().y < minY) minY = dwelling.getPoint().y;
+            if (dwelling.getPoint().y > maxY) maxY = dwelling.getPoint().y;
         }
+        return new Rectangle(minX, minY, Math.max(1, maxX - minX), Math.max(1, maxY - minY));
     }
 
 }

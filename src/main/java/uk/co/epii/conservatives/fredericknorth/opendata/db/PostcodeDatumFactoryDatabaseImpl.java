@@ -42,22 +42,21 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         return create(databaseSession.getPostcode(postcode));
     }
 
-    private PostcodeDatumDatabaseImpl    create(Postcode postcode) {
-        List<Duple<Dwelling, BLPU>> dwellings =
-                databaseSession.fromPostcode(postcode.getPostcode(), Dwelling.class, BLPU.class, "UPRN", "UPRN");
-        Map<StubDwelling, Duple<Dwelling, BLPU>> map =
-                new HashMap<StubDwelling, Duple<Dwelling, BLPU>>();
-        for (Duple<Dwelling, BLPU> duple : dwellings) {
-            map.put(new StubDwelling(duple.getFirst()), duple);
-        }
-        List<Group<StubDwelling>> groupedDwellings = stubDwellingGrouper.group(map.keySet());
+    private PostcodeDatumDatabaseImpl create(Postcode postcode) {
+        Map<Point, List<Duple<Dwelling, BLPU>>> groupedByLocation = groupByLocation(
+                PointExtensions.fromFloat(new Point2D.Float(postcode.getXCoordinate(), postcode.getYCoordinate())),
+                databaseSession.fromPostcode(postcode.getPostcode(), Dwelling.class, BLPU.class, "UPRN", "UPRN"));
         Map<String, DwellingGroupDatabaseImpl> dwellingGroupsMap = new HashMap<String, DwellingGroupDatabaseImpl>();
-        for (Group<StubDwelling> group : groupedDwellings) {
-            ArrayList<Integer> xCoords = new ArrayList<Integer>(group.size());
-            ArrayList<Integer> yCoords = new ArrayList<Integer>(group.size());
-            Map<DwellingDatabaseImpl, Dwelling> dwellingGroupDatabaseImplMap =
-                    new HashMap<DwellingDatabaseImpl, Dwelling>();
-            for (StubDwelling stubDwelling : group) {
+        for (Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group : groupedByLocation.entrySet()) {
+            StubDwelling common = null;
+            Map<StubDwelling, Duple<Dwelling, BLPU>> map = new HashMap<StubDwelling, Duple<Dwelling, BLPU>>();
+            for (Duple<Dwelling, BLPU> duple : group.getValue()) {
+                StubDwelling stubDwelling = new StubDwelling(duple.getFirst());
+                map.put(stubDwelling, duple);
+                common = common == null ? stubDwelling : common.getCommon(stubDwelling);
+            }
+            Map<DwellingDatabaseImpl, Dwelling> dwellingGroupDatabaseImplMap = new HashMap<DwellingDatabaseImpl, Dwelling>();
+            for (StubDwelling stubDwelling : map.keySet()) {
                 Duple<Dwelling, BLPU> duple = map.get(stubDwelling);
                 Dwelling dwelling = duple.getFirst();
                 BLPU blpu = duple.getSecond();
@@ -67,19 +66,36 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
                                 blpu == null ?
                                         new Point2D.Float(postcode.getXCoordinate(), postcode.getYCoordinate()) :
                                         new Point2D.Float(blpu.getXCoordinate(), blpu.getYCoordinate()));
-                String name = group.getCommon().getDifference(stubDwelling);
-                xCoords.add(point.x);
-                yCoords.add(point.y);
+                String name = common.getDifference(stubDwelling);
                 dwellingGroupDatabaseImplMap.put(new DwellingDatabaseImpl(councilTaxBand, name, point), dwelling);
             }
             DwellingGroupDatabaseImpl dwellingGroup =
-                    new DwellingGroupDatabaseImpl(dwellingGroupDatabaseImplMap, group.getCommon().toString(),
-                            calculateMedian(xCoords, yCoords));
-            dwellingGroupsMap.put(dwellingGroup.getName(), dwellingGroup);
+                    new DwellingGroupDatabaseImpl(dwellingGroupDatabaseImplMap, common.toString(), group.getKey());
+            if (dwellingGroupsMap.containsKey(dwellingGroup.getName()))  {
+                throw new IllegalStateException("One can not simply replace a dwelling group with another of the " +
+                        "same name, all must be uniquely named: " + dwellingGroup.getName());
+            }
+            dwellingGroupsMap.put(PointExtensions.getLocationString(dwellingGroup.getPoint()), dwellingGroup);
         }
         PostcodeDatumDatabaseImpl postcodeImpl = new PostcodeDatumDatabaseImpl(postcode, dwellingGroupsMap);
         loaded.put(postcode.getPostcode(), postcodeImpl);
         return postcodeImpl;
+    }
+
+    private Map<Point, List<Duple<Dwelling, BLPU>>> groupByLocation(Point postcodePoint, List<Duple<Dwelling, BLPU>> dwellings) {
+        Map<Point, List<Duple<Dwelling, BLPU>>> map = new HashMap<Point, List<Duple<Dwelling, BLPU>>>();
+        for (Duple<Dwelling, BLPU> dwelling : dwellings) {
+            Point point = dwelling.getSecond() == null ? postcodePoint : PointExtensions.fromFloat(new Point2D.Float(
+                    dwelling.getSecond().getXCoordinate(), dwelling.getSecond().getYCoordinate()
+            ));
+            List<Duple<Dwelling, BLPU>> list = map.get(point);
+            if (list == null) {
+                list = new ArrayList<Duple<Dwelling, BLPU>>();
+                map.put(point, list);
+            }
+            list.add(dwelling);
+        }
+        return map;
     }
 
     Point calculateMedian(List<Integer> xCoords, List<Integer> yCoords) {

@@ -71,7 +71,7 @@ class BoundedAreaOverlayRenderer<T extends BoundedArea> implements OverlayRender
     @Override
     public RenderedOverlay getOverlayRendererComponent(MapPanel mapPanel, OverlayItem<T> overlayItem,
                                                  ImageAndGeoPointTranslator imageAndGeoPointTranslator,
-                                                 Point mouseLocation) {
+                                                 Point mouseLocation, boolean selected, boolean focusable) {
         long start = System.nanoTime();
         try {
             currentlyProducing = new BoundedAreaReusableOverlay(mapPanel.getModel(), overlayItem, imageAndGeoPointTranslator, mouseLocation,

@@ -33,9 +33,7 @@ public class DottedDwellingGroupOverlayItemImplTest {
         DottedDwellingGroupOverlayItemImpl[] impls = new DottedDwellingGroupOverlayItemImpl[2];
         for (int i = 0; i < 2; i++) {
             DwellingGroup dwellingGroup = dwellingGroupList.get(i);
-            impls[i] = new DottedDwellingGroupOverlayItemImpl(
-                    new DottedDwellingGroup(
-                            dwellingGroup, dotFactory.getStandardDot(Color.BLUE)), 0);
+            impls[i] = new DottedDwellingGroupOverlayItemImpl(dwellingGroup, 0);
         }
         assertTrue(!impls[0].equals(impls[1]));
         assertTrue(impls[0].compareTo(impls[1]) != 0);
