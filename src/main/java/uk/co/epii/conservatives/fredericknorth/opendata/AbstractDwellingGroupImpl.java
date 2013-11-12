@@ -35,7 +35,8 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
             return name;
         }
         String identifierSummary;
-        if (size() <= 1 || (identifierSummary = establishIdentifierSummary()).length() == 0) {
+        if (size() == 0 || (identifierSummary = establishIdentifierSummary()) == null ||
+                identifierSummary.length() == 0 || identifierSummary.equals("null")) {
             return commonName;
         }
         return String.format("%s %s", identifierSummary, commonName);

@@ -39,7 +39,7 @@ class DottedDwellingGroupOverlayRenderer extends Component implements OverlayRen
     }
 
     private void setRadii(DwellingGroup dwellingGroup) {
-        radii[0] = (int)Math.round(Math.sqrt(dwellingGroup.size()));
+        radii[0] = (int)Math.ceil(Math.sqrt(dwellingGroup.size()));
         totalRadii = 2 + radii[0];
         totalDiameter = totalRadii * 2;
     }
