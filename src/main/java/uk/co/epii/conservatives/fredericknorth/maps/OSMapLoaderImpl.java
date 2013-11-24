@@ -206,6 +206,11 @@ public class OSMapLoaderImpl implements OSMapLoader {
             new File(mapFile.getParent()).mkdirs();
             LOG.debug("Loading from: {}", url.toString());
             BufferedImage image = ImageIO.read(url);
+            if (image == null) {
+                LOG.debug("Failed to load map file");
+                progressTracker.increment(progressRemaining);
+                return false;
+            }
             LOG.debug("Converting to compatible image");
             BufferedImage compatibleImage;
             synchronized (configuration) {
