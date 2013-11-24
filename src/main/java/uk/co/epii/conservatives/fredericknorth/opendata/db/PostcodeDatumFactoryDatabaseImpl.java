@@ -9,7 +9,6 @@ import uk.co.epii.conservatives.williamcavendishbentinck.tables.BLPU;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Postcode;
 import uk.co.epii.spencerperceval.tuple.Duple;
-import uk.co.epii.spencerperceval.util.Group;
 import uk.co.epii.spencerperceval.util.Grouper;
 
 import java.awt.*;
