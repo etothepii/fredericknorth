@@ -21,14 +21,14 @@ import java.io.StringWriter;
  * Date: 12/07/2013
  * Time: 18:52
  */
-class XMLSerializerImpl implements XMLSerializer {
+public class XMLSerializerImpl implements XMLSerializer {
 
     DocumentBuilderFactory dbFactory;
     DocumentBuilder documentBuilder;
     TransformerFactory transformerFactory;
     Transformer transformer;
 
-    XMLSerializerImpl() {
+    public XMLSerializerImpl() {
         dbFactory = DocumentBuilderFactory.newInstance();
         try {
             documentBuilder = dbFactory.newDocumentBuilder();
