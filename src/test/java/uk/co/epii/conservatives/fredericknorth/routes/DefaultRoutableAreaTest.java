@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
+import junit.framework.Assert;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,9 +11,6 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaComboBoxModel;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyPostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingGroupDatabaseImpl;
@@ -26,7 +24,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,12 +91,6 @@ public class DefaultRoutableAreaTest {
         postalDistrictCW2Routes.addDwellingGroup(cw2StreetD, false);
         councilWardRoutes.addDwellingGroup(cwStreetE, false);
         councilWardRoutes.addDwellingGroup(cwStreetF, false);
-        route1 = postalDistrictCW1Routes.createRoute("Route 1");
-        route2 = postalDistrictCW2Routes.createRoute("Route 2");
-        route3 = councilWardRoutes.createRoute("Route 3");
-        route1.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cw1StreetA}));
-        route2.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cw2StreetC}));
-        route3.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cwStreetE}));
     }
 
     private PostcodeDatumDatabaseImpl createPostcodeDatumDatabaseImpl(
@@ -123,6 +114,12 @@ public class DefaultRoutableAreaTest {
     @Test
     public void toXmlTest() {
         try {
+            route1 = postalDistrictCW1Routes.createRoute("Route 1");
+            route2 = postalDistrictCW2Routes.createRoute("Route 2");
+            route3 = councilWardRoutes.createRoute("Route 3");
+            route1.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cw1StreetA}));
+            route2.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cw2StreetC}));
+            route3.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cwStreetE}));
             String expected = FileUtils.fileRead(FileUtils.toFile(
                     DefaultRoutableAreaTest.class.getResource(
                             "/uk/co/epii/conservatives/fredericknorth/routes/DefaultRoutableAreaTest1.xml")));
@@ -145,5 +142,21 @@ public class DefaultRoutableAreaTest {
         }
     }
 
+    @Test
+    public void loadTest() {
+        councilWardRoutes.load(FileUtils.toFile(
+                DefaultRoutableAreaTest.class.getResource(
+                        "/uk/co/epii/conservatives/fredericknorth/routes/DefaultRoutableAreaTest1.xml")));
+        assertEquals(3, councilWardRoutes.getRouteCount());
+        assertEquals(3, councilWardRoutes.getRoutedDwellingGroups().size());
+        assertEquals(3, councilWardRoutes.getUnroutedDwellingGroups().size());
+        assertEquals(1, postalDistrictCW1Routes.getRouteCount());
+        assertEquals(1, postalDistrictCW1Routes.getRoutedDwellingGroups().size());
+        assertEquals(1, postalDistrictCW1Routes.getUnroutedDwellingGroups().size());
+        assertEquals(1, postalDistrictCW2Routes.getRouteCount());
+        assertEquals(1, postalDistrictCW2Routes.getRoutedDwellingGroups().size());
+        assertEquals(1, postalDistrictCW2Routes.getUnroutedDwellingGroups().size());
+
+    }
 
 }
