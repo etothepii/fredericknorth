@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.opendata.db;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.AbstractDwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling;
@@ -17,12 +18,14 @@ import java.util.Map;
 public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
 
     private final Map<DwellingDatabaseImpl, Dwelling> dwellings;
+    private final PostcodeDatumDatabaseImpl postcode;
     private Point medianPoint;
 
-    public DwellingGroupDatabaseImpl(
+    public DwellingGroupDatabaseImpl(PostcodeDatumDatabaseImpl postcode,
             Map<DwellingDatabaseImpl, Dwelling> dwellings,
             String commonName, Point medianPoint) {
         super(commonName);
+        this.postcode = postcode;
         this.dwellings = dwellings;
         this.medianPoint = medianPoint;
     }
@@ -39,7 +42,14 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
 
     @Override
     public Element toXml(Document document) {
-        throw new UnsupportedOperationException("This operation is not supported");
+        Element dwellingGroup = document.createElement("DwellingGroup");
+        Element postcode = document.createElement("Postcode");
+        postcode.setTextContent(this.postcode.getName());
+        dwellingGroup.appendChild(postcode);
+        Element name = document.createElement("Name");
+        name.setTextContent(PointExtensions.getLocationString(getPoint()));
+        dwellingGroup.appendChild(name);
+        return dwellingGroup;
     }
 
     @Override
