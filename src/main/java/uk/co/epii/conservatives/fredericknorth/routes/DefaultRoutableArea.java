@@ -65,7 +65,41 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public Element toXml(Document document) {
-        throw new UnsupportedOperationException("This method has not yet been implemented");
+        Element routableAreaElement = document.createElement("RoutableArea");
+        Element boundedAreaElement = document.createElement("BoundedArea");
+        routableAreaElement.appendChild(boundedAreaElement);
+        Element name = document.createElement("Name");
+        boundedAreaElement.appendChild(name);
+        name.setTextContent(boundedArea.getName());
+        Element type = document.createElement("Type");
+        boundedAreaElement.appendChild(type);
+        type.setTextContent(boundedArea.getBoundedAreaType().toString());
+        Element routesElt = document.createElement("Routes");
+        boundedAreaElement.appendChild(routesElt);
+        HashSet<Route> localRoutes = new HashSet<Route>(routes);
+        for (DefaultRoutableArea child : children) {
+            for (Route route : child.routes) {
+                localRoutes.remove(route);
+            }
+        }
+        for (Route route : localRoutes) {
+            Element routeElt = route.toXml(document);
+            routesElt.appendChild(routeElt);
+
+        }
+        List<DefaultRoutableArea> orderedChildren = new ArrayList<DefaultRoutableArea>(this.children);
+        Collections.sort(orderedChildren, new Comparator<DefaultRoutableArea>() {
+            @Override
+            public int compare(DefaultRoutableArea a, DefaultRoutableArea b) {
+                return a.getBoundedArea().getName().compareTo(b.getBoundedArea().getName());
+            }
+        });
+        Element children = document.createElement("Children");
+        routableAreaElement.appendChild(children);
+        for (DefaultRoutableArea child : orderedChildren) {
+            children.appendChild(child.toXml(document));
+        }
+        return routableAreaElement;
     }
 
     @Override
