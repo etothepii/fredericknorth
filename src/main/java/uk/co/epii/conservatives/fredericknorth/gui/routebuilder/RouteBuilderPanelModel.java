@@ -16,6 +16,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.*;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
@@ -55,6 +56,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final PostcodeDatumFactory postcodeDatumFactory;
     private final DwellingProcessor dwellingProcessor;
     private final Executor executor;
+    private final XMLSerializer xmlSerializer;
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
@@ -74,6 +76,7 @@ public class RouteBuilderPanelModel implements Activateable {
 
     RouteBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel,
                            HashMap<BoundedArea, RoutableArea> routableAreas) {
+        xmlSerializer = applicationContext.getDefaultInstance(XMLSerializer.class);
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
         executor = Executors.newSingleThreadExecutor();
         progressTracker = new NullProgressTracker();
@@ -461,7 +464,8 @@ public class RouteBuilderPanelModel implements Activateable {
     }
 
     public void load(File selectedFile) {
-        getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(selectedFile);
+        getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(
+                xmlSerializer.fromFile(selectedFile).getDocumentElement());
     }
 
     public void export(final File selectedFile) {

@@ -1,7 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
-import junit.framework.Assert;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -144,9 +143,10 @@ public class DefaultRoutableAreaTest {
 
     @Test
     public void loadTest() {
-        councilWardRoutes.load(FileUtils.toFile(
+        councilWardRoutes.load(new XMLSerializerImpl().fromFile(FileUtils.toFile(
                 DefaultRoutableAreaTest.class.getResource(
-                        "/uk/co/epii/conservatives/fredericknorth/routes/DefaultRoutableAreaTest1.xml")));
+                        "/uk/co/epii/conservatives/fredericknorth/routes/DefaultRoutableAreaTest1.xml"))).
+                getDocumentElement());
         assertEquals(3, councilWardRoutes.getRouteCount());
         assertEquals(3, councilWardRoutes.getRoutedDwellingGroups().size());
         assertEquals(3, councilWardRoutes.getUnroutedDwellingGroups().size());

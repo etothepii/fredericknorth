@@ -5,6 +5,7 @@ import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 
 import java.awt.*;
 import java.io.File;
@@ -44,7 +45,7 @@ public class DummyRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void load(File selectedFile) {
+    public void load(Element element) {
         throw new UnsupportedOperationException("This operation is not supported as this is a dummy");
     }
 

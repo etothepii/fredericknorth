@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 
 import java.awt.*;
 import java.io.File;
@@ -335,8 +336,7 @@ public class DefaultRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void load(File selectedFile) {
-        throw new UnsupportedOperationException("This method is not yet supported");
+    public void load(Element element) {
     }
 
     @Override
