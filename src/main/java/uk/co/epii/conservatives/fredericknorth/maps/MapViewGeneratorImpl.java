@@ -57,7 +57,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     MapViewGeneratorImpl(ApplicationContext applicationContext,
                          Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
-        this(null, applicationContext.getDefaultInstance(OSMapLocator.class),
+        this(applicationContext.getDefaultInstance(OSMapLoader.class),
+                applicationContext.getDefaultInstance(OSMapLocator.class),
                 locationFactory, mapLabelFactory, NullProgressTracker.NULL);
     }
 

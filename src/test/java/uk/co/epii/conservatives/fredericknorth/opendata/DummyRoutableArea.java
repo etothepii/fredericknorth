@@ -139,6 +139,11 @@ public class DummyRoutableArea implements RoutableArea {
     }
 
     @Override
+    public void addDwellingGroup(DwellingGroup dwellingGroup, boolean routed) {
+        throw new UnsupportedOperationException("This operation is not supported in the Dummy");
+    }
+
+    @Override
     public void markAsRouted(DwellingGroup dwellingGroup) {
         throw new UnsupportedOperationException("This operation is not supported in the Dummy");
     }

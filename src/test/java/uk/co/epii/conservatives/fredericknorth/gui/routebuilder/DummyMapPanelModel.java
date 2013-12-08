@@ -19,6 +19,7 @@ import java.util.Map;
  */
 public class DummyMapPanelModel implements MapPanelModel {
     private MapPanel mapPanel;
+    private MapImageObserver mapImageObserver;
 
     @Override
     public void addOverlay(OverlayItem overlayItem) {}
@@ -55,22 +56,42 @@ public class DummyMapPanelModel implements MapPanelModel {
     }
 
     @Override
-    public void setViewportSize(Dimension size) {}
+    public void setViewportSize(Dimension size) {
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(null, null, true);
+        }
+    }
 
     @Override
-    public void setScale(double scale) {}
+    public void setScale(double scale) {
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(null, null, true);
+        }
+    }
 
     @Override
-    public void setGeoCenter(Point geoCenter) {}
+    public void setGeoCenter(Point geoCenter) {
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(null, null, true);
+        }
+    }
 
     @Override
-    public void zoomIn(Point point, double pow) {}
+    public void zoomIn(Point point, double pow) {
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(null, null, true);
+        }
+    }
 
     @Override
     public void setDragFrom(Point point) {}
 
     @Override
-    public void moveDraggedFrom(Point point) {}
+    public void moveDraggedFrom(Point point) {
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(null, null, true);
+        }
+    }
 
     @Override
     public void mouseMovedTo(Point point) {}
@@ -119,10 +140,16 @@ public class DummyMapPanelModel implements MapPanelModel {
     public void setProgressTracker(ProgressTracker progressTracker) {}
 
     @Override
-    public void display(Rectangle rectangle) {}
+    public void display(Rectangle rectangle) {
+        if (mapImageObserver != null) {
+            mapImageObserver.imageUpdated(null, rectangle, true);
+        }
+    }
 
     @Override
-    public void setMapImageObserver(MapImageObserver mapImageObserver) {}
+    public void setMapImageObserver(MapImageObserver mapImageObserver) {
+        this.mapImageObserver = mapImageObserver;
+    }
 
     @Override
     public Collection<Rectangle> getRepaintAreas(MapPanel mapPanel) {

@@ -17,7 +17,7 @@ import java.awt.event.MouseEvent;
  * Date: 10/07/2013
  * Time: 09:39
  */
-class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
+public class RouteBuilderMapPanelModel extends AbstractMapPanelModel {
 
     private static final Logger LOG_SYNC =
             LoggerFactory.getLogger(RouteBuilderMapPanelModel.class.getName().concat("_sync"));

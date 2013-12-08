@@ -1,29 +1,35 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.DummyMouseEvent;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.DummyBoundedArea;
-import uk.co.epii.conservatives.fredericknorth.maps.OSMapLoaderRegistrar;
-import uk.co.epii.conservatives.fredericknorth.maps.OSMapType;
+import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
+import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
+import uk.co.epii.conservatives.fredericknorth.routes.Route;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
-import uk.co.epii.conservatives.fredericknorth.maps.DummyMapViewGeneratorFactory;
-import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -48,35 +54,50 @@ public class RouteBuilderPanelModelTest {
     public void setUp() throws Exception {
         BoundedArea neighbourhood = new DummyBoundedArea(BoundedAreaType.NEIGHBOURHOOD,
                 "A Bounded Area", new Polygon(new int[] {0, 0, 100, 100}, new int[] {0, 100, 100, 0}, 4));
-        DummyRoutableArea dummyRoutableArea = new DummyRoutableArea(neighbourhood, null, "A RoutableArea", "A");
+        RoutableArea routableArea = new DefaultRoutableArea(neighbourhood, null);
         bRoad = new DummyDwellingGroup("B Road", 25, new Point(10, 90));
         bRoad.setPostcode(new DummyPostcodeDatum("A1 1AA"));
-        dummyRoutableArea.addDwellingGroup(bRoad);
-        bRoadFlats = new DummyDwellingGroup("D Flats 26, B Road", 10, new Point(10, 90));
+        routableArea.addDwellingGroup(bRoad, false);
+        bRoadFlats = new DummyDwellingGroup("D Flats 26, B Road", 10, new Point(9, 89));
         bRoadFlats.setPostcode(new DummyPostcodeDatum("A1 1AA"));
-        dummyRoutableArea.addDwellingGroup(bRoadFlats);
+        routableArea.addDwellingGroup(bRoadFlats, false);
         cStreet = new DummyDwellingGroup("C Street", 25, new Point(50, 10));
         cStreet.setPostcode(new DummyPostcodeDatum("A1 1AB"));
-        dummyRoutableArea.addDwellingGroup(cStreet);
+        routableArea.addDwellingGroup(cStreet, false);
         eGrove = new DummyDwellingGroup("E Grove", 25, new Point(90, 90));
         eGrove.setPostcode(new DummyPostcodeDatum("A1 1AC"));
-        dummyRoutableArea.addDwellingGroup(eGrove);
-        eGroveAppartments = new DummyDwellingGroup("Apartment 26, E Grove", 25, new Point(90, 90));
+        routableArea.addDwellingGroup(eGrove, false);
+        eGroveAppartments = new DummyDwellingGroup("Apartment 26, E Grove", 25, new Point(91, 91));
         eGroveAppartments.setPostcode(new DummyPostcodeDatum("A1 1AC"));
-        dummyRoutableArea.addDwellingGroup(eGroveAppartments);
-        DummyRoute dummyRoute = new DummyRoute("Route 1", dummyRoutableArea);
-        dummyRoute.addDwellingGroup(bRoad);
-        dummyRoute.addDwellingGroup(cStreet);
-        dummyRoutableArea.addRoute(dummyRoute);
+        routableArea.addDwellingGroup(eGroveAppartments, false);
         ApplicationContext applicationContext = new TestApplicationContext();
-        OSMapLoaderRegistrar.registerToContext(applicationContext);
+        applicationContext.registerDefaultInstance(XMLSerializer.class, new XMLSerializerImpl());
+        applicationContext.registerDefaultInstance(OSMapLoader.class, new DummyOSMapLoader());
+        OSMapLocatorRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
-                DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(0, 0, 100, 100)));
+                DummyMapViewGeneratorFactory.getDummyInstance(applicationContext,
+                        OSMapType.STREET_VIEW, new Rectangle(0, 0, 100, 100)));
         DotFactoryRegistrar.registerToContext(applicationContext);
         HashMap<BoundedArea, RoutableArea> routableAreas = new HashMap<BoundedArea, RoutableArea>();
-        routableAreas.put(dummyRoutableArea.getBoundedArea(), dummyRoutableArea);
-        routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(dummyRoutableArea.getBoundedArea()), routableAreas);
-        routeBuilderPanelModel.setSelectedBoundedArea(dummyRoutableArea.getBoundedArea());
+        routableAreas.put(routableArea.getBoundedArea(), routableArea);
+        routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext,
+                new DummyBoundedAreaSelectionModel(routableArea.getBoundedArea()), routableAreas);
+        routeBuilderPanelModel.getMapPanelModel().setMapImageObserver(new MapImageObserver() {
+            @Override
+            public void imageUpdated(MapImage mapImage, Rectangle update, boolean completed) {
+                if (completed) {
+                    routeBuilderPanelModel.enable();
+                }
+            }
+        });
+        routeBuilderPanelModel.setSelectedBoundedArea(neighbourhood);
+        while (!routeBuilderPanelModel.isEnabled()) {
+            Thread.sleep(100l);
+        }
+        routeBuilderPanelModel.getRoutesModel().add("Route 1");
+        Route route = routeBuilderPanelModel.getRoutesModel().getElementAt(0);
+        route.addDwellingGroups(Arrays.asList(new Object[] {bRoad, cStreet}));
+        routeBuilderPanelModel.setSelectedBoundedArea(routableArea.getBoundedArea());
         routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
         routeBuilderPanelModel.getMapPanelModel().setViewportSize(new Dimension(50, 50));
         routeBuilderPanelModel.getMapPanelModel().setScale(0.5);
@@ -276,6 +297,18 @@ public class RouteBuilderPanelModelTest {
         assertEquals("unselected: ", 0, unselected[0].size());
         assertEquals("Apartment 26, E Grove: ", eGroveAppartments, selected[0].get(0));
         assertEquals("E Grove: ", eGrove, selected[0].get(1));
+    }
+
+    @Test
+    public void loadTest() {
+        try {
+            routeBuilderPanelModel.load(new File(RouteBuilderPanelModelTest.class.getResource(
+                    "/uk/co/epii/conservatives/fredericknorth/gui/routebuilder/TestRouteableArea.xml").toURI()));
+        }
+        catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals(3, routeBuilderPanelModel.getRoutesModel().getSize());
     }
 
 }

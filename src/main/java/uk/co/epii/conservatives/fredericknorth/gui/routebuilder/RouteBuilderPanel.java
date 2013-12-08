@@ -164,7 +164,12 @@ public class RouteBuilderPanel extends JPanel {
                     selectedDwellingGroupsScrollPane.setEnabled(enabled);
                     targetSizeSlider.setEnabled(enabled);
                     targetSizeField.setEnabled(enabled);
-                    routeBuilderPanelModel.setEnabled(enabled);
+                    if (enabled) {
+                        routeBuilderPanelModel.enable();
+                    }
+                    else {
+                        routeBuilderPanelModel.disable();
+                    }
                     if (getParent().isEnabled() != enabled) {
                         getParent().setEnabled(enabled);
                     }

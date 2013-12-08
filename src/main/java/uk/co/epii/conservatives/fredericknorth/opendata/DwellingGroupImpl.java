@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
@@ -70,6 +71,11 @@ class DwellingGroupImpl extends AbstractDwellingGroupImpl {
         dwellingGroupElt.appendChild(dwellingGroupName);
         dwellingGroupName.setTextContent(getName());
         return dwellingGroupElt;
+    }
+
+    @Override
+    public String getKey() {
+        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
     }
 
     @Override

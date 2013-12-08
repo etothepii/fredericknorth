@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
@@ -44,7 +45,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private static final Logger LOG_SYNC =
             LoggerFactory.getLogger(RouteBuilderPanelModel.class.getName().concat("_sync"));
 
-    private static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
+    public static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
 
     private final MapPanelModel mapPanelModel;
     private final DwellingGroupModel routedDwellingGroups;
@@ -87,29 +88,18 @@ public class RouteBuilderPanelModel implements Activateable {
         this.dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
         this.applicationContext = applicationContext;
         this.pdfRenderer = applicationContext.getDefaultInstance(PDFRenderer.class);
-        mapPanelModel = new RouteBuilderMapPanelModel(this, Long.parseLong(applicationContext.getProperty(StationaryMouseRequirementKey)));
         routedDwellingGroups = new DwellingGroupModel(applicationContext);
         unroutedDwellingGroups = new DwellingGroupModel(applicationContext);
         routesModel = new RoutesModel(this);
         routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel(this);
+        mapPanelModel = new RouteBuilderMapPanelModel(this,
+                Long.parseLong(applicationContext.getProperty(RouteBuilderPanelModel.StationaryMouseRequirementKey)));
         boundedAreaSelectionModel.loadOSKnownInstances();
         addListeners();
     }
 
     private void addListeners() {
-        routedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                clearOtherDwellingGroup(unroutedDwellingGroups);
-            }
-        });
-        unroutedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                clearOtherDwellingGroup(routedDwellingGroups);
-            }
-        });
-        mapPanelModel.addMapPanelDataListener(new MapPanelDataAdapter() {
+        mapPanelModel.removeMapPanelDataListener(new MapPanelDataAdapter() {
             @Override
             public void overlaysMouseOverChanged(MapPanelDataEvent e) {
                 Map<OverlayItem, MouseLocation> overlayItemList = mapPanelModel.getImmutableOverlaysMouseOver();
@@ -122,6 +112,18 @@ public class RouteBuilderPanelModel implements Activateable {
                     }
                 }
                 routedAndUnroutedToolTipModel.updateDwellingGroups(dwellingGroups);
+            }
+        });
+        routedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                clearOtherDwellingGroup(unroutedDwellingGroups);
+            }
+        });
+        unroutedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                clearOtherDwellingGroup(routedDwellingGroups);
             }
         });
         routedAndUnroutedToolTipModel.getDwellingGroupModel().getListSelectionModel().addListSelectionListener(
@@ -335,7 +337,7 @@ public class RouteBuilderPanelModel implements Activateable {
         }
     }
 
-    private DefaultRoutableArea loadRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
+    private RoutableArea loadRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
         LOG.debug("loadRoutableArea: boundedArea {}, parent {}", new Object[] {boundedArea.getName(), parent == null ?
                 "null" : parent.getBoundedArea().getName()});
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
@@ -374,7 +376,7 @@ public class RouteBuilderPanelModel implements Activateable {
         if (children.length > 0) {
             progressTracker.startSubsection(children.length);
             for (BoundedArea child : children) {
-                DefaultRoutableArea childRoutableArea = loadRoutableArea(child, routableArea);
+                RoutableArea childRoutableArea = loadRoutableArea(child, routableArea);
                 routableAreas.put(child, childRoutableArea);
                 routableArea.addChild(childRoutableArea);
             }
@@ -475,11 +477,11 @@ public class RouteBuilderPanelModel implements Activateable {
                 public void run() {
                     synchronized (pdfRenderer) {
                         pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile, progressTracker);
-                        setEnabled(true);
+                        enable();
                     }
                 }
             });
-            setEnabled(false);
+            disable();
         }
     }
 
@@ -508,19 +510,6 @@ public class RouteBuilderPanelModel implements Activateable {
     public void setProgressTracker(ProgressTracker progressTracker) {
         this.progressTracker = progressTracker;
         this.mapPanelModel.setProgressTracker(progressTracker);
-    }
-
-    public void setEnabled(boolean enabled) {
-        LOG_SYNC.debug("Awaiting enabledSync");
-        try {
-            synchronized (enabledSync) {
-                LOG_SYNC.debug("Received enabledSync");
-                this.enabled = enabled;
-            }
-        }
-        finally {
-            LOG_SYNC.debug("Released enabledSync");
-        }
     }
 
     @Override

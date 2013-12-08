@@ -52,6 +52,12 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
         return dwellingGroup;
     }
 
+
+    @Override
+    public String getKey() {
+        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
+    }
+
     @Override
     public int compareTo(DwellingGroup o) {
         return getName().compareTo(o.getName());
