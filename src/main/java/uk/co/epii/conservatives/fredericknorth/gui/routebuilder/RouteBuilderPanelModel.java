@@ -99,7 +99,7 @@ public class RouteBuilderPanelModel implements Activateable {
     }
 
     private void addListeners() {
-        mapPanelModel.removeMapPanelDataListener(new MapPanelDataAdapter() {
+        mapPanelModel.addMapPanelDataListener(new MapPanelDataAdapter() {
             @Override
             public void overlaysMouseOverChanged(MapPanelDataEvent e) {
                 Map<OverlayItem, MouseLocation> overlayItemList = mapPanelModel.getImmutableOverlaysMouseOver();
