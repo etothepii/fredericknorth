@@ -23,12 +23,14 @@ public class MapPanelModelTest {
 
     @Test
     public void zoomInTest() {
-        MapViewGenerator mapViewGenerator =
-                DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(100, 200, 300, 400));
         ApplicationContext applicationContext = new TestApplicationContext();
         OSMapLoaderRegistrar.registerToContext(applicationContext);
+        MapViewGenerator mapViewGenerator =
+                DummyMapViewGeneratorFactory.getDummyInstance(applicationContext,
+                        OSMapType.STREET_VIEW, new Rectangle(100, 200, 300, 400));
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
-        RouteBuilderPanelModel routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
+        RouteBuilderPanelModel routeBuilderPanelModel =
+                new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
         MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderPanelModel, 0);
         mapViewGenerator.setViewPortSize(new Dimension(150, 100), NullProgressTracker.NULL, null);
         mapViewGenerator.setScale(0.5, NullProgressTracker.NULL, null);
@@ -43,12 +45,14 @@ public class MapPanelModelTest {
 
     @Test
     public void dragMapTest() {
-        MapViewGenerator mapViewGenerator =
-                DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(100, 200, 300, 400));
         ApplicationContext applicationContext = new TestApplicationContext();
         OSMapLoaderRegistrar.registerToContext(applicationContext);
+        MapViewGenerator mapViewGenerator =
+                DummyMapViewGeneratorFactory.getDummyInstance(applicationContext,
+                        OSMapType.STREET_VIEW, new Rectangle(100, 200, 300, 400));
         applicationContext.registerDefaultInstance(MapViewGenerator.class, mapViewGenerator);
-        RouteBuilderPanelModel routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
+        RouteBuilderPanelModel routeBuilderPanelModel =
+                new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
         MapPanelModel mapViewModel = new RouteBuilderMapPanelModel(routeBuilderPanelModel, 0);
         mapViewGenerator.setViewPortSize(new Dimension(150, 100), NullProgressTracker.NULL, null);
         mapViewGenerator.setScale(0.5, NullProgressTracker.NULL, null);

@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
@@ -56,6 +57,11 @@ public class DummyDwellingGroup implements DwellingGroup {
     @Override
     public Element toXml(Document document) {
         throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
+    }
+
+    @Override
+    public String getKey() {
+        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
     }
 
     @Override

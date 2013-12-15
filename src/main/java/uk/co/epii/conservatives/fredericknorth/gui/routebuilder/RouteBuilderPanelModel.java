@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
@@ -16,6 +17,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.*;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
@@ -43,7 +45,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private static final Logger LOG_SYNC =
             LoggerFactory.getLogger(RouteBuilderPanelModel.class.getName().concat("_sync"));
 
-    private static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
+    public static final String StationaryMouseRequirementKey = "StationaryMouseRequirement";
 
     private final MapPanelModel mapPanelModel;
     private final DwellingGroupModel routedDwellingGroups;
@@ -55,6 +57,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final PostcodeDatumFactory postcodeDatumFactory;
     private final DwellingProcessor dwellingProcessor;
     private final Executor executor;
+    private final XMLSerializer xmlSerializer;
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
@@ -74,6 +77,7 @@ public class RouteBuilderPanelModel implements Activateable {
 
     RouteBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel,
                            HashMap<BoundedArea, RoutableArea> routableAreas) {
+        xmlSerializer = applicationContext.getDefaultInstance(XMLSerializer.class);
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
         executor = Executors.newSingleThreadExecutor();
         progressTracker = new NullProgressTracker();
@@ -84,28 +88,17 @@ public class RouteBuilderPanelModel implements Activateable {
         this.dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
         this.applicationContext = applicationContext;
         this.pdfRenderer = applicationContext.getDefaultInstance(PDFRenderer.class);
-        mapPanelModel = new RouteBuilderMapPanelModel(this, Long.parseLong(applicationContext.getProperty(StationaryMouseRequirementKey)));
         routedDwellingGroups = new DwellingGroupModel(applicationContext);
         unroutedDwellingGroups = new DwellingGroupModel(applicationContext);
         routesModel = new RoutesModel(this);
         routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel(this);
+        mapPanelModel = new RouteBuilderMapPanelModel(this,
+                Long.parseLong(applicationContext.getProperty(RouteBuilderPanelModel.StationaryMouseRequirementKey)));
         boundedAreaSelectionModel.loadOSKnownInstances();
         addListeners();
     }
 
     private void addListeners() {
-        routedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                clearOtherDwellingGroup(unroutedDwellingGroups);
-            }
-        });
-        unroutedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                clearOtherDwellingGroup(routedDwellingGroups);
-            }
-        });
         mapPanelModel.addMapPanelDataListener(new MapPanelDataAdapter() {
             @Override
             public void overlaysMouseOverChanged(MapPanelDataEvent e) {
@@ -119,6 +112,18 @@ public class RouteBuilderPanelModel implements Activateable {
                     }
                 }
                 routedAndUnroutedToolTipModel.updateDwellingGroups(dwellingGroups);
+            }
+        });
+        routedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                clearOtherDwellingGroup(unroutedDwellingGroups);
+            }
+        });
+        unroutedDwellingGroups.getListSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                clearOtherDwellingGroup(routedDwellingGroups);
             }
         });
         routedAndUnroutedToolTipModel.getDwellingGroupModel().getListSelectionModel().addListSelectionListener(
@@ -150,8 +155,12 @@ public class RouteBuilderPanelModel implements Activateable {
         });
     }
 
-    void setSelectedBoundedArea(final BoundedArea boundedArea) {
-        if (boundedAreaSelectionModel.getSelected() != boundedArea) {
+    void setSelectedBoundedArea(BoundedArea boundedArea) {
+        setSelectedBoundedArea(boundedArea, false);
+    }
+
+    void setSelectedBoundedArea(final BoundedArea boundedArea, boolean force) {
+        if (!force && boundedAreaSelectionModel.getSelected() != boundedArea) {
             return;
         }
         disable();
@@ -180,7 +189,7 @@ public class RouteBuilderPanelModel implements Activateable {
                         Rectangle bounds = PolygonExtensions.getBounds(routableArea.getBoundedArea().getAreas());
                         LOG.debug("Setting universe");
                         mapPanelModel.display(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                bounds.width * 6 / 5, bounds.height * 6 / 5));
+                                bounds.width * 6 / 5, bounds.height * 6 / 5), true);
                         LOG.debug("Set universe");
                     }
                 });
@@ -332,7 +341,7 @@ public class RouteBuilderPanelModel implements Activateable {
         }
     }
 
-    private DefaultRoutableArea loadRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
+    private RoutableArea loadRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
         LOG.debug("loadRoutableArea: boundedArea {}, parent {}", new Object[] {boundedArea.getName(), parent == null ?
                 "null" : parent.getBoundedArea().getName()});
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
@@ -371,7 +380,7 @@ public class RouteBuilderPanelModel implements Activateable {
         if (children.length > 0) {
             progressTracker.startSubsection(children.length);
             for (BoundedArea child : children) {
-                DefaultRoutableArea childRoutableArea = loadRoutableArea(child, routableArea);
+                RoutableArea childRoutableArea = loadRoutableArea(child, routableArea);
                 routableAreas.put(child, childRoutableArea);
                 routableArea.addChild(childRoutableArea);
             }
@@ -461,7 +470,9 @@ public class RouteBuilderPanelModel implements Activateable {
     }
 
     public void load(File selectedFile) {
-        getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(selectedFile);
+        getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(
+                xmlSerializer.fromFile(selectedFile).getDocumentElement());
+        setSelectedBoundedArea(boundedAreaSelectionModel.getSelected(), true);
     }
 
     public void export(final File selectedFile) {
@@ -471,11 +482,11 @@ public class RouteBuilderPanelModel implements Activateable {
                 public void run() {
                     synchronized (pdfRenderer) {
                         pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile, progressTracker);
-                        setEnabled(true);
+                        enable();
                     }
                 }
             });
-            setEnabled(false);
+            disable();
         }
     }
 
@@ -504,19 +515,6 @@ public class RouteBuilderPanelModel implements Activateable {
     public void setProgressTracker(ProgressTracker progressTracker) {
         this.progressTracker = progressTracker;
         this.mapPanelModel.setProgressTracker(progressTracker);
-    }
-
-    public void setEnabled(boolean enabled) {
-        LOG_SYNC.debug("Awaiting enabledSync");
-        try {
-            synchronized (enabledSync) {
-                LOG_SYNC.debug("Received enabledSync");
-                this.enabled = enabled;
-            }
-        }
-        finally {
-            LOG_SYNC.debug("Released enabledSync");
-        }
     }
 
     @Override

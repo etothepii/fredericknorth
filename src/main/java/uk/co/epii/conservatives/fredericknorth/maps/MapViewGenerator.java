@@ -23,6 +23,7 @@ public interface MapViewGenerator {
     public MapView getView();
     public boolean scaleToFitRectangle(Rectangle rectangeToFit,
                                        ProgressTracker progressTracker, MapImageObserver imageObserver);
+    public void updateImage(MapImageObserver mapImageObserver);
     public boolean setScaleAndCenter(double newScale, Point newGeoCenter,
                                      ProgressTracker progressTracker, MapImageObserver imageObserver);
 

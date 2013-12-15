@@ -4,6 +4,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
@@ -33,11 +34,12 @@ public interface RoutableArea {
     public void markAsRouted(DwellingGroup dwellingGroup, RoutableArea routableArea);
     public void markAsUnrouted(DwellingGroup dwellingGroup, RoutableArea routableArea);
     public String getName();
-    public void load(File selectedFile);
+    public void load(Element element);
     public void save(File selectedFile);
     public RoutableArea getParent();
     public int getUnroutedDwellingCount();
     public int getDwellingCount();
     public void addRoute(Route route, RoutableArea informant);
     public void removeRoute(Route route, RoutableArea informant);
+    public void addDwellingGroup(DwellingGroup dwellingGroup, boolean routed);
 }

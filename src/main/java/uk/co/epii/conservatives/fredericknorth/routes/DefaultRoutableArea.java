@@ -3,13 +3,20 @@ package uk.co.epii.conservatives.fredericknorth.routes;
 import com.tomgibara.cluster.gvm.dbl.DblClusters;
 import com.tomgibara.cluster.gvm.dbl.DblListKeyer;
 import com.tomgibara.cluster.gvm.dbl.DblResult;
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -23,19 +30,19 @@ public class DefaultRoutableArea implements RoutableArea {
     private final BoundedArea boundedArea;
     private final HashSet<Route> routes;
     private final RoutableArea parent;
-    private final HashSet<DefaultRoutableArea> children;
-    private final HashSet<DwellingGroup> unroutedDwellingGroups;
-    private final HashSet<DwellingGroup> routedDwellingGroups;
-    private final HashSet<DwellingGroup> dwellingGroups;
+    private final HashMap<String, RoutableArea> children;
+    private final HashMap<String, DwellingGroup> unroutedDwellingGroups;
+    private final HashMap<String, DwellingGroup> routedDwellingGroups;
+    private final HashMap<String, DwellingGroup> dwellingGroups;
 
     public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
         this.boundedArea = boundedArea;
         routes = new HashSet<Route>();
         this.parent = parent;
-        children = new HashSet<DefaultRoutableArea>();
-        routedDwellingGroups = new HashSet<DwellingGroup>();
-        unroutedDwellingGroups = new HashSet<DwellingGroup>();
-        dwellingGroups = new HashSet<DwellingGroup>();
+        children = new HashMap<String, RoutableArea>();
+        routedDwellingGroups = new HashMap<String, DwellingGroup>();
+        unroutedDwellingGroups = new HashMap<String, DwellingGroup>();
+        dwellingGroups = new HashMap<String, DwellingGroup>();
     }
 
     @Override
@@ -50,22 +57,56 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public Collection<? extends DwellingGroup> getUnroutedDwellingGroups() {
-        return unroutedDwellingGroups;
+        return unroutedDwellingGroups.values();
     }
 
     @Override
     public Collection<? extends DwellingGroup> getRoutedDwellingGroups() {
-        return routedDwellingGroups;
+        return routedDwellingGroups.values();
     }
 
     @Override
     public Collection<? extends DwellingGroup> getDwellingGroups() {
-        return dwellingGroups;
+        return dwellingGroups.values();
     }
 
     @Override
     public Element toXml(Document document) {
-        throw new UnsupportedOperationException("This method has not yet been implemented");
+        Element routableAreaElement = document.createElement("RoutableArea");
+        Element boundedAreaElement = document.createElement("BoundedArea");
+        routableAreaElement.appendChild(boundedAreaElement);
+        Element name = document.createElement("Name");
+        boundedAreaElement.appendChild(name);
+        name.setTextContent(boundedArea.getName());
+        Element type = document.createElement("Type");
+        boundedAreaElement.appendChild(type);
+        type.setTextContent(boundedArea.getBoundedAreaType().toString());
+        Element routesElt = document.createElement("Routes");
+        boundedAreaElement.appendChild(routesElt);
+        HashSet<Route> localRoutes = new HashSet<Route>(routes);
+        for (RoutableArea child : children.values()) {
+            for (Route route : child.getRoutes()) {
+                localRoutes.remove(route);
+            }
+        }
+        for (Route route : localRoutes) {
+            Element routeElt = route.toXml(document);
+            routesElt.appendChild(routeElt);
+
+        }
+        List<RoutableArea> orderedChildren = new ArrayList<RoutableArea>(this.children.values());
+        Collections.sort(orderedChildren, new Comparator<RoutableArea>() {
+            @Override
+            public int compare(RoutableArea a, RoutableArea b) {
+                return a.getName().compareTo(b.getName());
+            }
+        });
+        Element children = document.createElement("Children");
+        routableAreaElement.appendChild(children);
+        for (RoutableArea child : orderedChildren) {
+            children.appendChild(child.toXml(document));
+        }
+        return routableAreaElement;
     }
 
     @Override
@@ -75,7 +116,7 @@ public class DefaultRoutableArea implements RoutableArea {
                 removeRoute(route, this);
             }
         }
-        for (DefaultRoutableArea child : children) {
+        for (RoutableArea child : children.values()) {
             child.autoGenerate(targetSize, unroutedOnly);
         }
         routeUnrouted(targetSize);
@@ -85,7 +126,7 @@ public class DefaultRoutableArea implements RoutableArea {
         int routes = calculateRoutesCount(targetSize);
         DblClusters<List<DwellingGroup>> clusters = new DblClusters<List<DwellingGroup>>(2, routes);
         clusters.setKeyer(new DblListKeyer<DwellingGroup>());
-        for (DwellingGroup dwellingGroup : unroutedDwellingGroups) {
+        for (DwellingGroup dwellingGroup : unroutedDwellingGroups.values()) {
             Point geoLocation = dwellingGroup.getPoint();
             double[] doubleGeoLocation = new double[] {geoLocation.getX(), geoLocation.getY()};
             double weight = dwellingGroup.size();
@@ -113,7 +154,7 @@ public class DefaultRoutableArea implements RoutableArea {
 
     private int calculateRoutesCount(int targetSize) {
         HashMap<Point, Integer> pointSizes = new HashMap<Point, Integer>(dwellingGroups.size());
-        for (DwellingGroup dwellingGroup : unroutedDwellingGroups) {
+        for (DwellingGroup dwellingGroup : unroutedDwellingGroups.values()) {
             int count = 0;
             if (pointSizes.containsKey(dwellingGroup.getPoint())) {
                 count += pointSizes.get(dwellingGroup.getPoint());
@@ -152,21 +193,23 @@ public class DefaultRoutableArea implements RoutableArea {
     public void removeAll() {
         routes.clear();
         unroutedDwellingGroups.clear();
-        unroutedDwellingGroups.addAll(dwellingGroups);
+        unroutedDwellingGroups.putAll(dwellingGroups);
         routedDwellingGroups.clear();
-        for (DefaultRoutableArea childRoutableArea : children) {
+        for (RoutableArea childRoutableArea : children.values()) {
             childRoutableArea.removeAll();
         }
     }
 
     @Override
     public void markAsRouted(DwellingGroup dwellingGroup) {
-        if (unroutedDwellingGroups.remove(dwellingGroup)) {
-            routedDwellingGroups.add(dwellingGroup);
+        String key = dwellingGroup.getKey();
+        if (unroutedDwellingGroups.containsKey(key)) {
+            unroutedDwellingGroups.remove(dwellingGroup.getKey());
+            routedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
             if (parent != null) {
                 parent.markAsRouted(dwellingGroup, this);
             }
-            for (DefaultRoutableArea child : children) {
+            for (RoutableArea child : children.values()) {
                 child.markAsRouted(dwellingGroup, this);
             }
         }
@@ -174,12 +217,13 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public void markAsUnrouted(DwellingGroup dwellingGroup) {
-        if (routedDwellingGroups.remove(dwellingGroup)) {
-            unroutedDwellingGroups.add(dwellingGroup);
+        if (routedDwellingGroups.containsKey(dwellingGroup.getKey())) {
+            routedDwellingGroups.remove(dwellingGroup.getKey());
+            unroutedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
             if (parent != null) {
                 parent.markAsUnrouted(dwellingGroup, this);
             }
-            for (DefaultRoutableArea child : children) {
+            for (RoutableArea child : children.values()) {
                 child.markAsUnrouted(dwellingGroup, this);
             }
         }
@@ -187,14 +231,15 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public void markAsRouted(DwellingGroup dwellingGroup, RoutableArea informant) {
-        if (unroutedDwellingGroups.remove(dwellingGroup)) {
-            routedDwellingGroups.add(dwellingGroup);
+        if (unroutedDwellingGroups.containsKey(dwellingGroup.getKey())) {
+            unroutedDwellingGroups.remove(dwellingGroup.getKey());
+            routedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
             if (informant == parent) {
-                for (DefaultRoutableArea child : children) {
+                for (RoutableArea child : children.values()) {
                     child.markAsRouted(dwellingGroup, this);
                 }
             }
-            else if (children.contains(informant)) {
+            else if (children.containsKey(informant.getName())) {
                 if (parent != null) {
                     parent.markAsRouted(dwellingGroup, this);
                 }
@@ -208,14 +253,15 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public void markAsUnrouted(DwellingGroup dwellingGroup, RoutableArea informant) {
-        if (routedDwellingGroups.remove(dwellingGroup)) {
-            unroutedDwellingGroups.add(dwellingGroup);
+        if (routedDwellingGroups.containsKey(dwellingGroup.getKey())) {
+            routedDwellingGroups.remove(dwellingGroup.getKey());
+            unroutedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
             if (informant == parent) {
-                for (DefaultRoutableArea child : children) {
+                for (RoutableArea child : children.values()) {
                     child.markAsUnrouted(dwellingGroup, this);
                 }
             }
-            else if (children.contains(informant)) {
+            else if (children.containsKey(informant.getName())) {
                 if (parent != null) {
                     parent.markAsUnrouted(dwellingGroup, this);
                 }
@@ -234,7 +280,23 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public void save(File selectedFile) {
-        throw new UnsupportedOperationException("This method is not yet supported");
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder;
+        try {
+            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        }
+        catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+        Document document = documentBuilder.newDocument();
+        Element routableAreasElt = toXml(document);
+        document.appendChild(routableAreasElt);
+        try {
+            FileUtils.write(selectedFile, new XMLSerializerImpl().toString(document));
+        }
+        catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
     }
 
     @Override
@@ -264,11 +326,11 @@ public class DefaultRoutableArea implements RoutableArea {
     public void addRoute(Route route, RoutableArea informant) {
         if (routes.add(route)) {
             if (informant == parent) {
-                for (DefaultRoutableArea child : children) {
+                for (RoutableArea child : children.values()) {
                     child.addRoute(route, this);
                 }
             }
-            else if (children.contains(informant)) {
+            else if (children.containsKey(informant.getName())) {
                 if (parent != null) {
                     parent.addRoute(route, this);
                 }
@@ -284,11 +346,11 @@ public class DefaultRoutableArea implements RoutableArea {
     public void removeRoute(Route route, RoutableArea informant) {
         if (routes.remove(route)) {
             if (informant == parent) {
-                for (DefaultRoutableArea child : children) {
+                for (RoutableArea child : children.values()) {
                     child.removeRoute(route, this);
                 }
             }
-            else if (children.contains(informant)) {
+            else if (children.containsKey(informant.getName())) {
                 if (parent != null) {
                     parent.removeRoute(route, this);
                 }
@@ -301,8 +363,46 @@ public class DefaultRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void load(File selectedFile) {
-        throw new UnsupportedOperationException("This method is not yet supported");
+    public void load(Element element) {
+        if (!boundedArea.getName().equals(extractName(element))) {
+            throw new IllegalArgumentException("The element provided does not represent with this RoutableArea");
+        }
+        Element boundedArea = (Element)element.getElementsByTagName("BoundedArea").item(0);
+        NodeList routeTags = ((Element)boundedArea.getElementsByTagName("Routes").item(0)).getElementsByTagName("Route");
+        for (int i = 0; i < routeTags.getLength(); i++) {
+            loadRoute((Element)routeTags.item(i));
+        }
+        NodeList childTags = ((Element)element.getElementsByTagName("Children").item(0)).getElementsByTagName("RoutableArea");
+        for (int i = 0; i < childTags.getLength(); i++) {
+            loadRoutableArea((Element) childTags.item(i));
+        }
+    }
+
+    private void loadRoutableArea(Element item) {
+        String name = extractName(item);
+        RoutableArea routableArea = children.get(name);
+        if (routableArea != null) {
+            routableArea.load(item);
+        }
+    }
+
+    private void loadRoute(Element routeElt) {
+        String routeName = routeElt.getElementsByTagName("Name").item(0).getTextContent();
+        Route route = createRoute(routeName);
+        NodeList dwellingGroups = ((Element)routeElt.getElementsByTagName("DwellingGroups").item(0)).getElementsByTagName("DwellingGroup");
+        for (int i = 0; i < dwellingGroups.getLength(); i++) {
+            Element dwellingGroup = (Element) dwellingGroups.item(i);
+            String key = dwellingGroup.getElementsByTagName("Key").item(0).getTextContent();
+            route.addDwellingGroups(Arrays.asList(unroutedDwellingGroups.get(key)));
+        }
+    }
+
+    private String extractName(Element element) {
+        if (!element.getTagName().equals("RoutableArea")) {
+            throw new IllegalArgumentException("The tag provided is not for a RoutableArea");
+        }
+        Element boundedArea = (Element)element.getElementsByTagName("BoundedArea").item(0);
+        return boundedArea.getElementsByTagName("Name").item(0).getTextContent();
     }
 
     @Override
@@ -322,17 +422,21 @@ public class DefaultRoutableArea implements RoutableArea {
         return boundedArea != null ? boundedArea.hashCode() : 0;
     }
 
+    @Override
     public void addDwellingGroup(DwellingGroup dwellingGroup, boolean routed) {
-        dwellingGroups.add(dwellingGroup);
+        if (parent != null) {
+            parent.addDwellingGroup(dwellingGroup, routed);
+        }
+        dwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
         if (routed) {
-            routedDwellingGroups.add(dwellingGroup);
+            routedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
         }
         else {
-            unroutedDwellingGroups.add(dwellingGroup);
+            unroutedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
         }
     }
 
-    public void addChild(DefaultRoutableArea childRoutableArea) {
-        children.add(childRoutableArea);
+    public void addChild(RoutableArea childRoutableArea) {
+        children.put(childRoutableArea.getName(), childRoutableArea);
     }
 }

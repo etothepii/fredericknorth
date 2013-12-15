@@ -24,10 +24,12 @@ public class RoutesModelTest {
         TestApplicationContext applicationContext = new TestApplicationContext();
         OSMapLoaderRegistrar.registerToContext(applicationContext);
         applicationContext.registerDefaultInstance(MapViewGenerator.class,
-                DummyMapViewGeneratorFactory.getDummyInstance(OSMapType.STREET_VIEW, new Rectangle(1, 1, 1, 1)));
+                DummyMapViewGeneratorFactory.getDummyInstance(applicationContext,
+                        OSMapType.STREET_VIEW, new Rectangle(1, 1, 1, 1)));
         DummyRoutableArea dummyRoutableArea = new DummyRoutableArea(null, null, "A Ward", "A");
-        RoutesModel routesModel = new RoutesModel(
-                new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null)));
+        RouteBuilderPanelModel routeBuilderPanelModel =
+                new RouteBuilderPanelModel(applicationContext, new DummyBoundedAreaSelectionModel(null));
+        RoutesModel routesModel = new RoutesModel(routeBuilderPanelModel);
         routesModel.setSelectedRoutableArea(dummyRoutableArea);
         routesModel.add("Route 1");
         routesModel.add("Route 2");

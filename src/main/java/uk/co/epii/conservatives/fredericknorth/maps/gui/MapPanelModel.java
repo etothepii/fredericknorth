@@ -45,7 +45,7 @@ public interface MapPanelModel {
     public boolean isMouseOverItems();
     public void cancel();
     public void setProgressTracker(ProgressTracker progressTracker);
-    public void display(Rectangle rectangle);
+    public void display(Rectangle rectangle, boolean force);
     public void setMapImageObserver(MapImageObserver mapImageObserver);
     public Collection<Rectangle> getRepaintAreas(MapPanel mapPanel);
     public void monitorRepaintAreas();

@@ -57,7 +57,8 @@ class MapViewGeneratorImpl implements MapViewGenerator {
 
     MapViewGeneratorImpl(ApplicationContext applicationContext,
                          Map<OSMapType, MapImage> mapCache, LocationFactory locationFactory, MapLabelFactory mapLabelFactory) {
-        this(null, applicationContext.getDefaultInstance(OSMapLocator.class),
+        this(applicationContext.getDefaultInstance(OSMapLoader.class),
+                applicationContext.getDefaultInstance(OSMapLocator.class),
                 locationFactory, mapLabelFactory, NullProgressTracker.NULL);
     }
 
@@ -148,6 +149,11 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         }
         fireMapViewTranslationChangedEvent();
         return true;
+    }
+
+    @Override
+    public void updateImage(MapImageObserver imageObserver) {
+        updateImage(new NullProgressTracker(), imageObserver);
     }
 
     private void updateImage(final ProgressTracker progressTracker, final MapImageObserver imageObserver) {
@@ -383,7 +389,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 viewPortSize.getHeight() / rectangeToFit.getHeight());
         Point desiredGeoCentre = RectangleExtensions.getCenter(rectangeToFit);
         boolean dirty = setGeoCenter(desiredGeoCentre, false, progressTracker, imageObserver);
-        dirty &= setScale(requiredScale, false, progressTracker, imageObserver);
+        dirty |= setScale(requiredScale, false, progressTracker, imageObserver);
         if (dirty) {
             fireMapViewTranslationChangedEvent();
             updateImage(progressTracker, imageObserver);

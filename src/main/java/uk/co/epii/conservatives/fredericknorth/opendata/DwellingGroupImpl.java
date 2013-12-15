@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
@@ -15,7 +16,7 @@ import org.w3c.dom.Document;
  * Date: 21/06/13
  * Time: 00:51
  */
-class DwellingGroupImpl extends AbstractDwellingGroupImpl {
+public class DwellingGroupImpl extends AbstractDwellingGroupImpl {
 
     private final List<Dwelling> dwellings;
     private PostcodeDatumImpl postcode;
@@ -63,13 +64,15 @@ class DwellingGroupImpl extends AbstractDwellingGroupImpl {
 
     public Element toXml(Document document) {
         Element dwellingGroupElt = document.createElement("DwellingGroup");
-        Element dwellingGroupPostcode = document.createElement("Postcode");
-        dwellingGroupElt.appendChild(dwellingGroupPostcode);
-        dwellingGroupPostcode.setTextContent(postcode.getName());
-        Element dwellingGroupName = document.createElement("Name");
+        Element dwellingGroupName = document.createElement("Key");
         dwellingGroupElt.appendChild(dwellingGroupName);
-        dwellingGroupName.setTextContent(getName());
+        dwellingGroupName.setTextContent(getKey());
         return dwellingGroupElt;
+    }
+
+    @Override
+    public String getKey() {
+        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
     }
 
     @Override

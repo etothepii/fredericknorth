@@ -3,6 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.gui;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.RoutableAreaBuilderPanelModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderPanelModel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 

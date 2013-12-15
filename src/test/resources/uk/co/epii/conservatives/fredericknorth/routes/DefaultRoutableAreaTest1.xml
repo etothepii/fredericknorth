@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<RoutableArea>
+  <BoundedArea>
+    <Name>Council Ward</Name>
+    <Type>UNITARY_DISTRICT_WARD</Type>
+    <Routes>
+      <Route>
+        <Name>Route 3</Name>
+        <DwellingGroups>
+          <DwellingGroup>
+            <Key>CW3 1AAE50N50</Key>
+          </DwellingGroup>
+        </DwellingGroups>
+      </Route>
+    </Routes>
+  </BoundedArea>
+  <Children>
+    <RoutableArea>
+      <BoundedArea>
+        <Name>CW1</Name>
+        <Type>POLLING_DISTRICT</Type>
+        <Routes>
+          <Route>
+            <Name>Route 1</Name>
+            <DwellingGroups>
+              <DwellingGroup>
+                <Key>CW1 1AAE10N10</Key>
+              </DwellingGroup>
+            </DwellingGroups>
+          </Route>
+        </Routes>
+      </BoundedArea>
+      <Children/>
+    </RoutableArea>
+    <RoutableArea>
+      <BoundedArea>
+        <Name>CW2</Name>
+        <Type>POLLING_DISTRICT</Type>
+        <Routes>
+          <Route>
+            <Name>Route 2</Name>
+            <DwellingGroups>
+              <DwellingGroup>
+                <Key>CW2 1AAE30N30</Key>
+              </DwellingGroup>
+            </DwellingGroups>
+          </Route>
+        </Routes>
+      </BoundedArea>
+      <Children/>
+    </RoutableArea>
+  </Children>
+</RoutableArea>

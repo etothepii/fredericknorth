@@ -96,13 +96,14 @@ class RoutesModel extends AbstractListModel implements ComboBoxModel {
         }
     }
 
-    public void add(String routeName) {
+    public Route add(String routeName) {
         Route route = selectedRoutableArea.createRoute(routeName);
         routes.add(route);
         updateRoutesIndexMap();
         setSelectedItem(route);
         int insertedAt = routesIndexMap.get(route);
         fireIntervalAdded(this, insertedAt, insertedAt);
+        return route;
     }
 
     public void rename(String routeName) {
