@@ -140,7 +140,7 @@ public class DummyMapPanelModel implements MapPanelModel {
     public void setProgressTracker(ProgressTracker progressTracker) {}
 
     @Override
-    public void display(Rectangle rectangle) {
+    public void display(Rectangle rectangle, boolean force) {
         if (mapImageObserver != null) {
             mapImageObserver.imageUpdated(null, rectangle, true);
         }

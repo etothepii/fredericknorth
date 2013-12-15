@@ -3,11 +3,15 @@ package uk.co.epii.conservatives.fredericknorth.routes;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupImpl;
+import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumImpl;
 import uk.co.epii.conservatives.fredericknorth.utilities.ResourceHelper;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupTestFactory;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import java.awt.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,12 +38,12 @@ public class RouteTest {
     @Test
     public void simpleRouteToXmlTest() throws Exception {
         Route route = new RouteImpl(null, "Route 2");
-        route.getDwellingGroups().add(DwellingGroupTestFactory.getInstance(
-                "CHAPEL HOUSE STREET, LONDON", "CHAPEL HOUSE STREET, LONDON", "E14 3AS"));
-        route.getDwellingGroups().add(DwellingGroupTestFactory.getInstance(
-                "THERMOPYLAE GATE, LONDON", "THERMOPYLAE GATE, LONDON", "E14 3AX"));
-        route.getDwellingGroups().add(DwellingGroupTestFactory.getInstance(
-                "MACQUARIE WAY, LONDON", "MACQUARIE WAY, LONDON", "E14 3AU"));
+        route.getDwellingGroups().add(new DwellingGroupImpl("CHAPEL HOUSE STREET, LONDON",
+                "CHAPEL HOUSE STREET, LONDON", new PostcodeDatumImpl("A1 1AA", new Point(324, 467))));
+        route.getDwellingGroups().add(new DwellingGroupImpl("THERMOPYLAE GATE, LONDON", "THERMOPYLAE GATE, LONDON",
+                new PostcodeDatumImpl("A1 1AB", new Point(324, 467))));
+        route.getDwellingGroups().add(new DwellingGroupImpl("MACQUARIE WAY, LONDON", "MACQUARIE WAY, LONDON",
+                new PostcodeDatumImpl("A1 1AC", new Point(324, 467))));
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         Document document = documentBuilder.newDocument();

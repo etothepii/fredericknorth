@@ -155,8 +155,12 @@ public class RouteBuilderPanelModel implements Activateable {
         });
     }
 
-    void setSelectedBoundedArea(final BoundedArea boundedArea) {
-        if (boundedAreaSelectionModel.getSelected() != boundedArea) {
+    void setSelectedBoundedArea(BoundedArea boundedArea) {
+        setSelectedBoundedArea(boundedArea, false);
+    }
+
+    void setSelectedBoundedArea(final BoundedArea boundedArea, boolean force) {
+        if (!force && boundedAreaSelectionModel.getSelected() != boundedArea) {
             return;
         }
         disable();
@@ -185,7 +189,7 @@ public class RouteBuilderPanelModel implements Activateable {
                         Rectangle bounds = PolygonExtensions.getBounds(routableArea.getBoundedArea().getAreas());
                         LOG.debug("Setting universe");
                         mapPanelModel.display(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                bounds.width * 6 / 5, bounds.height * 6 / 5));
+                                bounds.width * 6 / 5, bounds.height * 6 / 5), true);
                         LOG.debug("Set universe");
                     }
                 });
@@ -468,6 +472,7 @@ public class RouteBuilderPanelModel implements Activateable {
     public void load(File selectedFile) {
         getRoutableArea(getBoundedAreaSelectionModel().getMasterSelected()).load(
                 xmlSerializer.fromFile(selectedFile).getDocumentElement());
+        setSelectedBoundedArea(boundedAreaSelectionModel.getSelected(), true);
     }
 
     public void export(final File selectedFile) {

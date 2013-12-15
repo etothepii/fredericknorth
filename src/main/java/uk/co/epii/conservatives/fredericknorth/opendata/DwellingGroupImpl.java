@@ -16,7 +16,7 @@ import org.w3c.dom.Document;
  * Date: 21/06/13
  * Time: 00:51
  */
-class DwellingGroupImpl extends AbstractDwellingGroupImpl {
+public class DwellingGroupImpl extends AbstractDwellingGroupImpl {
 
     private final List<Dwelling> dwellings;
     private PostcodeDatumImpl postcode;
@@ -64,12 +64,9 @@ class DwellingGroupImpl extends AbstractDwellingGroupImpl {
 
     public Element toXml(Document document) {
         Element dwellingGroupElt = document.createElement("DwellingGroup");
-        Element dwellingGroupPostcode = document.createElement("Postcode");
-        dwellingGroupElt.appendChild(dwellingGroupPostcode);
-        dwellingGroupPostcode.setTextContent(postcode.getName());
-        Element dwellingGroupName = document.createElement("Name");
+        Element dwellingGroupName = document.createElement("Key");
         dwellingGroupElt.appendChild(dwellingGroupName);
-        dwellingGroupName.setTextContent(getName());
+        dwellingGroupName.setTextContent(getKey());
         return dwellingGroupElt;
     }
 

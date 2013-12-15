@@ -61,7 +61,7 @@ public class DummyDwellingGroup implements DwellingGroup {
 
     @Override
     public String getKey() {
-        return name;
+        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
     }
 
     @Override

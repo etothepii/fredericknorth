@@ -43,11 +43,8 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
     @Override
     public Element toXml(Document document) {
         Element dwellingGroup = document.createElement("DwellingGroup");
-        Element postcode = document.createElement("Postcode");
-        postcode.setTextContent(this.postcode.getName());
-        dwellingGroup.appendChild(postcode);
-        Element name = document.createElement("Name");
-        name.setTextContent(PointExtensions.getLocationString(getPoint()));
+        Element name = document.createElement("Key");
+        name.setTextContent(getKey());
         dwellingGroup.appendChild(name);
         return dwellingGroup;
     }

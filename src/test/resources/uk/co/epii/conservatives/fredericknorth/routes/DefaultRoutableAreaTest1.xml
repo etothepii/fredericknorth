@@ -8,8 +8,7 @@
         <Name>Route 3</Name>
         <DwellingGroups>
           <DwellingGroup>
-            <Postcode>CW3 1AA</Postcode>
-            <Name>E50N50</Name>
+            <Key>CW3 1AAE50N50</Key>
           </DwellingGroup>
         </DwellingGroups>
       </Route>
@@ -25,8 +24,7 @@
             <Name>Route 1</Name>
             <DwellingGroups>
               <DwellingGroup>
-                <Postcode>CW1 1AA</Postcode>
-                <Name>E10N10</Name>
+                <Key>CW1 1AAE10N10</Key>
               </DwellingGroup>
             </DwellingGroups>
           </Route>
@@ -43,8 +41,7 @@
             <Name>Route 2</Name>
             <DwellingGroups>
               <DwellingGroup>
-                <Postcode>CW2 1AA</Postcode>
-                <Name>E30N30</Name>
+                <Key>CW2 1AAE30N30</Key>
               </DwellingGroup>
             </DwellingGroups>
           </Route>

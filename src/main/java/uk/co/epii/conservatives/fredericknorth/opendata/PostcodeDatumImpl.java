@@ -11,7 +11,7 @@ import java.util.List;
  * Time: 00:52
  */
 
-class PostcodeDatumImpl implements PostcodeDatum {
+public class PostcodeDatumImpl implements PostcodeDatum {
 
     private final String postcode;
     private Point location;
@@ -19,14 +19,14 @@ class PostcodeDatumImpl implements PostcodeDatum {
     private List<Dwelling> dwellings;
     private Point point;
 
-    PostcodeDatumImpl(String postcode) {
+    public PostcodeDatumImpl(String postcode) {
         if (postcode == null) throw new NullPointerException("The postcode is null!");
         this.postcode = postcode;
         councilBandCount = new int[9];
         this.dwellings = new ArrayList<Dwelling>();
     }
 
-    PostcodeDatumImpl(String postcode, Point location) {
+    public PostcodeDatumImpl(String postcode, Point location) {
         this(postcode);
         this.location = location;
     }

@@ -518,8 +518,13 @@ public abstract class AbstractMapPanelModel implements MapPanelModel, MapViewCha
     }
 
     @Override
-    public void display(Rectangle rectangle) {
-        mapViewGenerator.scaleToFitRectangle(rectangle, progressTracker, mapImageObserver);
+    public void display(Rectangle rectangle, boolean force) {
+        if (!mapViewGenerator.scaleToFitRectangle(rectangle, progressTracker, mapImageObserver)) {
+
+            // If no parameters have changed then force an update Image call
+
+            mapViewGenerator.updateImage(mapImageObserver);
+        }
         LOG.debug("Universe loading complete");
     }
 

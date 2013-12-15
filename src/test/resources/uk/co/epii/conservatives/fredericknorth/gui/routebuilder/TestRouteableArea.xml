@@ -8,49 +8,17 @@
                 <Name>Route 1</Name>
                 <DwellingGroups>
                     <DwellingGroup>
-                        <Postcode>CW3 1AA</Postcode>
-                        <Name>E50N50</Name>
+                        <Key>A1 1AAE10N90</Key>
+                    </DwellingGroup>
+                    <DwellingGroup>
+                        <Key>A1 1ABE50N10</Key>
+                    </DwellingGroup>
+                    <DwellingGroup>
+                        <Key>A1 1ACE91N91</Key>
                     </DwellingGroup>
                 </DwellingGroups>
             </Route>
         </Routes>
     </BoundedArea>
-    <Children>
-        <RoutableArea>
-            <BoundedArea>
-                <Name>CW1</Name>
-                <Type>POLLING_DISTRICT</Type>
-                <Routes>
-                    <Route>
-                        <Name>Route 1</Name>
-                        <DwellingGroups>
-                            <DwellingGroup>
-                                <Postcode>CW1 1AA</Postcode>
-                                <Name>E10N10</Name>
-                            </DwellingGroup>
-                        </DwellingGroups>
-                    </Route>
-                </Routes>
-            </BoundedArea>
-            <Children/>
-        </RoutableArea>
-        <RoutableArea>
-            <BoundedArea>
-                <Name>CW2</Name>
-                <Type>POLLING_DISTRICT</Type>
-                <Routes>
-                    <Route>
-                        <Name>Route 2</Name>
-                        <DwellingGroups>
-                            <DwellingGroup>
-                                <Postcode>CW2 1AA</Postcode>
-                                <Name>E30N30</Name>
-                            </DwellingGroup>
-                        </DwellingGroups>
-                    </Route>
-                </Routes>
-            </BoundedArea>
-            <Children/>
-        </RoutableArea>
-    </Children>
+    <Children/>
 </RoutableArea>

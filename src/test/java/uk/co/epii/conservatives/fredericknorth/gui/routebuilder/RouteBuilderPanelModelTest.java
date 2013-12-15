@@ -26,10 +26,8 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -49,12 +47,13 @@ public class RouteBuilderPanelModelTest {
     private static DummyDwellingGroup fRoad;
 
     private RouteBuilderPanelModel routeBuilderPanelModel;
+    private RoutableArea routableArea;
 
     @Before
     public void setUp() throws Exception {
         BoundedArea neighbourhood = new DummyBoundedArea(BoundedAreaType.NEIGHBOURHOOD,
                 "A Bounded Area", new Polygon(new int[] {0, 0, 100, 100}, new int[] {0, 100, 100, 0}, 4));
-        RoutableArea routableArea = new DefaultRoutableArea(neighbourhood, null);
+        routableArea = new DefaultRoutableArea(neighbourhood, null);
         bRoad = new DummyDwellingGroup("B Road", 25, new Point(10, 90));
         bRoad.setPostcode(new DummyPostcodeDatum("A1 1AA"));
         routableArea.addDwellingGroup(bRoad, false);
@@ -94,9 +93,9 @@ public class RouteBuilderPanelModelTest {
         while (!routeBuilderPanelModel.isEnabled()) {
             Thread.sleep(100l);
         }
-        routeBuilderPanelModel.getRoutesModel().add("Route 1");
-        Route route = routeBuilderPanelModel.getRoutesModel().getElementAt(0);
-        route.addDwellingGroups(Arrays.asList(new Object[] {bRoad, cStreet}));
+    }
+
+    private void initiateAndDraw() throws InterruptedException, InvocationTargetException {
         routeBuilderPanelModel.setSelectedBoundedArea(routableArea.getBoundedArea());
         routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
         routeBuilderPanelModel.getMapPanelModel().setViewportSize(new Dimension(50, 50));
@@ -115,6 +114,12 @@ public class RouteBuilderPanelModelTest {
         });
     }
 
+    public void initRoutes() {
+        routeBuilderPanelModel.getRoutesModel().add("Route 1");
+        Route route = routeBuilderPanelModel.getRoutesModel().getElementAt(0);
+        route.addDwellingGroups(Arrays.asList(new Object[] {bRoad, cStreet}));
+    }
+
     private void tidyInvokeAndWait(Runnable r) {
         try {
             SwingUtilities.invokeAndWait(r);
@@ -128,7 +133,9 @@ public class RouteBuilderPanelModelTest {
     }
 
     @Test
-    public void correctlyBuildsRoutedAndUnroutedToolTipFromSelectionArea() {
+    public void correctlyBuildsRoutedAndUnroutedToolTipFromSelectionArea() throws InvocationTargetException, InterruptedException {
+        initRoutes();
+        initiateAndDraw();
         final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
         final List<OverlayItem>[] overlays = new List[1];
         final List<DwellingGroup>[] selected = new List[1];
@@ -176,7 +183,9 @@ public class RouteBuilderPanelModelTest {
     }
 
     @Test
-    public void correctlyBuildsRoutedAndUnroutedToolTipListTest1() {
+    public void correctlyBuildsRoutedAndUnroutedToolTipListTest1() throws InvocationTargetException, InterruptedException {
+        initRoutes();
+        initiateAndDraw();
         final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
         final List<OverlayItem>[] overlays = new List[1];
         final List<DwellingGroup>[] selected = new List[1];
@@ -221,7 +230,8 @@ public class RouteBuilderPanelModelTest {
     }
 
     @Test
-    public void correctlyBuildsRoutedAndUnroutedToolTipListTest2() {
+    public void correctlyBuildsRoutedAndUnroutedToolTipListTest2() throws InvocationTargetException, InterruptedException {
+        initiateAndDraw();
         final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
         final List<OverlayItem>[] overlays = new List[1];
         final List<DwellingGroup>[] selected = new List[1];
@@ -268,7 +278,8 @@ public class RouteBuilderPanelModelTest {
     }
 
     @Test
-    public void routedAndUnroutedToolTipListSelectsAllOnDoubleClickTest() {
+    public void routedAndUnroutedToolTipListSelectsAllOnDoubleClickTest() throws InvocationTargetException, InterruptedException {
+        initiateAndDraw();
         final List<DwellingGroup>[] selected = new List[1];
         final List<DwellingGroup>[] unselected = new List[1];
         final RoutedAndUnroutedToolTipModel[] routedAndUnroutedToolTipModel = new RoutedAndUnroutedToolTipModel[1];
@@ -300,7 +311,8 @@ public class RouteBuilderPanelModelTest {
     }
 
     @Test
-    public void loadTest() {
+    public void loadTest() throws InvocationTargetException, InterruptedException {
+        initiateAndDraw();
         try {
             routeBuilderPanelModel.load(new File(RouteBuilderPanelModelTest.class.getResource(
                     "/uk/co/epii/conservatives/fredericknorth/gui/routebuilder/TestRouteableArea.xml").toURI()));
@@ -308,7 +320,19 @@ public class RouteBuilderPanelModelTest {
         catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-        assertEquals(3, routeBuilderPanelModel.getRoutesModel().getSize());
+        while (!routeBuilderPanelModel.isEnabled()) {
+            try {Thread.sleep(100L);} catch (InterruptedException ie) {}
+        }
+        assertEquals(1, routeBuilderPanelModel.getRoutesModel().getSize());
+        Route route = routeBuilderPanelModel.getRoutesModel().getElementAt(0);
+        assertEquals(3, route.getDwellingGroups().size());
+        HashSet<String> dwellingGroupNames = new HashSet<String>();
+        for (DwellingGroup dwellingGroup : route.getDwellingGroups()) {
+            dwellingGroupNames.add(dwellingGroup.getName());
+        }
+        assertTrue(dwellingGroupNames.contains("B Road"));
+        assertTrue(dwellingGroupNames.contains("Apartment 26, E Grove"));
+        assertTrue(dwellingGroupNames.contains("C Street"));
     }
 
 }

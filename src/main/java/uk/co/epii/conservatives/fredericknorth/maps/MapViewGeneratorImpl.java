@@ -151,6 +151,11 @@ class MapViewGeneratorImpl implements MapViewGenerator {
         return true;
     }
 
+    @Override
+    public void updateImage(MapImageObserver imageObserver) {
+        updateImage(new NullProgressTracker(), imageObserver);
+    }
+
     private void updateImage(final ProgressTracker progressTracker, final MapImageObserver imageObserver) {
         synchronized (cancellationTokenSync) {
             if (cancellationToken != null) {
@@ -384,7 +389,7 @@ class MapViewGeneratorImpl implements MapViewGenerator {
                 viewPortSize.getHeight() / rectangeToFit.getHeight());
         Point desiredGeoCentre = RectangleExtensions.getCenter(rectangeToFit);
         boolean dirty = setGeoCenter(desiredGeoCentre, false, progressTracker, imageObserver);
-        dirty &= setScale(requiredScale, false, progressTracker, imageObserver);
+        dirty |= setScale(requiredScale, false, progressTracker, imageObserver);
         if (dirty) {
             fireMapViewTranslationChangedEvent();
             updateImage(progressTracker, imageObserver);

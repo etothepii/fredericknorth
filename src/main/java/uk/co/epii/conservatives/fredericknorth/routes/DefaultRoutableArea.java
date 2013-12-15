@@ -202,7 +202,8 @@ public class DefaultRoutableArea implements RoutableArea {
 
     @Override
     public void markAsRouted(DwellingGroup dwellingGroup) {
-        if (unroutedDwellingGroups.containsKey(dwellingGroup.getKey())) {
+        String key = dwellingGroup.getKey();
+        if (unroutedDwellingGroups.containsKey(key)) {
             unroutedDwellingGroups.remove(dwellingGroup.getKey());
             routedDwellingGroups.put(dwellingGroup.getKey(), dwellingGroup);
             if (parent != null) {
@@ -391,9 +392,8 @@ public class DefaultRoutableArea implements RoutableArea {
         NodeList dwellingGroups = ((Element)routeElt.getElementsByTagName("DwellingGroups").item(0)).getElementsByTagName("DwellingGroup");
         for (int i = 0; i < dwellingGroups.getLength(); i++) {
             Element dwellingGroup = (Element) dwellingGroups.item(i);
-            String postcode = dwellingGroup.getElementsByTagName("Postcode").item(0).getTextContent();
-            String name = dwellingGroup.getElementsByTagName("Name").item(0).getTextContent();
-            route.addDwellingGroups(Arrays.asList(unroutedDwellingGroups.get(postcode + name)));
+            String key = dwellingGroup.getElementsByTagName("Key").item(0).getTextContent();
+            route.addDwellingGroups(Arrays.asList(unroutedDwellingGroups.get(key)));
         }
     }
 

@@ -87,7 +87,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
                         @Override
                         public void run() {
                             mapPanelModel.display(new Rectangle(bounds.x - bounds.width / 10, bounds.y - bounds.height / 10,
-                                    bounds.width * 6 / 5, bounds.height * 6 / 5));
+                                    bounds.width * 6 / 5, bounds.height * 6 / 5), true);
                         }
                     });
                 }

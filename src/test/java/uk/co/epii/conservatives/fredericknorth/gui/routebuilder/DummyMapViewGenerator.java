@@ -69,6 +69,9 @@ public class DummyMapViewGenerator implements MapViewGenerator {
     }
 
     @Override
+    public void updateImage(MapImageObserver mapImageObserver) {}
+
+    @Override
     public boolean setScaleAndCenter(double newScale, Point newGeoCenter, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         setScale(newScale, progressTracker, imageObserver);
         setGeoCenter(newGeoCenter, progressTracker, imageObserver);
