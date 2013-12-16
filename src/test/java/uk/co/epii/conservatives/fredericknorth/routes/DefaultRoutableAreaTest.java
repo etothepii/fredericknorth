@@ -60,11 +60,11 @@ public class DefaultRoutableAreaTest {
                         "/uk/co/epii/conservatives/fredericknorth/routes/DefaultRoutableAreaTest1.xml"))).
                 getDocumentElement());
         assertEquals(3, TestCouncilWard.councilWardRoutes.getRouteCount());
-        assertEquals(3, TestCouncilWard.councilWardRoutes.getRoutedDwellingGroups().size());
-        assertEquals(3, TestCouncilWard.councilWardRoutes.getUnroutedDwellingGroups().size());
+        assertEquals(5, TestCouncilWard.councilWardRoutes.getRoutedDwellingGroups().size());
+        assertEquals(2, TestCouncilWard.councilWardRoutes.getUnroutedDwellingGroups().size());
         assertEquals(1, TestCouncilWard.postalDistrictCW1Routes.getRouteCount());
-        assertEquals(1, TestCouncilWard.postalDistrictCW1Routes.getRoutedDwellingGroups().size());
-        assertEquals(1, TestCouncilWard.postalDistrictCW1Routes.getUnroutedDwellingGroups().size());
+        assertEquals(3, TestCouncilWard.postalDistrictCW1Routes.getRoutedDwellingGroups().size());
+        assertEquals(0, TestCouncilWard.postalDistrictCW1Routes.getUnroutedDwellingGroups().size());
         assertEquals(1, TestCouncilWard.postalDistrictCW2Routes.getRouteCount());
         assertEquals(1, TestCouncilWard.postalDistrictCW2Routes.getRoutedDwellingGroups().size());
         assertEquals(1, TestCouncilWard.postalDistrictCW2Routes.getUnroutedDwellingGroups().size());
