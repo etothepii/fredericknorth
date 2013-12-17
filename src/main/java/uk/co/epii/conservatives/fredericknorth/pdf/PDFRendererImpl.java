@@ -15,11 +15,13 @@ import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.maps.extentions.WeightedPointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 import uk.co.epii.conservatives.williampittjr.LogoGenerator;
+import uk.co.epii.spencerperceval.tuple.Duple;
 
 import java.awt.*;
 import java.awt.Rectangle;
@@ -191,7 +193,7 @@ class PDFRendererImpl implements PDFRenderer {
         if (writer.getPageNumber() % 2 == 1) {
             document.newPage();
         }
-        document.add(createDwellingList(routeMapGroupings));
+//        document.add(createDwellingList(routeMapGroupings));
 
     }
 
@@ -355,32 +357,63 @@ class PDFRendererImpl implements PDFRenderer {
     private PdfPTable createRouteMap(List<RouteMapGrouping> routeMapGroupings) throws IOException, BadElementException {
         PdfPTable table = new PdfPTable(new float[] {1f});
         table.setWidthPercentage(100f);
-        List<Location> geoLocations = new ArrayList<Location>();
-        int index = 0;
-        for (RouteMapGrouping routeMapGrouping : routeMapGroupings) {
-            geoLocations.add(locationFactory.getInstance((++index) + "", routeMapGrouping.getGeoLocation()));
-        }
+        List<Duple<Point, Integer>> deliveryPoints = getDeliveryPoints(routeMapGroupings);
         Location meetingPoint = getNearestMeetingPoint(routeMapGroupings);
-        if (meetingPoint != null) {
-            geoLocations.add(meetingPoint);
-        }
+        Rectangle mapRectangle = deriveMapRectangle(deliveryPoints, meetingPoint);
         mapViewGenerator.setViewPortSize(new Dimension(640, 480), new NullProgressTracker(), null);
-        Rectangle mapRectangle = locationFactory.calculatePaddedRectangle(geoLocations);
         mapViewGenerator.scaleToFitRectangle(mapRectangle, new NullProgressTracker(), null);
         MapView mapView = mapViewGenerator.getView();
-        List<Location> imageLocations = new ArrayList<Location>();
-        for (Location location : geoLocations) {
-            imageLocations.add(locationFactory.getInstance(location.getName(), mapView.getImageLocation(location.getPoint())));
+        for (Duple<Point, Integer> deliveryPoint : deliveryPoints) {
+            deliveryPoint.setFirst(mapView.getImageLocation(deliveryPoint.getFirst()));
         }
         Graphics2D g = (Graphics2D)mapView.getMap().getGraphics();
         g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
-        for (MapLabel mapLabel : mapLabelFactory.getMapLabels(
-                new Rectangle(mapView.getSize()), imageLocations, mapView.getMap().getGraphics())) {
-            mapLabel.paint(g);
+        if (meetingPoint != null) {
+            for (MapLabel mapLabel : mapLabelFactory.getMapLabels(
+                    new Rectangle(mapView.getSize()), Arrays.asList(meetingPoint), mapView.getMap().getGraphics())) {
+                mapLabel.paint(g);
+            }
+        }
+        for (Duple<Point, Integer> deliveryPoint : deliveryPoints) {
+            drawDot(g, deliveryPoint.getFirst(), deliveryPoint.getSecond());
         }
         Image image = Image.getInstance(Toolkit.getDefaultToolkit().createImage(mapView.getMap().getSource()), null);
         table.addCell(image);
         return table;
+    }
+
+    private void drawDot(Graphics g, Point p, int dwellings) {
+        int dotRadius = (int)Math.ceil(Math.sqrt(dwellings == 1 ? 2 : dwellings));
+        g.setColor(Color.YELLOW);
+        g.fillOval(p.x - dotRadius, p.y - dotRadius, dotRadius * 2, dotRadius * 2);
+        int smallerRadius = dotRadius * 4 / 5;
+        g.setColor(Color.RED);
+        g.fillOval(p.x - smallerRadius, p.y - smallerRadius, smallerRadius * 2, smallerRadius * 2);
+    }
+
+    private Rectangle deriveMapRectangle(List<Duple<Point, Integer>> deliveryPoints, Location meetingPoint) {
+        List<Location> locations = new ArrayList<Location>(deliveryPoints.size() + 1);
+        if (meetingPoint != null) {
+            locations.add(meetingPoint);
+        }
+        for (Duple<Point, Integer> duple : deliveryPoints) {
+            locations.add(new LocationImpl(null, duple.getFirst()));
+        }
+        return locationFactory.calculatePaddedRectangle(locations);
+    }
+
+    private List<Duple<Point, Integer>> getDeliveryPoints(List<RouteMapGrouping> routeMapGroupings) {
+        List<Duple<Point, Integer>> deliveryPoints = new ArrayList<Duple<Point, Integer>>();
+        for (RouteMapGrouping routeMapGrouping : routeMapGroupings) {
+            deliveryPoints.add(new Duple<Point, Integer>(routeMapGrouping.getGeoLocation(), routeMapGrouping.size()));
+        }
+        Collections.sort(deliveryPoints, new Comparator<Duple<Point, Integer>>() {
+            @Override
+            public int compare(Duple<Point, Integer> a, Duple<Point, Integer> b) {
+                return b.getSecond() - a.getSecond();
+            }
+        });
+        return deliveryPoints;
     }
 
     private Location getNearestMeetingPoint(List<RouteMapGrouping> routeMapGroupings) {
@@ -400,34 +433,18 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     private PdfPTable createTable(List<RouteMapGrouping> routeMapGroupings) {
-        PdfPTable table = new PdfPTable(new float[] {.05f,.875f,.075f});
+        PdfPTable table = new PdfPTable(new float[] {.925f,.075f});
         table.setWidthPercentage(100f);
-        int dwellingGroupIndex = 0;
         int total = 0;
-        for (RouteMapGrouping routeMapGrouping : routeMapGroupings) {
-            dwellingGroupIndex++;
-            if (routeMapGrouping.hasCommonName()) {
-                table.addCell(getChunk(dwellingGroupIndex + ""));
-                table.addCell(getChunk(routeMapGrouping.getCommonName()));
-                PdfPCell dwellings = new PdfPCell(getChunk(routeMapGrouping.size() + ""));
-                dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                table.addCell(dwellings);
-            }
-            else {
-                PdfPCell cell = new PdfPCell(getChunk(dwellingGroupIndex + ""));
-                cell.setRowspan(routeMapGrouping.getDwellingGroupList().size());
-                table.addCell(cell);
-                for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
-                    table.addCell(getChunk(dwellingGroup.getName()));
-                    PdfPCell dwellings = new PdfPCell(getChunk(dwellingGroup.size() + ""));
-                    dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-                    table.addCell(dwellings);
-                }
-            }
-            total += routeMapGrouping.size();
+        List<Duple<String, Integer>> dwellingGroups = getNameGroupedGroupings(routeMapGroupings);
+        for (Duple<String, Integer> dwellingGroup : dwellingGroups) {
+            table.addCell(getChunk(dwellingGroup.getFirst()));
+            PdfPCell dwellings = new PdfPCell(getChunk(dwellingGroup.getSecond() + ""));
+            dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+            table.addCell(dwellings);
+            total += dwellingGroup.getSecond();
         }
         PdfPCell cell = new PdfPCell(new Phrase(""));
-        cell.setColspan(2);
         cell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(cell);
         PdfPCell dwellings = new PdfPCell(getChunk(total + "", NORMAL_FONT_SIZE, true, BaseColor.BLACK));
@@ -435,6 +452,34 @@ class PDFRendererImpl implements PDFRenderer {
         dwellings.setBackgroundColor(CONSERVATIVE_TINT);
         table.addCell(dwellings);
         return table;
+    }
+
+    private List<Duple<String, Integer>> getNameGroupedGroupings(List<RouteMapGrouping> routeMapGroupings) {
+        Map<String, DwellingGroupImpl> map = new HashMap<String, DwellingGroupImpl>();
+        for (RouteMapGrouping routeMapGrouping : routeMapGroupings) {
+            for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
+                DwellingGroupImpl superDwellingGroup = map.get(dwellingGroup.getCommonName());
+                if (superDwellingGroup == null) {
+                    superDwellingGroup = new DwellingGroupImpl(dwellingGroup.getCommonName(), null, null);
+                    map.put(dwellingGroup.getCommonName(), superDwellingGroup);
+                }
+                for (Dwelling dwelling : dwellingGroup.getDwellings()) {
+                    superDwellingGroup.add(dwelling);
+                }
+            }
+        }
+        List<Duple<String, Integer>> strings = new ArrayList<Duple<String, Integer>>(map.size());
+        List<Map.Entry<String, DwellingGroupImpl>> entries = new ArrayList<Map.Entry<String, DwellingGroupImpl>>(map.entrySet());
+        Collections.sort(entries, new Comparator<Map.Entry<String, DwellingGroupImpl>>() {
+            @Override
+            public int compare(Map.Entry<String, DwellingGroupImpl> a, Map.Entry<String, DwellingGroupImpl> b) {
+                return a.getKey().compareToIgnoreCase(b.getKey());
+            }
+        });
+        for (Map.Entry<String, DwellingGroupImpl> entry : entries) {
+            strings.add(new Duple<String, Integer>(entry.getValue().getName(), entry.getValue().size()));
+        }
+        return strings;
     }
 
     private Phrase getChunk(String text) {
