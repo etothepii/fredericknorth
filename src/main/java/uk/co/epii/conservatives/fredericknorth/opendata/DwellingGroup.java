@@ -20,5 +20,5 @@ public interface DwellingGroup extends Location, Comparable<DwellingGroup> {
     public Iterable<? extends Dwelling> getDwellings();
     public Element toXml(Document document);
     public String getKey();
-
+    public String getCommonName();
 }

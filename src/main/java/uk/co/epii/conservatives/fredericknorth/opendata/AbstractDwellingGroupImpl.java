@@ -71,7 +71,10 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         return "";
     }
 
-
+    @Override
+    public String getCommonName() {
+        return commonName == null ? getName() : commonName;
+    }
 
     private String getNumericIdentifierSummary(
             NumericIdentifierSummary numericIdentifierSummary, String joiningOddsAndEvens) {

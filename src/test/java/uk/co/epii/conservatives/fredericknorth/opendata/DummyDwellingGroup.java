@@ -18,6 +18,7 @@ public class DummyDwellingGroup implements DwellingGroup {
 
     ArrayList<Dwelling> dwellings;
     String name;
+    String commonName;
     Point point;
     private PostcodeDatum postcode;
 
@@ -65,8 +66,17 @@ public class DummyDwellingGroup implements DwellingGroup {
     }
 
     @Override
+    public String getCommonName() {
+        return commonName;
+    }
+
+    @Override
     public int compareTo(DwellingGroup o) {
         return name.compareTo(o.getName());
+    }
+
+    public void setCommonName(String commonName) {
+        this.commonName = commonName;
     }
 
     @Override
