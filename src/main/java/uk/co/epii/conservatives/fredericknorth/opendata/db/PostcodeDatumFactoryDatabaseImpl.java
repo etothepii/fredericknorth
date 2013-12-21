@@ -9,6 +9,7 @@ import uk.co.epii.conservatives.williamcavendishbentinck.tables.BLPU;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Postcode;
 import uk.co.epii.spencerperceval.tuple.Duple;
+import uk.co.epii.spencerperceval.tuple.Single;
 import uk.co.epii.spencerperceval.util.Grouper;
 
 import java.awt.*;
@@ -45,6 +46,7 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         Map<Point, List<Duple<Dwelling, BLPU>>> groupedByLocation = groupByLocation(
                 PointExtensions.fromFloat(new Point2D.Float(postcode.getXCoordinate(), postcode.getYCoordinate())),
                 databaseSession.fromPostcode(postcode.getPostcode(), Dwelling.class, BLPU.class, "UPRN", "UPRN"));
+        Map<Dwelling, Single<StubDwelling>> commonNames = getCommonNames(groupedByLocation);
         Map<String, DwellingGroupDatabaseImpl> dwellingGroupsMap = new HashMap<String, DwellingGroupDatabaseImpl>();
         PostcodeDatumDatabaseImpl postcodeImpl = new PostcodeDatumDatabaseImpl(postcode, dwellingGroupsMap);
         for (Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group : groupedByLocation.entrySet()) {
@@ -54,6 +56,9 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
                 StubDwelling stubDwelling = new StubDwelling(duple.getFirst());
                 map.put(stubDwelling, duple);
                 common = common == null ? stubDwelling : common.getCommon(stubDwelling);
+            }
+            if (group.getValue().size() == 1) {
+                common = commonNames.get(group.getValue().get(0).getFirst()).getFirst();
             }
             Map<DwellingDatabaseImpl, Dwelling> dwellingGroupDatabaseImplMap = new HashMap<DwellingDatabaseImpl, Dwelling>();
             for (StubDwelling stubDwelling : map.keySet()) {
@@ -80,6 +85,38 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         }
         loaded.put(postcode.getPostcode(), postcodeImpl);
         return postcodeImpl;
+    }
+
+    private Map<StubDwelling, Set<Dwelling>> getStubDwellingsSetMap(Map<Dwelling, Single<StubDwelling>> commonNames) {
+        Map<StubDwelling, Set<Dwelling>> stubDwellingSetMap = new HashMap<StubDwelling, Set<Dwelling>>();
+        for (Map.Entry<Dwelling, Single<StubDwelling>> entry : commonNames.entrySet()) {
+            Set<Dwelling> dwellings = stubDwellingSetMap.get(entry.getValue().getFirst());
+            if (dwellings == null) {
+                dwellings = new HashSet<Dwelling>();
+                stubDwellingSetMap.put(entry.getValue().getFirst(), dwellings);
+            }
+            dwellings.add(entry.getKey());
+        }
+        return stubDwellingSetMap;
+    }
+
+    private Map<Dwelling, Single<StubDwelling>> getCommonNames(Map<Point, List<Duple<Dwelling, BLPU>>> groupedByLocation) {
+        Map<Dwelling, Single<StubDwelling>> commonNames = new HashMap<Dwelling, Single<StubDwelling>>();
+        for (List<Duple<Dwelling, BLPU>> dwellings : groupedByLocation.values()) {
+            toNextDwelling: for (Duple<Dwelling, BLPU> duple : dwellings) {
+                Dwelling dwelling = duple.getFirst();
+                StubDwelling stubDwelling = new StubDwelling(dwelling);
+                for (Single<StubDwelling> common : commonNames.values()) {
+                    if (common.getFirst().d(stubDwelling) == 1) {
+                        common.setFirst(common.getFirst().getCommon(stubDwelling));
+                        commonNames.put(dwelling, common);
+                        continue toNextDwelling;
+                    }
+                }
+                commonNames.put(dwelling, new Single<StubDwelling>(stubDwelling));
+            }
+        }
+        return commonNames;
     }
 
     private Map<Point, List<Duple<Dwelling, BLPU>>> groupByLocation(Point postcodePoint, List<Duple<Dwelling, BLPU>> dwellings) {

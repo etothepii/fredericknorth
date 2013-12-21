@@ -73,7 +73,7 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
 
     @Override
     public String getCommonName() {
-        return commonName == null ? getName() : commonName;
+        return commonName;
     }
 
     private String getNumericIdentifierSummary(
@@ -281,6 +281,7 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
     }
 
     private class PrefixAndSuffix {
+
         final String prefix;
         final String suffix;
 
@@ -311,6 +312,7 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
     }
 
     private class NumericIdentifierSummary {
+
         final List<Integer> odds = new ArrayList<Integer>(size());
         final List<Integer> evens = new ArrayList<Integer>(size());
         final List<Integer> all = new ArrayList<Integer>(size());
@@ -321,5 +323,4 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
             Collections.sort(all);
         }
     }
-
 }

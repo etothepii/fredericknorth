@@ -383,7 +383,7 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     private void drawDot(Graphics g, Point p, int dwellings) {
-        int dotRadius = (int)Math.ceil(Math.sqrt(dwellings == 1 ? 2 : dwellings));
+        int dotRadius = (int)Math.ceil(Math.sqrt(dwellings * 5));
         g.setColor(Color.YELLOW);
         g.fillOval(p.x - dotRadius, p.y - dotRadius, dotRadius * 2, dotRadius * 2);
         int smallerRadius = dotRadius * 4 / 5;
