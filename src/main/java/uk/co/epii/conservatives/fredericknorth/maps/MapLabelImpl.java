@@ -7,7 +7,7 @@ import java.awt.*;
  * Date: 30/06/2013
  * Time: 21:10
  */
-class MapLabelImpl implements MapLabel {
+public class MapLabelImpl implements MapLabel {
 
     private final String name;
     private final Rectangle rectangle;
@@ -16,7 +16,7 @@ class MapLabelImpl implements MapLabel {
     private final int padding;
     private final int dotRadius;
 
-    MapLabelImpl(String name, Rectangle rectangle, Corner corner, Font labelFont, int padding, int dotRadius) {
+    public MapLabelImpl(String name, Rectangle rectangle, Corner corner, Font labelFont, int padding, int dotRadius) {
         this.name = name;
         this.rectangle = rectangle;
         this.corner = corner;

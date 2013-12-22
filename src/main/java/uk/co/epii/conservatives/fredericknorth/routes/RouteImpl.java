@@ -133,6 +133,13 @@ class RouteImpl implements Route {
         }
         Element dwellingGroupsElt = document.createElement("DwellingGroups");
         route.appendChild(dwellingGroupsElt);
+        List<DwellingGroup> orderedDwellingGroups = new ArrayList(dwellingGroups);
+        Collections.sort(orderedDwellingGroups, new Comparator<DwellingGroup>() {
+            @Override
+            public int compare(DwellingGroup o1, DwellingGroup o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
         for (DwellingGroup dwellingGroup : dwellingGroups) {
             dwellingGroupsElt.appendChild(dwellingGroup.toXml(document));
         }

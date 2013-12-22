@@ -47,7 +47,9 @@ public class DwellingGroupImpl extends AbstractDwellingGroupImpl {
 
     public void add(Dwelling dwelling) {
         dwellings.add(dwelling);
-        postcode.add(dwelling);
+        if (postcode != null) {
+            postcode.add(dwelling);
+        }
     }
 
     void load(ApplicationContext applicationContext, Element dwellingGroupElt) {

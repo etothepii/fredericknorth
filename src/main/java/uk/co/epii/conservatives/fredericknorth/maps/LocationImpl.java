@@ -7,7 +7,7 @@ import java.awt.Point;
  * Date: 30/06/2013
  * Time: 16:24
  */
-class LocationImpl implements Location {
+public class LocationImpl implements Location {
     private final String name;
     private final Point point;
 
