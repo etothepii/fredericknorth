@@ -36,6 +36,8 @@ public class MainWindow extends JFrame {
         getContentPane().add(tabbedPane, new GridBagConstraints(0, 1, 1, 1, 1d, 1d,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 5, 5, 5), 0, 0));
         tabbedPane.addChangeListener(mainWindowModel);
+        mainWindowModel.setTab(0, mainWindowModel.getRoutableAreaBuilderPanelModel());
+        mainWindowModel.setTab(1, mainWindowModel.getRouteBuilderPanelModel());
         mainWindowModel.stateChanged(new ChangeEvent(tabbedPane));
     }
 

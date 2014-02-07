@@ -58,6 +58,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final DwellingProcessor dwellingProcessor;
     private final Executor executor;
     private final XMLSerializer xmlSerializer;
+    private final SelectedBoundedAreaChangedListener selectedBoundedAreaChangedListener;
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
@@ -95,7 +96,22 @@ public class RouteBuilderPanelModel implements Activateable {
         mapPanelModel = new RouteBuilderMapPanelModel(this,
                 Long.parseLong(applicationContext.getProperty(RouteBuilderPanelModel.StationaryMouseRequirementKey)));
         boundedAreaSelectionModel.loadOSKnownInstances();
+        selectedBoundedAreaChangedListener = createSelectedBoundedAreaChangedListener();
         addListeners();
+    }
+
+    private SelectedBoundedAreaChangedListener createSelectedBoundedAreaChangedListener() {
+        return new SelectedBoundedAreaChangedListener() {
+            @Override
+            public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
+                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
+            }
+
+            @Override
+            public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
+                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
+            }
+        };
     }
 
     private void addListeners() {
@@ -142,17 +158,6 @@ public class RouteBuilderPanelModel implements Activateable {
                         }
                     }
                 });
-        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
-            @Override
-            public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
-                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
-            }
-
-            @Override
-            public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
-                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
-            }
-        });
     }
 
     void setSelectedBoundedArea(BoundedArea boundedArea) {
@@ -526,7 +531,14 @@ public class RouteBuilderPanelModel implements Activateable {
 
     @Override
     public void setActive(boolean active) {
+
         this.active = active;
+        if (active) {
+            boundedAreaSelectionModel.addBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
+        else {
+            boundedAreaSelectionModel.removeBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
     }
 
     @Override

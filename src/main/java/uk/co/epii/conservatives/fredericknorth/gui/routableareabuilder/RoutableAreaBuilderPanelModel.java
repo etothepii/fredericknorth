@@ -52,6 +52,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
     private boolean enabled = true;
     private final List<EnabledStateChangedListener<RoutableAreaBuilderPanelModel>> enabledStateChangedListeners;
     private boolean active = false;
+    private final SelectedBoundedAreaChangedListener selectedBoundedAreaChangedListener;
 
     public RoutableAreaBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel) {
         this.mapPanelModel = new RoutableAreaBuilderMapPanelModel(
@@ -62,7 +63,11 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
         priorities = createPriorities();
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
-        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
+        selectedBoundedAreaChangedListener = createSelectedBoundedAreaChangedListener();
+    }
+
+    private SelectedBoundedAreaChangedListener createSelectedBoundedAreaChangedListener() {
+        return new SelectedBoundedAreaChangedListener() {
             @Override
             public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
                 updateAfterSelectionChange(e.getSelected());
@@ -72,7 +77,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
             public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
                 updateAfterSelectionChange(e.getSelected());
             }
-        });
+        };
     }
 
     private void updateAfterSelectionChange(BoundedArea changedTo) {
@@ -307,6 +312,12 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
     @Override
     public void setActive(boolean active) {
         this.active = active;
+        if (active) {
+            boundedAreaSelectionModel.addBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
+        else {
+            boundedAreaSelectionModel.removeBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
     }
 
     @Override
