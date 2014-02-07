@@ -347,33 +347,40 @@ public class RouteBuilderPanelModel implements Activateable {
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
         progressTracker.startSubsection(2);
         if (parent != null) {
-            progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
-                    parent.getRoutedDwellingGroups().size());
-            for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
-                if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
-                        routableArea.addDwellingGroup(dwellingGroup, false);
-                }
+            if (parent.getUnroutedDwellingGroups().isEmpty() && parent.getRoutedDwellingGroups().isEmpty()) {
                 progressTracker.increment();
             }
-            for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
-                if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
-                    routableArea.addDwellingGroup(dwellingGroup, true);
+            else {
+                progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
+                        parent.getRoutedDwellingGroups().size());
+                for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
+                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                            routableArea.addDwellingGroup(dwellingGroup, false);
+                    }
+                    progressTracker.increment();
                 }
-                progressTracker.increment();
+                for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
+                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                        routableArea.addDwellingGroup(dwellingGroup, true);
+                    }
+                    progressTracker.increment();
+                }
             }
         }
         else {
             Rectangle bounds = PolygonExtensions.getBounds(boundedArea.getAreas());
             Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes(bounds);
-            progressTracker.startSubsection(postcodes.size());
-            for (PostcodeDatum postcode : postcodes) {
-                if (postcode.getPoint() != null &&
-                        PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
-                    for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
-                        routableArea.addDwellingGroup(dwellingGroup, false);
+            if (!postcodes.isEmpty()) {
+                progressTracker.startSubsection(postcodes.size());
+                for (PostcodeDatum postcode : postcodes) {
+                    if (postcode.getPoint() != null &&
+                            PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
+                        for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
+                            routableArea.addDwellingGroup(dwellingGroup, false);
+                        }
                     }
+                    progressTracker.increment();
                 }
-                progressTracker.increment();
             }
         }
         BoundedArea[] children = boundedArea.getChildren();
