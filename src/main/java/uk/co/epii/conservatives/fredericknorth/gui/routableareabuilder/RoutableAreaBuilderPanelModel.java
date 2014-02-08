@@ -3,8 +3,11 @@ package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
+import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
+import uk.co.epii.conservatives.fredericknorth.utilities.*;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaOverlayItem;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
@@ -14,9 +17,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.MouseLocation;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.OverlayItem;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilder;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.ConstructorOverlay;
-import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
-import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
-import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -52,6 +52,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
     private boolean enabled = true;
     private final List<EnabledStateChangedListener<RoutableAreaBuilderPanelModel>> enabledStateChangedListeners;
     private boolean active = false;
+    private final SelectedBoundedAreaChangedListener selectedBoundedAreaChangedListener;
 
     public RoutableAreaBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel) {
         this.mapPanelModel = new RoutableAreaBuilderMapPanelModel(
@@ -62,7 +63,11 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
         dwellingCountReportBuilder = applicationContext.getDefaultInstance(DwellingCountReportBuilder.class);
         priorities = createPriorities();
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
-        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
+        selectedBoundedAreaChangedListener = createSelectedBoundedAreaChangedListener();
+    }
+
+    private SelectedBoundedAreaChangedListener createSelectedBoundedAreaChangedListener() {
+        return new SelectedBoundedAreaChangedListener() {
             @Override
             public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
                 updateAfterSelectionChange(e.getSelected());
@@ -72,7 +77,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
             public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
                 updateAfterSelectionChange(e.getSelected());
             }
-        });
+        };
     }
 
     private void updateAfterSelectionChange(BoundedArea changedTo) {
@@ -307,10 +312,69 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
     @Override
     public void setActive(boolean active) {
         this.active = active;
+        if (active) {
+            boundedAreaSelectionModel.addBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
+        else {
+            boundedAreaSelectionModel.removeBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
     }
 
     @Override
     public boolean getActive() {
         return active;
+    }
+
+    public void exportWardMaps(File currentDir, Dimension output) {
+        BoundedArea boundedArea = getBoundedAreaSelectionModel().getMasterSelected();
+        MapViewGenerator mapViewGenerator = applicationContext.getDefaultInstance(MapViewGenerator.class);
+        mapViewGenerator.setViewPortSize(output, new NullProgressTracker(), null);
+        exportWardMaps(boundedArea, mapViewGenerator, currentDir, output, true);
+        exportWardMaps(boundedArea, mapViewGenerator, currentDir, output, false);
+    }
+
+    private void exportWardMaps(BoundedArea boundedArea, MapViewGenerator mapViewGenerator, File currentDir, Dimension output, boolean outlineOnly) {
+        File exportFile = new File(currentDir, boundedArea.getName().replace("[() ]", "").concat(outlineOnly ? "_outline" : "").concat(".png"));
+        File exportAllFile = new File(currentDir, boundedArea.getName().replace("[() ]", "").concat(outlineOnly ? "_outline" : "").concat("_all.png"));
+        System.out.println(exportFile);
+        mapViewGenerator.scaleToFitRectangle(
+                RectangleExtensions.grow(
+                        PolygonExtensions.getBounds(boundedArea.getAreas()), .2),
+                new NullProgressTracker(), null);
+        BufferedImage buffereredImage = new BufferedImage(output.width, output.height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D)buffereredImage.getGraphics();
+        if (!outlineOnly) {
+            g.drawImage(mapViewGenerator.getView().getMap(), 0, 0, null);
+        }
+        g.setColor(new Color(255, 0, 0, 64));
+        for (Polygon p : boundedArea.getAreas()) {
+            g.fill(mapViewGenerator.getView().getGeoToImageTransform().createTransformedShape(p));
+        }
+        g.setColor(Color.RED);
+        g.setStroke(new BasicStroke(5f));
+        for (Polygon p : boundedArea.getAreas()) {
+            g.draw(mapViewGenerator.getView().getGeoToImageTransform().createTransformedShape(p));
+        }
+        try {
+            ImageIO.write(buffereredImage, "png", exportFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        BoundedArea[] children = boundedArea.getChildren();
+        if (children.length != 0) {
+            for (BoundedArea child : children) {
+                for (Polygon p : child.getAreas()) {
+                    g.draw(mapViewGenerator.getView().getGeoToImageTransform().createTransformedShape(p));
+                }
+            }
+            try {
+                ImageIO.write(buffereredImage, "png", exportAllFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (BoundedArea child : children) {
+                exportWardMaps(child, mapViewGenerator, currentDir, output, outlineOnly);
+            }
+        }
     }
 }

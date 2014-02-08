@@ -289,11 +289,8 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
         Document document = documentBuilder.newDocument();
         BoundedAreaComboBoxModel comboBoxModel = comboBoxModels.get(masterBoundedAreaType);
         Element boundedAreasElt = document.createElement("BoundedAreas");
-        for (int i = 0; i < comboBoxModel.getSize(); i++) {
-            BoundedArea boundedArea = comboBoxModel.getElementAt(i);
-            if (boundedArea == null) continue;
-            boundedAreasElt.appendChild(boundedArea.toXml(document));
-        }
+        BoundedArea boundedArea = comboBoxModel.getSelectedItem();
+        boundedAreasElt.appendChild(boundedArea.toXml(document));
         document.appendChild(boundedAreasElt);
         String toWrite = xmlSerializer.toString(document);
         try {

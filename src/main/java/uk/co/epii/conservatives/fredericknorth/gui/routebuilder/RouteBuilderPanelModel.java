@@ -58,6 +58,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final DwellingProcessor dwellingProcessor;
     private final Executor executor;
     private final XMLSerializer xmlSerializer;
+    private final SelectedBoundedAreaChangedListener selectedBoundedAreaChangedListener;
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
@@ -95,7 +96,22 @@ public class RouteBuilderPanelModel implements Activateable {
         mapPanelModel = new RouteBuilderMapPanelModel(this,
                 Long.parseLong(applicationContext.getProperty(RouteBuilderPanelModel.StationaryMouseRequirementKey)));
         boundedAreaSelectionModel.loadOSKnownInstances();
+        selectedBoundedAreaChangedListener = createSelectedBoundedAreaChangedListener();
         addListeners();
+    }
+
+    private SelectedBoundedAreaChangedListener createSelectedBoundedAreaChangedListener() {
+        return new SelectedBoundedAreaChangedListener() {
+            @Override
+            public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
+                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
+            }
+
+            @Override
+            public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
+                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
+            }
+        };
     }
 
     private void addListeners() {
@@ -142,17 +158,6 @@ public class RouteBuilderPanelModel implements Activateable {
                         }
                     }
                 });
-        boundedAreaSelectionModel.addBoundedAreaSelectionListener(new SelectedBoundedAreaChangedListener() {
-            @Override
-            public void masterParentSelectionChanged(SelectedBoundedAreaChangedEvent e) {
-                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
-            }
-
-            @Override
-            public void selectionChanged(SelectedBoundedAreaChangedEvent e) {
-                setSelectedBoundedArea(boundedAreaSelectionModel.getSelected());
-            }
-        });
     }
 
     void setSelectedBoundedArea(BoundedArea boundedArea) {
@@ -347,33 +352,40 @@ public class RouteBuilderPanelModel implements Activateable {
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
         progressTracker.startSubsection(2);
         if (parent != null) {
-            progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
-                    parent.getRoutedDwellingGroups().size());
-            for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
-                if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
-                        routableArea.addDwellingGroup(dwellingGroup, false);
-                }
+            if (parent.getUnroutedDwellingGroups().isEmpty() && parent.getRoutedDwellingGroups().isEmpty()) {
                 progressTracker.increment();
             }
-            for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
-                if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
-                    routableArea.addDwellingGroup(dwellingGroup, true);
+            else {
+                progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
+                        parent.getRoutedDwellingGroups().size());
+                for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
+                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                            routableArea.addDwellingGroup(dwellingGroup, false);
+                    }
+                    progressTracker.increment();
                 }
-                progressTracker.increment();
+                for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
+                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                        routableArea.addDwellingGroup(dwellingGroup, true);
+                    }
+                    progressTracker.increment();
+                }
             }
         }
         else {
             Rectangle bounds = PolygonExtensions.getBounds(boundedArea.getAreas());
             Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes(bounds);
-            progressTracker.startSubsection(postcodes.size());
-            for (PostcodeDatum postcode : postcodes) {
-                if (postcode.getPoint() != null &&
-                        PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
-                    for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
-                        routableArea.addDwellingGroup(dwellingGroup, false);
+            if (!postcodes.isEmpty()) {
+                progressTracker.startSubsection(postcodes.size());
+                for (PostcodeDatum postcode : postcodes) {
+                    if (postcode.getPoint() != null &&
+                            PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
+                        for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
+                            routableArea.addDwellingGroup(dwellingGroup, false);
+                        }
                     }
+                    progressTracker.increment();
                 }
-                progressTracker.increment();
             }
         }
         BoundedArea[] children = boundedArea.getChildren();
@@ -519,7 +531,14 @@ public class RouteBuilderPanelModel implements Activateable {
 
     @Override
     public void setActive(boolean active) {
+
         this.active = active;
+        if (active) {
+            boundedAreaSelectionModel.addBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
+        else {
+            boundedAreaSelectionModel.removeBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+        }
     }
 
     @Override

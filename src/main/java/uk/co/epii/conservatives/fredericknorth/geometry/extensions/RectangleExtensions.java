@@ -235,4 +235,8 @@ public class RectangleExtensions {
                 new Point(Math.min(from.x, to.x), Math.min(from.y, to.y)),
                 new Dimension(Math.abs(to.x - from.x), Math.abs(to.y - from.y)));
     }
+
+    public static Rectangle grow(Rectangle bounds, double growBy) {
+        return grow(bounds, (int)(Math.max(bounds.height * growBy, bounds.width * growBy) / 2));
+    }
 }
