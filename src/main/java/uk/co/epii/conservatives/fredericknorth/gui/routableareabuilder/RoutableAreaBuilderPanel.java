@@ -48,12 +48,14 @@ public class RoutableAreaBuilderPanel extends JPanel {
     private final JButton saveButton;
     private final JButton loadButton;
     private final JButton report;
+    private final JButton maps;
     private final ProgressTrackerJProgressBar progressTracker;
     private final JFileChooser fileChooser;
     private final FileFilter boundedAreaDataFilesFilter;
     private final File workingDirectory;
     private final FileFilter boundedAreaReportCSVFilesFilter;
     private final FileFilter boundedAreaReportMapFilesFilter;
+    private final FileFilter boundedAreaMapDirectoryFilter;
     private final MapImageObserver imageObserver;
 
     public RoutableAreaBuilderPanel(ApplicationContext applicationContext,
@@ -68,6 +70,17 @@ public class RoutableAreaBuilderPanel extends JPanel {
         boundedAreaReportMapFilesFilter = new FileNameExtensionFilter(
                 applicationContext.getProperty(BoundedAreaReportMapFilesFilterDescriptionKey),
                 applicationContext.getProperty(boundedAreaReportMapFilesFilterKey));
+        boundedAreaMapDirectoryFilter = new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory();
+            }
+
+            @Override
+            public String getDescription() {
+                return "Directories";
+            }
+        };
         fileChooser = new JFileChooser();
         manipulateBoundedAreaPopupMenu = new ManipulateBoundedAreaPopupMenu(BoundedAreaType.UNITARY_DISTRICT);
         double zoomRate = Double.parseDouble(applicationContext.getProperty(ZoomRateKey));
@@ -80,8 +93,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
                 if (isEnabled() == e.isEnabled()) return;
                 if (SwingUtilities.isEventDispatchThread()) {
                     setEnabled(e.isEnabled());
-                }
-                else {
+                } else {
                     try {
                         SwingUtilities.invokeAndWait(new Runnable() {
                             @Override
@@ -89,11 +101,9 @@ public class RoutableAreaBuilderPanel extends JPanel {
                                 setEnabled(e.isEnabled());
                             }
                         });
-                    }
-                    catch (InterruptedException ie) {
+                    } catch (InterruptedException ie) {
                         throw new RuntimeException(ie);
-                    }
-                    catch (InvocationTargetException ite) {
+                    } catch (InvocationTargetException ite) {
                         throw new RuntimeException(ite);
                     }
                 }
@@ -102,6 +112,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
         saveButton = new JButton("Save");
         loadButton = new JButton("Load");
         report = new JButton("Build Report");
+        maps = new JButton("Create Maps");
         progressTracker = new ProgressTrackerJProgressBar(1);
         routableAreaBuilderPanelModel.setProgressTracker(progressTracker);
         workingDirectory = createWorkingDirectory(applicationContext);
@@ -119,6 +130,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
                     saveButton.setEnabled(enabled);
                     loadButton.setEnabled(enabled);
                     report.setEnabled(enabled);
+                    maps.setEnabled(enabled);
                     routableAreaBuilderPanelModel.setEnabled(enabled);
                     if (getParent().isEnabled() != enabled) {
                         getParent().setEnabled(enabled);
@@ -193,6 +205,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setFileFilter(boundedAreaDataFilesFilter);
                 if (saveTo == null) {
                     fileChooser.setCurrentDirectory(workingDirectory);
@@ -230,6 +243,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setFileFilter(boundedAreaReportMapFilesFilter);
                 if (largeMap == null) {
                     fileChooser.setCurrentDirectory(workingDirectory);
@@ -259,6 +273,29 @@ public class RoutableAreaBuilderPanel extends JPanel {
                 routableAreaBuilderPanelModel.buildReport(largeMap, csvFile);
             }
         });
+        maps.addActionListener(new ActionListener() {
+
+            File currentDir = null;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                fileChooser.setFileFilter(boundedAreaMapDirectoryFilter);
+                if (currentDir == null) {
+                    fileChooser.setCurrentDirectory(workingDirectory);
+                } else {
+                    fileChooser.setCurrentDirectory(currentDir.getParentFile());
+                }
+                int returnValue = fileChooser.showSaveDialog(mapPanel);
+                if (returnValue == JFileChooser.APPROVE_OPTION) {
+                    currentDir = fileChooser.getSelectedFile();
+                }
+                else {
+                    return;
+                }
+                routableAreaBuilderPanelModel.exportWardMaps(currentDir, new Dimension(800, 600));
+            }
+        });
     }
 
     private void constructOverlay(boolean child) {
@@ -280,11 +317,13 @@ public class RoutableAreaBuilderPanel extends JPanel {
         add(mapPanel, new GridBagConstraints(
                 0, 1, 2, 1, 1d, 1d, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         JPanel saveLoadPanel = new JPanel(new GridBagLayout());
-        saveLoadPanel.add(report, new GridBagConstraints(0, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
+        saveLoadPanel.add(maps, new GridBagConstraints(0, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-        saveLoadPanel.add(saveButton, new GridBagConstraints(1, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
+        saveLoadPanel.add(report, new GridBagConstraints(1, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-        saveLoadPanel.add(loadButton, new GridBagConstraints(2, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
+        saveLoadPanel.add(saveButton, new GridBagConstraints(2, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
+                GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+        saveLoadPanel.add(loadButton, new GridBagConstraints(3, 0, 1, 1, 0d, 0d, GridBagConstraints.CENTER,
                 GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         add(saveLoadPanel, new GridBagConstraints(1, 2, 1, 1, 0d, 0d, GridBagConstraints.EAST,
                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
