@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.meetingpointselector;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -13,8 +14,8 @@ public class MeetingPointsModel extends AbstractTableModel {
 
     private List<MeetingPoint> locations;
 
-    public MeetingPointsModel(List<MeetingPoint> locations) {
-        this.locations = locations;
+    public MeetingPointsModel() {
+        this.locations = new ArrayList<MeetingPoint>();
     }
 
     @Override
