@@ -1,10 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.meetingpointselector;
 
-import uk.co.epii.conservatives.fredericknorth.maps.Location;
-
-import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -56,5 +53,19 @@ public class MeetingPointsModel extends AbstractTableModel {
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return true;
     }
+
+    public void clear() {
+        int size = locations.size();
+        locations.clear();
+        fireTableRowsDeleted(0, size);
+    }
+
+    public void addAll(Collection<MeetingPoint> meetingPoints) {
+        int size = locations.size();
+        locations.addAll(meetingPoints);
+        fireTableRowsInserted(size, size + meetingPoints.size());
+    }
+
+
 
 }
