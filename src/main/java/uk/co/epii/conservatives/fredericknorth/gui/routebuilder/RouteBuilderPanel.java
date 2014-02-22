@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionPanel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.MeetingPoint;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.MeetingPointOverlayRenderer;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
@@ -100,13 +102,13 @@ public class RouteBuilderPanel extends JPanel {
 
             @Override
             public void overlaysMouseOverChanged(MapPanelDataEvent e) {
-                MapPanelModel mapPanelModel = (MapPanelModel)e.getSource();
+                MapPanelModel mapPanelModel = (MapPanelModel) e.getSource();
                 Point mouseAt = mapPanelModel.getMouseAt();
                 Point panelLocationOnScreen = mapPanel.getLocationOnScreen();
                 Point mouseLocationOnScreen = new Point(panelLocationOnScreen.x + mouseAt.x, panelLocationOnScreen.y + mouseAt.y);
                 LOG.debug("Setting location of tool tip frame");
                 Point drawAt = new Point(mouseLocationOnScreen.x + mouseOffset.x,
-                            mouseLocationOnScreen.y + mouseOffset.y);
+                        mouseLocationOnScreen.y + mouseOffset.y);
                 routedAndUnroutedToolTipFrame.setLocation(drawAt.x, drawAt.y);
                 routedAndUnroutedToolTipFrame.repaint();
             }
@@ -119,8 +121,7 @@ public class RouteBuilderPanel extends JPanel {
                 if (SwingUtilities.isEventDispatchThread()) {
                     LOG.debug("Setting enabled on EventDispatchThread: {}", e.isEnabled());
                     setEnabled(e.isEnabled());
-                }
-                else {
+                } else {
                     try {
                         LOG.debug("Waiting to set enabled on EventDispatchThread: {}", e.isEnabled());
                         SwingUtilities.invokeAndWait(new Runnable() {
@@ -130,11 +131,9 @@ public class RouteBuilderPanel extends JPanel {
                             }
                         });
                         LOG.debug("Enabled set on EventDispatchThread: {}", e.isEnabled());
-                    }
-                    catch (InterruptedException ie) {
+                    } catch (InterruptedException ie) {
                         throw new RuntimeException(ie);
-                    }
-                    catch (InvocationTargetException ite) {
+                    } catch (InvocationTargetException ite) {
                         throw new RuntimeException(ite);
                     }
                 }
@@ -166,8 +165,7 @@ public class RouteBuilderPanel extends JPanel {
                     targetSizeField.setEnabled(enabled);
                     if (enabled) {
                         routeBuilderPanelModel.enable();
-                    }
-                    else {
+                    } else {
                         routeBuilderPanelModel.disable();
                     }
                     if (getParent().isEnabled() != enabled) {
@@ -182,6 +180,7 @@ public class RouteBuilderPanel extends JPanel {
         fileChooser.addChoosableFileFilter(routeDataFilesFilter);
         fileChooser.addChoosableFileFilter(routeMapFilesFilter);
         routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(DwellingGroup.class, new DottedDwellingGroupOverlayRenderer());
+        routeBuilderPanelModel.getMapPanelModel().setOverlayRenderer(MeetingPoint.class, new MeetingPointOverlayRenderer());
         selectedDwellingGroups = createDwellingGroupTable(this.routeBuilderPanelModel.getRoutedDwellingGroups());
         unselectedDwellingGroups = createDwellingGroupTable(this.routeBuilderPanelModel.getUnroutedDwellingGroups());
         unselectedDwellingGroupsScrollPane = new JScrollPane(unselectedDwellingGroups,

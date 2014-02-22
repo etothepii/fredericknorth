@@ -8,10 +8,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedEvent;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedListener;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.*;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
@@ -452,6 +449,9 @@ public class RouteBuilderPanelModel implements Activateable {
         List<OverlayItem> dwellingGroupOverlays = getDwellingGroupOverlays();
         ArrayList<OverlayItem> overlayItems = new ArrayList<OverlayItem>(dwellingGroupOverlays.size());
         overlayItems.addAll(dwellingGroupOverlays);
+        for (MeetingPoint meetingPoint : boundedAreaSelectionModel.getMeetingPoints()) {
+            overlayItems.add(new MeetingPointOverlayItem(meetingPoint));
+        }
         mapPanelModel.setOverlays(overlayItems);
     }
 
