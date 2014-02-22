@@ -48,6 +48,8 @@ class RoutableAreaBuilderMapPanelModel extends AbstractMapPanelModel {
                 colorMap.put(boundedAreaType, boundedAreaType.getDefaultColour());
             }
         }
+        setOverlayRenderer(MeetingPoint.class,
+                new MeetingPointOverlayRenderer());
         setOverlayRenderer(BoundedArea.class,
                 BoundedAreaExtensions.getOverlayRenderer(colorMap, onBoundaryDotRadius));
         setOverlayRenderer(BoundedAreaConstructor.class,
