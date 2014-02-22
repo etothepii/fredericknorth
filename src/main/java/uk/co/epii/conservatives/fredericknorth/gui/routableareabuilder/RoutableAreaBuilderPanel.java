@@ -171,8 +171,10 @@ public class RoutableAreaBuilderPanel extends JPanel {
                 LOG.debug("Clicked: {}", e.getButton());
                 LOG.debug("Clicked Button 3: {}", e.getButton() == MouseEvent.BUTTON3);
                 if (e.getButton() == MouseEvent.BUTTON3) {
-                    BoundedArea mouseOver = routableAreaBuilderPanelModel.getBoundedAreaOver();
-                    manipulateBoundedAreaPopupMenu.setBoundedArea(mouseOver == null ? null : mouseOver);
+                    manipulateBoundedAreaPopupMenu.setBoundedArea(
+                            routableAreaBuilderPanelModel.getMouseOver(BoundedArea.class));
+                    manipulateBoundedAreaPopupMenu.setMeetingPoint(
+                            routableAreaBuilderPanelModel.getMouseOver(MeetingPoint.class));
                     manipulateBoundedAreaPopupMenu.show(mapPanel, e.getX(), e.getY());
                 }
             }
@@ -194,9 +196,25 @@ public class RoutableAreaBuilderPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 BoundedArea selection = manipulateBoundedAreaPopupMenu.getBoundedArea();
                 BoundedAreaType type = selection.getBoundedAreaType();
-                String name = getNameToUse(type, selection.getName());
+                String name = getNameToUse(type.getName(), selection.getName());
                 if (name != null) {
                     selection.setName(name);
+                }
+            }
+        });
+        manipulateBoundedAreaPopupMenu.addCreateEditMeetingPointActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                MeetingPoint meetingPoint = manipulateBoundedAreaPopupMenu.getMeetingPoint();
+                String name = getNameToUse("Meeting Point",
+                        meetingPoint == null ? "Meeting Point" : meetingPoint.getName());
+                if (meetingPoint != null) {
+                    meetingPoint.setName(name);
+                }
+                else {
+                    routableAreaBuilderPanelModel.createMeetingPoint(name,
+                            mapPanel.getModel().getCurrentMapView().getGeoLocation(
+                                    manipulateBoundedAreaPopupMenu.getLocation()));
                 }
             }
         });
@@ -301,7 +319,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
     private void constructOverlay(boolean child) {
         BoundedArea selection = manipulateBoundedAreaPopupMenu.getBoundedArea();
         BoundedAreaType type = child ? selection.getBoundedAreaType().getChildType() : selection.getBoundedAreaType();
-        String name = getNameToUse(type,
+        String name = getNameToUse(type.getName(),
                 routableAreaBuilderPanelModel.getBoundedAreaSelectionModel().getNextSuggestedName(type));
         if (name != null) {
             BoundedArea parent = child ? selection :
@@ -343,8 +361,8 @@ public class RoutableAreaBuilderPanel extends JPanel {
         return workingDirectory;
     }
 
-    private String getNameToUse(BoundedAreaType type, String proposed) {
-        return (String)JOptionPane.showInputDialog(this, String.format("What should this %s be called?",
-                type.getName()), "Route", JOptionPane.QUESTION_MESSAGE, null, null, proposed);
+    private String getNameToUse(String typeName, String proposed) {
+        return (String)JOptionPane.showInputDialog(this, String.format("What should this %s be called?", typeName),
+                "Route", JOptionPane.QUESTION_MESSAGE, null, null, proposed);
     }
 }
