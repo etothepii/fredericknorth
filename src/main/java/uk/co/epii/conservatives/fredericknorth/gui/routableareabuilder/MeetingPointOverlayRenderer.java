@@ -14,7 +14,7 @@ public class MeetingPointOverlayRenderer extends OvalOverlayRenderer<MeetingPoin
 
     private static final Color[] UNSELECTED_COLOUR = new Color[] {Color.BLACK};
     private static final Color[] SELECTED_COLOUR = new Color[] {Color.WHITE, Color.RED, Color.WHITE, Color.RED, Color.WHITE, Color.RED, Color.WHITE, Color.RED};
-    private static final int[] UNSELECTED_RADII = new int[] {10};
+    private static final int[] UNSELECTED_RADII = new int[] {5};
     private static final int[] SELECTED_RADII = new int[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
 
     @Override
