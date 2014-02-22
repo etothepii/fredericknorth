@@ -6,6 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,4 +36,5 @@ public interface BoundedAreaSelectionModel {
     public void loadOSKnownInstances();
     public Map<BoundedAreaType,BoundedArea> getAllSelected();
     public BoundedArea getSelected();
+    public List<MeetingPoint> getMeetingPoints();
 }

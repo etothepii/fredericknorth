@@ -42,7 +42,6 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
 
     private MapPanelModel mapPanelModel;
     private final BoundedAreaSelectionModel boundedAreaSelectionModel;
-    private final List<MeetingPoint> meetingPoints;
     private final Map<BoundedAreaType, Integer> priorities;
     private final ConstructorOverlay constructorOverlay = new ConstructorOverlay(null, 9999);
     private final ApplicationContext applicationContext;
@@ -65,7 +64,6 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
         priorities = createPriorities();
         this.boundedAreaSelectionModel = boundedAreaSelectionModel;
         selectedBoundedAreaChangedListener = createSelectedBoundedAreaChangedListener();
-        meetingPoints = new ArrayList<MeetingPoint>();
     }
 
     private SelectedBoundedAreaChangedListener createSelectedBoundedAreaChangedListener() {
@@ -119,7 +117,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
                                 priorities.get(boundedAreaType)));
             }
         }
-        for (MeetingPoint meetingPoint : meetingPoints) {
+        for (MeetingPoint meetingPoint : boundedAreaSelectionModel.getMeetingPoints()) {
             overlayItems.add(new MeetingPointOverlayItem(meetingPoint));
         }
         overlayItems.add(constructorOverlay);
@@ -384,12 +382,12 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
     }
 
     public void createMeetingPoint(String name, Point point) {
-        meetingPoints.add(new MeetingPoint(name, point));
+        boundedAreaSelectionModel.getMeetingPoints().add(new MeetingPoint(name, point));
         updateOverlays();
     }
 
     public void removeMeetingPoint(MeetingPoint meetingPoint) {
-        meetingPoints.add(meetingPoint);
+        boundedAreaSelectionModel.getMeetingPoints().add(meetingPoint);
         updateOverlays();
     }
 }
