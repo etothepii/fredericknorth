@@ -312,10 +312,16 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
     public void loadFrom(File selectedFile, ApplicationContext applicationContext) {
         Document document = xmlSerializer.fromFile(selectedFile);
         Element dataElt = document.getDocumentElement();
-        Element boundedAreasElt = (Element)dataElt.getElementsByTagName("BoundedAreas").item(0);
-        Element meetingPointsElt = (Element)dataElt.getElementsByTagName("MeetingPoints").item(0);
-        loadBoundedAreas(applicationContext, boundedAreasElt);
-        loadMeetingPoints(meetingPointsElt);
+        if (dataElt.getTagName().equals("BoundedAreas")) {
+            loadBoundedAreas(applicationContext, dataElt);
+            getMeetingPoints().clear();
+        }
+        else {
+            Element boundedAreasElt = (Element)dataElt.getElementsByTagName("BoundedAreas").item(0);
+            Element meetingPointsElt = (Element)dataElt.getElementsByTagName("MeetingPoints").item(0);
+            loadBoundedAreas(applicationContext, boundedAreasElt);
+            loadMeetingPoints(meetingPointsElt);
+        }
     }
 
     private void loadMeetingPoints(Element meetingPointsElt) {
