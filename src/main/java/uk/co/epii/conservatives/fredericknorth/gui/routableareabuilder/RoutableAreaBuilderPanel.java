@@ -57,6 +57,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
     private final FileFilter boundedAreaReportMapFilesFilter;
     private final FileFilter boundedAreaMapDirectoryFilter;
     private final MapImageObserver imageObserver;
+    private Point popupMenuLastShownAt;
 
     public RoutableAreaBuilderPanel(ApplicationContext applicationContext,
                                     RoutableAreaBuilderPanelModel routableAreaBuilderPanelModeL) {
@@ -175,6 +176,7 @@ public class RoutableAreaBuilderPanel extends JPanel {
                             routableAreaBuilderPanelModel.getMouseOver(BoundedArea.class));
                     manipulateBoundedAreaPopupMenu.setMeetingPoint(
                             routableAreaBuilderPanelModel.getMouseOver(MeetingPoint.class));
+                    popupMenuLastShownAt = new Point(e.getX(), e.getY());
                     manipulateBoundedAreaPopupMenu.show(mapPanel, e.getX(), e.getY());
                 }
             }
@@ -210,11 +212,9 @@ public class RoutableAreaBuilderPanel extends JPanel {
                         meetingPoint == null ? "Meeting Point" : meetingPoint.getName());
                 if (meetingPoint != null) {
                     meetingPoint.setName(name);
-                }
-                else {
+                } else {
                     routableAreaBuilderPanelModel.createMeetingPoint(name,
-                            mapPanel.getModel().getCurrentMapView().getGeoLocation(
-                                    manipulateBoundedAreaPopupMenu.getLocation()));
+                            mapPanel.getModel().getCurrentMapView().getGeoLocation(popupMenuLastShownAt));
                 }
             }
         });
