@@ -218,6 +218,12 @@ public class RoutableAreaBuilderPanel extends JPanel {
                 }
             }
         });
+        manipulateBoundedAreaPopupMenu.addDeleteMeetingPointActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                routableAreaBuilderPanelModel.removeMeetingPoint(manipulateBoundedAreaPopupMenu.getMeetingPoint());
+            }
+        });
         saveButton.addActionListener(new ActionListener() {
             public File saveTo = new File(workingDirectory.getAbsolutePath() + "/boundaries.xml");
 

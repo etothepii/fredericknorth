@@ -387,4 +387,9 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
         meetingPoints.add(new MeetingPoint(name, point));
         updateOverlays();
     }
+
+    public void removeMeetingPoint(MeetingPoint meetingPoint) {
+        meetingPoints.add(meetingPoint);
+        updateOverlays();
+    }
 }
