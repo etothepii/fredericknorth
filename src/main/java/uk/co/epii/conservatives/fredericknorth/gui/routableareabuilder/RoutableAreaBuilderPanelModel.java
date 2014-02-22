@@ -120,7 +120,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
             }
         }
         for (MeetingPoint meetingPoint : meetingPoints) {
-            overlayItems.add(new MeetingPointOverlayItem(meetingPoint, 1000));
+            overlayItems.add(new MeetingPointOverlayItem(meetingPoint));
         }
         overlayItems.add(constructorOverlay);
         mapPanelModel.setOverlays(overlayItems);
