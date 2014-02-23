@@ -425,21 +425,26 @@ public class RouteBuilderPanelModel implements Activateable {
 
     private List<OverlayItem> getDwellingGroupOverlays() {
         ArrayList<List<DwellingGroup>> dwellingGroupLists = new ArrayList<List<DwellingGroup>>(4);
+        LOG.debug("Getting Unselected Unrouted DwellingGroups");
         dwellingGroupLists.add(unroutedDwellingGroups.getSelected(SelectedState.UNSELECTED));
+        LOG.debug("Getting Unselected Routed DwellingGroups");
         dwellingGroupLists.add(routedDwellingGroups.getSelected(SelectedState.UNSELECTED));
+        LOG.debug("Getting Selected Unrouted DwellingGroups");
         dwellingGroupLists.add(unroutedDwellingGroups.getSelected(SelectedState.SELECTED));
+        LOG.debug("Getting Selected Routed DwellingGroups");
         dwellingGroupLists.add(routedDwellingGroups.getSelected(SelectedState.SELECTED));
-        Color[] colors = new Color[] {Color.BLUE, Color.GREEN, Color.RED, Color.RED};
         int count = 0;
         for (List<DwellingGroup> dwellingGroupsList : dwellingGroupLists) {
             count += dwellingGroupsList.size();
         }
         List<OverlayItem> overlayItems = new ArrayList<OverlayItem>(count);
         for (int i = 0; i < dwellingGroupLists.size(); i++) {
+            LOG.debug("Creating DwellingGroup Overlays");
             for (DwellingGroup dwellingGroup : dwellingGroupLists.get(i)) {
                 overlayItems.add(
                         new DottedDwellingGroupOverlayItemImpl(dwellingGroup, i));
             }
+            LOG.debug("Created DwellingGroup Overlays");
         }
         return overlayItems;
     }
