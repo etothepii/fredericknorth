@@ -239,4 +239,11 @@ public class RectangleExtensions {
     public static Rectangle grow(Rectangle bounds, double growBy) {
         return grow(bounds, (int)(Math.max(bounds.height * growBy, bounds.width * growBy) / 2));
     }
+
+    public static Boolean isInside(Rectangle clip, Point p) {
+        if (RectangleExtensions.getEdge(clip, p) != null) {
+            return null;
+        }
+        return clip.contains(p);
+    }
 }
