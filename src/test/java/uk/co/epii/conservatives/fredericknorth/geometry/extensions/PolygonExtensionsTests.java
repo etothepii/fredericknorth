@@ -204,6 +204,27 @@ public class PolygonExtensionsTests {
     }
 
     @Test
+    public void clipTest3() {
+        Rectangle clip = new Rectangle(50, 100, 150, 200);
+        Polygon polygon = new Polygon(new int[] {0, 0, 60, 60, 70, 70, 80, 80}, new int[] {0, 400, 400, 10, 10, 110, 110, 0}, 8);
+        Point[] expected = PolygonExtensions.toPointArray(
+                new Polygon(new int[] {60,60,50,50},
+                        new int[] {300,100,100,300}, 4));
+        Shape[] result = PolygonExtensions.clip(polygon, clip);
+        Point[] test = PolygonExtensions.toPointArray((Polygon)(result[0]));
+        LOG.debug("expected: {}", Arrays.toString(expected));
+        LOG.debug("result: {}", Arrays.toString(test));
+        assertArrayEquals(expected, test);
+        expected = PolygonExtensions.toPointArray(
+                new Polygon(new int[] {70,70,80,80},
+                        new int[] {100,110,110,100}, 4));
+        test = PolygonExtensions.toPointArray((Polygon)(result[1]));
+        LOG.debug("expected: {}", Arrays.toString(expected));
+        LOG.debug("result: {}", Arrays.toString(test));
+        assertArrayEquals(expected, test);
+    }
+
+    @Test
     public void clipTest2() {
         Rectangle clip = new Rectangle(5, 10, 20, 30);
         Polygon polygon = new Polygon(new int[] {-5, 20, 75}, new int[] {25, 0, 9}, 3);
