@@ -8,6 +8,7 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExte
 
 import java.awt.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * User: James Robinson
@@ -23,6 +24,14 @@ public class SquareSearchPolygonSifterImplTests {
     private static int th_n = 947;
     Polygon[] polygons = new Polygon[] {new Polygon(th_x, th_y, th_n)};
     int tests = 10000;
+
+    @Test
+    public void singleTest1() {
+        Point outside = new Point(539207,181445);
+        SquareSearchPolygonSifterImpl squareSearch = new SquareSearchPolygonSifterImpl(polygons, tests);
+        boolean result = squareSearch.contains(outside);
+        assertFalse(result);
+    }
 
     @Test
     public void compareWithBruteForce() {
