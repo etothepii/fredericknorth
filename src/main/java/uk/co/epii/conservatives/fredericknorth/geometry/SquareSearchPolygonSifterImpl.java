@@ -6,7 +6,10 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtens
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.ShapeExtensions;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 /**
  * User: James Robinson
@@ -77,7 +80,53 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
             case NO: return false;
             default:
                 Shape[] maybeShape = maybeShapes[x][y];
+//                debug(maybeShape, p);
                 return ShapeExtensions.contains(maybeShape, p);
         }
     }
+
+    private void debug(final Shape[] shapes, final Point p) {
+        final Rectangle bounds = ShapeExtensions.getBounds(shapes);
+        JPanel panel = new JPanel() {
+            @Override
+            public void paint(Graphics graphics) {
+                Graphics2D g = (Graphics2D)graphics;
+                double scale = Math.max(bounds.width / (double)getWidth(), bounds.height / (double)getHeight());
+                scale = 0.8d / scale;
+                AffineTransform transform = AffineTransform.getScaleInstance(scale, scale);
+                transform.translate(-bounds.x + bounds.width / 5 , -bounds.y + bounds.height / 5);
+                g.setTransform(transform);
+                Point2D.Double origin = new Point2D.Double();
+                transform.transform(new Point2D.Double(bounds.getX(), bounds.getY()), origin);
+                LOG.info(origin.toString());
+                transform.transform(new Point2D.Double(bounds.getX()+ bounds.width, bounds.getY() + bounds.height), origin);
+                LOG.info(origin.toString());
+                g.setColor(new Color(255, 0, 0, 128));
+                for (Polygon p : polygons) {
+                    g.fill(p);
+                }
+                g.setColor(new Color(0, 255, 0, 128));
+                for (Shape s : shapes) {
+                    g.fill(s);
+                }
+                g.setColor(Color.BLACK);
+                int ovalSize = (int)(5 * scale);
+                g.fillOval(p.x - ovalSize, p.y - ovalSize, ovalSize * 2, ovalSize * 2);
+            }
+        };
+        panel.setPreferredSize(new Dimension(800, 600));
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new BorderLayout());
+        frame.getContentPane().add(panel);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        frame.dispose();
+    }
+
 }
