@@ -329,10 +329,10 @@ public class ClippedPolygonFactory {
     private boolean isCBetweenAAndBClockwise(Point a, Point b, Point c) {
         int da = clockwiseDistance(a);
         int db = clockwiseDistance(b);
-        int dc = clockwiseDistance(b);
+        int dc = clockwiseDistance(c);
         if (db < da) db += clip.width * 2 + clip.height * 2;
         if (dc < da) dc += clip.width * 2 + clip.height * 2;
-        return db < dc;
+        return dc < db;
     }
 
 
