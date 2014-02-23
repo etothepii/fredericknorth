@@ -3,6 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.ShapeExtensions;
 
 import java.awt.*;
 
@@ -20,6 +22,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
     private Polygon[] polygons;
 
     private YesNoMaybe[][] coarseGrid;
+    private Shape[][][] maybeShapes;
     private Point coarseGridStart;
     private int grain;
 
@@ -30,18 +33,20 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         grainDouble *= bounds.height;
         grainDouble *= 150;
         grainDouble /= points;
+        grain = (int)Math.sqrt(grainDouble);
         if (grain < 2) {
             coarseGrid = null;
             return;
         }
-        grain = (int)Math.sqrt(grainDouble);
         LOG.info("Grain: {}", grain);
-        coarseGridStart = new Point(bounds.x / grain * grain, bounds.y / grain * grain);
-        int coarseWidth = (bounds.width + bounds.x - coarseGridStart.x) / grain + 1;
-        int coarseHeight = (bounds.height + bounds.y - coarseGridStart.y) / grain + 1;
+        coarseGridStart = new Point(bounds.x, bounds.y);
+        int coarseWidth = bounds.width / grain + 1;
+        int coarseHeight = bounds.height / grain + 1;
         coarseGrid = new YesNoMaybe[coarseWidth][];
+        maybeShapes = new Polygon[coarseWidth][][];
         for (int x = 0; x < coarseWidth; x++) {
             coarseGrid[x] = new YesNoMaybe[coarseHeight];
+            maybeShapes[x] = new Polygon[coarseHeight][];
             for (int y = 0; y < coarseHeight; y++) {
                 Rectangle rectangle = new Rectangle(coarseGridStart.x + x * grain, coarseGridStart.y + y * grain, grain, grain);
                 if (PolygonExtensions.contains(polygons, rectangle)) {
@@ -49,6 +54,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
                 }
                 else if (PolygonExtensions.intersects(polygons, rectangle)) {
                     coarseGrid[x][y] = YesNoMaybe.MAYBE;
+                    maybeShapes[x][y] = PolygonExtensions.clip(polygons[0], RectangleExtensions.grow(rectangle, 5));
                 }
                 else {
                     coarseGrid[x][y] = YesNoMaybe.NO;
@@ -69,7 +75,9 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         switch (coarseGrid[x][y]) {
             case YES: return true;
             case NO: return false;
-            default: return PolygonExtensions.contains(polygons, p);
+            default:
+                Shape[] maybeShape = maybeShapes[x][y];
+                return ShapeExtensions.contains(maybeShape, p);
         }
     }
 }
