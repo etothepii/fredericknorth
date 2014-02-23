@@ -43,10 +43,10 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         int coarseWidth = bounds.width / grain + 1;
         int coarseHeight = bounds.height / grain + 1;
         coarseGrid = new YesNoMaybe[coarseWidth][];
-        maybeShapes = new Polygon[coarseWidth][][];
+        maybeShapes = new Shape[coarseWidth][][];
         for (int x = 0; x < coarseWidth; x++) {
             coarseGrid[x] = new YesNoMaybe[coarseHeight];
-            maybeShapes[x] = new Polygon[coarseHeight][];
+            maybeShapes[x] = new Shape[coarseHeight][];
             for (int y = 0; y < coarseHeight; y++) {
                 Rectangle rectangle = new Rectangle(coarseGridStart.x + x * grain, coarseGridStart.y + y * grain, grain, grain);
                 if (PolygonExtensions.contains(polygons, rectangle)) {
