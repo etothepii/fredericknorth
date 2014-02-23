@@ -204,6 +204,19 @@ public class PolygonExtensionsTests {
     }
 
     @Test
+    public void clipTest2() {
+        Rectangle clip = new Rectangle(5, 10, 20, 30);
+        Polygon polygon = new Polygon(new int[] {-5, 20, 75}, new int[] {25, 0, 9}, 3);
+        Point[] expected = PolygonExtensions.toPointArray(
+                new Polygon(new int[] {25,5,5,10,25},
+                        new int[] {19,23,15,10,10}, 5));
+        Point[] result = PolygonExtensions.toPointArray((Polygon)(PolygonExtensions.clip(polygon, clip)[0]));
+        LOG.debug("expected: {}", Arrays.toString(expected));
+        LOG.debug("result: {}", Arrays.toString(result));
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
     public void clipTest3() {
         Rectangle clip = new Rectangle(50, 100, 150, 200);
         Polygon polygon = new Polygon(new int[] {0, 0, 60, 60, 70, 70, 80, 80}, new int[] {0, 400, 400, 10, 10, 110, 110, 0}, 8);
@@ -222,19 +235,22 @@ public class PolygonExtensionsTests {
         LOG.debug("expected: {}", Arrays.toString(expected));
         LOG.debug("result: {}", Arrays.toString(test));
         assertArrayEquals(expected, test);
+        assertEquals(2, result.length);
     }
 
     @Test
-    public void clipTest2() {
-        Rectangle clip = new Rectangle(5, 10, 20, 30);
-        Polygon polygon = new Polygon(new int[] {-5, 20, 75}, new int[] {25, 0, 9}, 3);
+    public void clipTest4() {
+        Rectangle clip = new Rectangle(10, 10, 30, 30);
+        Polygon polygon = new Polygon(new int[] {0, 0, 20, 20, 30, 30, 50, 50}, new int[] {0, 20, 20, 50, 50, 20, 20, 0}, 8);
         Point[] expected = PolygonExtensions.toPointArray(
-                new Polygon(new int[] {25,5,5,10,25},
-                        new int[] {19,23,15,10,10}, 5));
-        Point[] result = PolygonExtensions.toPointArray((Polygon)(PolygonExtensions.clip(polygon, clip)[0]));
+                new Polygon(new int[] {10,20,20,30,30,40,40,10},
+                        new int[] {20,20,40,40,20,20,10,10}, 8));
+        Shape[] result = PolygonExtensions.clip(polygon, clip);
+        Point[] test = PolygonExtensions.toPointArray((Polygon)(result[0]));
         LOG.debug("expected: {}", Arrays.toString(expected));
-        LOG.debug("result: {}", Arrays.toString(result));
-        assertArrayEquals(expected, result);
+        LOG.debug("result: {}", Arrays.toString(test));
+        assertArrayEquals(expected, test);
+        assertEquals(1, result.length);
     }
 
     @Test
