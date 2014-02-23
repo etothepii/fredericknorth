@@ -304,6 +304,34 @@ public class PolygonExtensionsTests {
     }
 
     @Test
+    public void clipTest9() {
+        Rectangle clip = new Rectangle(5, 5, 10, 10);
+        Polygon polygon = new Polygon(new int[] {5, 8, 8}, new int[] {10, 7, 13}, 3);
+        Point[] expected = PolygonExtensions.toPointArray(
+                new Polygon(new int[] {5}, new int[] {10}, 1));
+        Shape[] result = PolygonExtensions.clip(polygon, clip);
+        Point[] test = PolygonExtensions.toPointArray((Polygon)(result[0]));
+        LOG.debug("expected: {}", Arrays.toString(expected));
+        LOG.debug("result: {}", Arrays.toString(test));
+        assertArrayEquals(expected, test);
+        assertEquals(1, result.length);
+    }
+
+    @Test
+    public void clipTest10() {
+        Rectangle clip = new Rectangle(5, 5, 10, 10);
+        Polygon polygon = new Polygon(new int[] {5, 13, 13}, new int[] {10, 7, 13}, 3);
+        Point[] expected = PolygonExtensions.toPointArray(
+                new Polygon(new int[] {5, 13, 13}, new int[] {10, 7, 13}, 3));
+        Shape[] result = PolygonExtensions.clip(polygon, clip);
+        Point[] test = PolygonExtensions.toPointArray((Polygon)(result[0]));
+        LOG.debug("expected: {}", Arrays.toString(expected));
+        LOG.debug("result: {}", Arrays.toString(test));
+        assertArrayEquals(expected, test);
+        assertEquals(1, result.length);
+    }
+
+    @Test
     public void getClippedSegmentsTest1() {
         Rectangle clip = new Rectangle(5, 10, 20, 30);
         Polygon polygon = new Polygon(new int[] {0,10,15,20,30,20,15,10}, new int[] {25,15,-10,15,25,35,60,35}, 8);
