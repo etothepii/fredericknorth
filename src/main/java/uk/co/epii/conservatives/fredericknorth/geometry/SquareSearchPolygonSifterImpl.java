@@ -20,12 +20,9 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
 
     private static final Logger LOG = LoggerFactory.getLogger(SquareSearchPolygonSifterImpl.class);
 
-    private enum YesNoMaybe {YES, NO, MAYBE};
-
+    private Rectangle[][] clips;
     private Polygon[] polygons;
-
-    private YesNoMaybe[][] coarseGrid;
-    private Shape[][][] maybeShapes;
+    private Shape[][][] clippedShapes;
     private Point coarseGridStart;
     private int grain;
 
@@ -38,63 +35,68 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         grainDouble /= points;
         grain = (int)Math.sqrt(grainDouble);
         if (grain < 2) {
-            coarseGrid = null;
+            clippedShapes = null;
             return;
         }
         LOG.info("Grain: {}", grain);
         coarseGridStart = new Point(bounds.x, bounds.y);
         int coarseWidth = bounds.width / grain + 1;
         int coarseHeight = bounds.height / grain + 1;
-        coarseGrid = new YesNoMaybe[coarseWidth][];
-        maybeShapes = new Shape[coarseWidth][][];
+        clippedShapes = new Shape[coarseWidth][][];
+        clips = new Rectangle[coarseWidth][];
         for (int x = 0; x < coarseWidth; x++) {
-            coarseGrid[x] = new YesNoMaybe[coarseHeight];
-            maybeShapes[x] = new Shape[coarseHeight][];
+            clippedShapes[x] = new Shape[coarseHeight][];
+            clips[x] = new Rectangle[coarseHeight];
             for (int y = 0; y < coarseHeight; y++) {
                 Rectangle rectangle = new Rectangle(coarseGridStart.x + x * grain, coarseGridStart.y + y * grain, grain, grain);
-                if (PolygonExtensions.contains(polygons, rectangle)) {
-                    coarseGrid[x][y] = YesNoMaybe.YES;
-                }
-                else if (PolygonExtensions.intersects(polygons, rectangle)) {
-                    coarseGrid[x][y] = YesNoMaybe.MAYBE;
-                    maybeShapes[x][y] = PolygonExtensions.clip(polygons[0], RectangleExtensions.grow(rectangle, 5));
-                }
-                else {
-                    coarseGrid[x][y] = YesNoMaybe.NO;
-                }
+                clips[x][y] = RectangleExtensions.grow(rectangle, 5);
+                clippedShapes[x][y] = PolygonExtensions.clip(polygons, clips[x][y]);
             }
         }
     }
 
     @Override
     public boolean contains(Point p) {
-        if (coarseGrid == null) {
+        if (clippedShapes == null) {
             return PolygonExtensions.contains(polygons, p);
         }
         int x = (p.x - coarseGridStart.x) / grain;
         int y = (p.y - coarseGridStart.y) / grain;
-        if (x < 0 || x >= coarseGrid.length) return false;
-        if (y < 0 || y >= coarseGrid[0].length) return false;
-        switch (coarseGrid[x][y]) {
-            case YES: return true;
-            case NO: return false;
-            default:
-                Shape[] maybeShape = maybeShapes[x][y];
-//                debug(maybeShape, p);
-                return ShapeExtensions.contains(maybeShape, p);
+        if (x < 0 || x >= clippedShapes.length) return false;
+        if (y < 0 || y >= clippedShapes[0].length) return false;
+        Shape[] maybeShape = clippedShapes[x][y];
+                debug(maybeShape, p, clips[x][y]);
+        if (tooClose(maybeShape, p)) {
+            return PolygonExtensions.contains(polygons, p);
         }
+        return ShapeExtensions.contains(maybeShape, p);
     }
 
-    private void debug(final Shape[] shapes, final Point p) {
+    private boolean tooClose(Shape[] maybeShape, Point p) {
+        double minD = Double.MAX_VALUE;
+        for (Shape s : maybeShape) {
+            if (s instanceof Polygon) {
+                NearestPoint nearestPoint =
+                        PolygonExtensions.getNearestPoint((Polygon)s, new Point2D.Float(p.x, p.y));
+                if (nearestPoint.dSquared < minD) {
+                    minD = nearestPoint.dSquared;
+                }
+            }
+        }
+        LOG.debug("minD: {}", minD);
+        return minD < 2d;
+    }
+
+    private void debug(final Shape[] shapes, final Point p, final Rectangle clip) {
         final Rectangle bounds = ShapeExtensions.getBounds(shapes);
         JPanel panel = new JPanel() {
             @Override
             public void paint(Graphics graphics) {
                 Graphics2D g = (Graphics2D)graphics;
                 double scale = Math.max(bounds.width / (double)getWidth(), bounds.height / (double)getHeight());
-                scale = 0.8d / scale;
+                scale = 2;
                 AffineTransform transform = AffineTransform.getScaleInstance(scale, scale);
-                transform.translate(-bounds.x + bounds.width / 5 , -bounds.y + bounds.height / 5);
+                transform.translate(-p.x + getWidth() / 4 , -p.y + getHeight() / 4);
                 g.setTransform(transform);
                 Point2D.Double origin = new Point2D.Double();
                 transform.transform(new Point2D.Double(bounds.getX(), bounds.getY()), origin);
@@ -109,9 +111,11 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
                 for (Shape s : shapes) {
                     g.fill(s);
                 }
+                g.setColor(new Color(0, 0, 255, 128));
+                g.fill(clip);
                 g.setColor(Color.BLACK);
-                int ovalSize = (int)(5 * scale);
-                g.fillOval(p.x - ovalSize, p.y - ovalSize, ovalSize * 2, ovalSize * 2);
+                g.setTransform(AffineTransform.getScaleInstance(1, 1));
+                g.fillRect(getWidth() / 2 - 1, getHeight() / 2 - 1, 3, 3);
             }
         };
         panel.setPreferredSize(new Dimension(800, 600));
@@ -122,7 +126,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         try {
-            Thread.sleep(1000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
