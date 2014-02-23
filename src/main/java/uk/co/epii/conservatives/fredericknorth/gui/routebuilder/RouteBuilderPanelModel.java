@@ -540,6 +540,7 @@ public class RouteBuilderPanelModel implements Activateable {
         this.active = active;
         if (active) {
             boundedAreaSelectionModel.addBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+            setSelectedBoundedArea(getBoundedAreaSelectionModel().getSelected());
         }
         else {
             boundedAreaSelectionModel.removeBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
