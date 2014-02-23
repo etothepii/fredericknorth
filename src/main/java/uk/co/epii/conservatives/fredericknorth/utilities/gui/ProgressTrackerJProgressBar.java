@@ -199,7 +199,7 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         clearSubsections();
         progressBar.setMaximum(1);
         progressBar.setValue(0);
-        progressBar.setIndeterminate(true);
+        progressBar.setIndeterminate(false);
     }
 
     private void clearSubsections() {
