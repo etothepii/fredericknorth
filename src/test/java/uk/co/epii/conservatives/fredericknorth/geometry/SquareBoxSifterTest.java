@@ -7,10 +7,6 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtens
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
