@@ -26,4 +26,17 @@ public class ShapeExtensions {
         }
         return false;
     }
+
+    public static Rectangle getBounds(Shape[] areas) {
+        Rectangle bounds = null;
+        for (Shape polygon : areas) {
+            if (bounds == null) {
+                bounds = polygon.getBounds();
+            }
+            else {
+                bounds = bounds.union(polygon.getBounds());
+            }
+        }
+        return bounds;
+    }
 }
