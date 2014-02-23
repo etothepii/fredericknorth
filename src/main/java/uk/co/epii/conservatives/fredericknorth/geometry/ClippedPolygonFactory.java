@@ -33,7 +33,7 @@ public class ClippedPolygonFactory {
         this.internalSegments = new TreeMap<Point, ClippedSegment>(clockwiseComparator);
         clockwise = PolygonExtensions.isClockwise(polygon);
         for (ClippedSegment clippedSegment : clippedSegments) {
-            if (clippedSegment.inside) {
+            if (clippedSegment.isInside()) {
                 if (internalSegments.containsKey(clippedSegment.first())) {
                     throw new UnsupportedOperationException("Unable to build factory as multiple points " +
                             "hit the boundary at the same point");
@@ -93,7 +93,7 @@ public class ClippedPolygonFactory {
         ClippedSegment initialSegment = removeNextClippedSegment(new Point(clip.x, clip.y));
         Point first = initialSegment.first();
         Point last = initialSegment.last();
-        points.addAll(initialSegment.points);
+        points.addAll(initialSegment.getPoints());
         while (!internalSegments.isEmpty()) {
             ClippedSegment clippedSegment = getNextClippedSegment(last);
             if (isCBetweenAAndB(last, clippedSegment.first(), first)) {
@@ -101,11 +101,11 @@ public class ClippedPolygonFactory {
             }
             removeNextClippedSegment(last);
             points.addAll(Arrays.asList(getPointsBetween(last, clippedSegment.first())));
-            points.addAll(clippedSegment.points);
+            points.addAll(clippedSegment.getPoints());
             last = clippedSegment.last();
         }
         points.addAll(Arrays.asList(getPointsBetween(last, first)));
-        return PolygonExtensions.construct(points);
+        return PolygonExtensions.removeRedundancies(PolygonExtensions.construct(points));
     }
 
     private Point[] getPointsBetween(Point a, Point b) {

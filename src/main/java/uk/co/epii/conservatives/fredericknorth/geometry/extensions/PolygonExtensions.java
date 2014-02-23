@@ -495,7 +495,13 @@ public class PolygonExtensions {
     public static Shape[] clip(Polygon polygon, Rectangle clip) {
         List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
         if (clippedSegments.size() == 1) {
-            return new Shape[] {clippedSegments.get(0).inside ? polygon : clip};
+            if (clippedSegments.get(0).isInside()) {
+                return new Shape[] {polygon};
+            }
+            else if (polygon.contains(clip)) {
+                return new Shape[] {clip};
+            }
+            return new Shape[0];
         }
         return new ClippedPolygonFactory(polygon, clip, clippedSegments).build();
     }
@@ -512,29 +518,16 @@ public class PolygonExtensions {
                 inside = clip.contains(point);
             }
             else {
-                if (RectangleExtensions.getEdge(clip, point) == null && RectangleExtensions.getEdge(clip, previous) == null) {
-                    RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
-                    for (RectangleIntersection intersection : intersections) {
-                        points.add(intersection.getIntersection());
-                        clippedSegments.add(new ClippedSegment(points, inside));
-                        points.clear();
-                        inside = !inside;
-                        points.add(intersection.getIntersection());
+                RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
+                for (RectangleIntersection intersection : intersections) {
+                    if (intersection.getIntersection().equals(point)) {
+                        continue;
                     }
-                }
-                else if (RectangleExtensions.getEdge(clip, point) != null) {
-                    if (!inside) {
-                        points.add(point);
-                        clippedSegments.add(new ClippedSegment(points, inside));
-                        points.clear();
-                        inside = !inside;
-                    }
-                }
-                else if (RectangleExtensions.getEdge(clip, previous) != null && !clip.contains(point)) {
+                    points.add(intersection.getIntersection());
                     clippedSegments.add(new ClippedSegment(points, inside));
                     points.clear();
-                    points.add(previous);
                     inside = !inside;
+                    points.add(intersection.getIntersection());
                 }
             }
             points.add(point);
@@ -543,12 +536,12 @@ public class PolygonExtensions {
         if (clippedSegments.isEmpty()) {
             clippedSegments.add(new ClippedSegment(points, inside));
         }
-        else if (clippedSegments.get(0).inside == inside) {
+        else if (clippedSegments.get(0).isInside() == inside) {
             if (!points.isEmpty()) {
-                clippedSegments.get(0).points.addAll(0, points.subList(0, points.size() - 1));
+                clippedSegments.get(0).prepend(points.subList(0, points.size() - 1));
             }
         }
-        else if (RectangleExtensions.getEdge(clip, clippedSegments.get(0).points.get(0)) != null) {
+        else if (RectangleExtensions.getEdge(clip, clippedSegments.get(0).first()) != null) {
             clippedSegments.add(new ClippedSegment(points, inside));
         }
         else {

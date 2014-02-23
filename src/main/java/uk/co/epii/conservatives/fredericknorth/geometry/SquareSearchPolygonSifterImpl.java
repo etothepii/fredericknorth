@@ -65,7 +65,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         if (x < 0 || x >= clippedShapes.length) return false;
         if (y < 0 || y >= clippedShapes[0].length) return false;
         Shape[] maybeShape = clippedShapes[x][y];
-                debug(maybeShape, p, clips[x][y]);
+        debug(maybeShape, p, clips[x][y]);
         if (tooClose(maybeShape, p)) {
             return PolygonExtensions.contains(polygons, p);
         }
@@ -89,6 +89,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
 
     private void debug(final Shape[] shapes, final Point p, final Rectangle clip) {
         final Rectangle bounds = ShapeExtensions.getBounds(shapes);
+        final Shape[] correctShapes = PolygonExtensions.clip(polygons, clip);
         JPanel panel = new JPanel() {
             @Override
             public void paint(Graphics graphics) {
@@ -107,8 +108,19 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
                 for (Polygon p : polygons) {
                     g.fill(p);
                 }
+                g.setColor(Color.RED);
+                for (Polygon p : polygons) {
+                    for (int i = 0; i < p.npoints; i++) {
+                        g.fillOval(p.xpoints[i] - 1, p.ypoints[i] - 1, 2, 2);
+                    }
+                }
+
                 g.setColor(new Color(0, 255, 0, 128));
                 for (Shape s : shapes) {
+                    g.fill(s);
+                }
+                g.setColor(new Color(0, 255, 255, 128));
+                for (Shape s : correctShapes) {
                     g.fill(s);
                 }
                 g.setColor(new Color(0, 0, 255, 128));
@@ -126,7 +138,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         try {
-            Thread.sleep(2000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

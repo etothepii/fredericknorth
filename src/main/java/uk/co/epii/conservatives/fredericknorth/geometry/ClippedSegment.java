@@ -12,8 +12,8 @@ import java.util.List;
  * Time: 00:31
  */
 public class ClippedSegment {
-    public final List<Point> points;
-    public final boolean inside;
+    private final List<Point> points;
+    private final boolean inside;
 
     public ClippedSegment(Collection<Point> points, boolean inside) {
         this.points = new ArrayList<Point>(points);
@@ -26,6 +26,14 @@ public class ClippedSegment {
 
     public Point last() {
         return points.get(points.size() - 1);
+    }
+
+    public int size() {
+        return points.size();
+    }
+
+    public boolean isInside() {
+        return inside;
     }
 
     @Override
@@ -54,5 +62,13 @@ public class ClippedSegment {
                 "points=" + Arrays.toString(points.toArray(new Point[points.size()])) +
                 ", inside=" + inside +
                 '}';
+    }
+
+    public void prepend(Collection<Point> points) {
+        this.points.addAll(0, points);
+    }
+
+    public List<Point> getPoints() {
+        return points;
     }
 }
