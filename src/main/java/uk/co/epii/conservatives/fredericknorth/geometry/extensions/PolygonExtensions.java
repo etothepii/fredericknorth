@@ -509,29 +509,46 @@ public class PolygonExtensions {
     public static List<ClippedSegment> getClippedSegments(Polygon polygon, Rectangle clip) {
         polygon = PolygonExtensions.removeRedundancies(polygon);
         Point previous = null;
-        boolean inside = false;
+        Boolean inside = null;
         List<Point> points = new ArrayList<Point>();
         List<ClippedSegment> clippedSegments = new ArrayList<ClippedSegment>();
-        for (int i = 0; i <= polygon.npoints; i++) {
-            Point point = new Point(polygon.xpoints[i % polygon.npoints], polygon.ypoints[i % polygon.npoints]);
-            if (previous == null) {
-                inside = clip.contains(point);
+        int start = 0;
+        for (; start < polygon.npoints; start++) {
+            if ((inside = RectangleExtensions.isInside(clip, new Point(polygon.xpoints[start], polygon.ypoints[start]))) != null) {
+                break;
             }
-            else {
-                RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
-                for (RectangleIntersection intersection : intersections) {
-                    if (intersection.getIntersection().equals(point)) {
-                        continue;
+        }
+        if (inside == null) {
+            inside = true;
+        }
+        for (int i = start; i <= polygon.npoints + start; i++) {
+            Point point = new Point(polygon.xpoints[i % polygon.npoints], polygon.ypoints[i % polygon.npoints]);
+            if (previous != null) {
+                Integer edgeA = RectangleExtensions.getEdge(clip, previous);
+                Integer edgeB = RectangleExtensions.getEdge(clip, point);
+                if (edgeA == null || edgeA != edgeB) {
+                    RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
+                    for (RectangleIntersection intersection : intersections) {
+                        points.add(intersection.getIntersection());
+                        clippedSegments.add(new ClippedSegment(points, inside == null ? true : inside));
+                        inside = null;
+                        points.clear();
+                        points.add(intersection.getIntersection());
                     }
-                    points.add(intersection.getIntersection());
-                    clippedSegments.add(new ClippedSegment(points, inside));
-                    points.clear();
-                    inside = !inside;
-                    points.add(intersection.getIntersection());
                 }
             }
-            points.add(point);
+            if (points.size() == 0 || !points.get(points.size() - 1).equals(point)) {
+                if (inside == null) {
+                    inside = RectangleExtensions.isInside(clip, point);
+                }
+                points.add(point);
+            }
             previous = point;
+        }
+        for (int i = clippedSegments.size() - 1; i > 0; i--) {
+            if (clippedSegments.get(i - 1).isInside() == clippedSegments.get(i).isInside()) {
+                clippedSegments.get(i - 1).append(clippedSegments.remove(i).getPoints());
+            }
         }
         if (clippedSegments.isEmpty()) {
             clippedSegments.add(new ClippedSegment(points, inside));
