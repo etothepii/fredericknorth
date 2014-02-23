@@ -95,10 +95,11 @@ public class ClippedPolygonFactory {
         Point last = initialSegment.last();
         points.addAll(initialSegment.points);
         while (!internalSegments.isEmpty()) {
-            ClippedSegment clippedSegment = removeNextClippedSegment(last);
-            if (isCBetweenAAndBClockwise(last, clippedSegment.first(), first)) {
+            ClippedSegment clippedSegment = getNextClippedSegment(last);
+            if (isCBetweenAAndB(last, clippedSegment.first(), first)) {
                 break;
             }
+            removeNextClippedSegment(last);
             points.addAll(Arrays.asList(getPointsBetween(last, clippedSegment.first())));
             points.addAll(clippedSegment.points);
             last = clippedSegment.last();
@@ -138,6 +139,32 @@ public class ClippedPolygonFactory {
             previous = internalSegments.lastKey();
         }
         return internalSegments.remove(previous);
+    }
+
+    private ClippedSegment getNextClippedSegment(Point last) {
+        if (clockwise) {
+            return getNextClockwiseClippedSegment(last);
+        }
+        else {
+            return getNextAnticlockwiseClippedSegment(last);
+        }
+    }
+
+
+    private ClippedSegment getNextClockwiseClippedSegment(Point last) {
+        Point next = internalSegments.higherKey(last);
+        if (next == null) {
+            next = internalSegments.firstKey();
+        }
+        return internalSegments.get(next);
+    }
+
+    private ClippedSegment getNextAnticlockwiseClippedSegment(Point last) {
+        Point previous = internalSegments.lowerKey(last);
+        if (previous == null) {
+            previous = internalSegments.lastKey();
+        }
+        return internalSegments.get(previous);
     }
 
     private Point[] getAnticlockwisePointsBetween(Point a, Point b) {
@@ -286,6 +313,13 @@ public class ClippedPolygonFactory {
             default:
                 throw new IllegalArgumentException("Not a corner");
         }
+    }
+
+    private boolean isCBetweenAAndB(Point a, Point b, Point c) {
+        if (clockwise) {
+            return isCBetweenAAndBClockwise(a, b, c);
+        }
+        return isCBetweenAAndBAnticlockwise(a, b, c);
     }
 
     private boolean isCBetweenAAndBAnticlockwise(Point a, Point b, Point c) {
