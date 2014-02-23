@@ -482,6 +482,16 @@ public class PolygonExtensions {
         return new Polygon(xpoints, ypoints, reducedPointCount);
     }
 
+    public static Shape[] clip(Polygon[] polygons, Rectangle clip) {
+        List<Shape> shapes = new ArrayList<Shape>();
+        for (Polygon polygon : polygons) {
+            for (Shape shape : clip(polygon, clip)) {
+                shapes.add(shape);
+            }
+        }
+        return shapes.toArray(new Shape[shapes.size()]);
+    }
+
     public static Shape[] clip(Polygon polygon, Rectangle clip) {
         List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
         if (clippedSegments.size() == 1) {
