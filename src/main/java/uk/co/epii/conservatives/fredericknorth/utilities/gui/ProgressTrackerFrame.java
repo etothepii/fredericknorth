@@ -4,10 +4,7 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * User: James Robinson
@@ -107,5 +104,10 @@ public class ProgressTrackerFrame extends JFrame implements ProgressTracker {
     @Override
     public boolean isIndeterminate() {
         return progressBar.isIndeterminate();
+    }
+
+    @Override
+    public void setIndeterminate() {
+        progressBar.setIndeterminate();
     }
 }

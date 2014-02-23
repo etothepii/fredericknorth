@@ -57,4 +57,7 @@ public class NullProgressTracker implements ProgressTracker {
     public boolean isIndeterminate() {
         return false;
     }
+
+    @Override
+    public void setIndeterminate() {}
 }

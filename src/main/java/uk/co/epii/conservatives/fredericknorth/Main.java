@@ -87,6 +87,7 @@ public class Main
             System.exit(1);
         }
         progress("Starting ...");
+        progressTracker.isIndeterminate();
         MainWindowModel mainWindowModel = new MainWindowModel(applicationContext);
         MainWindow mainWindow = new MainWindow(applicationContext, mainWindowModel);
         mainWindow.setLocationRelativeTo(null);

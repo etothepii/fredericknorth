@@ -59,6 +59,7 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
                 if (progressBar.getValue() == progressBar.getMaximum()) {
                     finish();
                 }
+                progressBar.setIndeterminate(false);
                 addSubsection(steps);
                 LOG.debug("from progressBar.getValue(): {}", progressBar.getValue());
                 LOG.debug("from progressBar.getMaximum(): {}", progressBar.getMaximum());
@@ -198,7 +199,7 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         clearSubsections();
         progressBar.setMaximum(1);
         progressBar.setValue(0);
-        progressBar.setIndeterminate(false);
+        progressBar.setIndeterminate(true);
     }
 
     private void clearSubsections() {
@@ -233,6 +234,11 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
     @Override
     public boolean isIndeterminate() {
         return progressBar.isIndeterminate();
+    }
+
+    @Override
+    public void setIndeterminate() {
+        progressBar.setIndeterminate(true);
     }
 
     public void paint(Graphics g) {
