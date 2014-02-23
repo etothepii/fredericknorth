@@ -47,7 +47,7 @@ public class SquareBoxSifterTest {
             squareSearchResults[i] = squareSearch.contains(points[i]);
         }
         squareSearchTime = System.nanoTime() - squareSearchTime;
-        LOG.info("Brute Force: {}ns", bruteForceTime);
+        LOG.info("Brute Force:   {}ns", bruteForceTime);
         LOG.info("Square Search: {}ns", squareSearchTime);
         for (int i = 0; i < test; i++) {
             assertEquals(points[i].toString(), bruteForceResults[i], squareSearchResults[i]);
