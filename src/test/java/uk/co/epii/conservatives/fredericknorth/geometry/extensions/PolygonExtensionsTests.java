@@ -276,10 +276,10 @@ public class PolygonExtensionsTests {
     @Test
     public void clipTest7() {
         Rectangle clip = new Rectangle(5, 5, 10, 10);
-        Polygon polygon = new Polygon(new int[] {9, 16, 16}, new int[] {4, 4, 16}, 3);
+        Polygon polygon = new Polygon(new int[] {9, 16, 16}, new int[] {4, 4, 11}, 3);
         Point[] expected = PolygonExtensions.toPointArray(
-                new Polygon(new int[] {10,15,15},
-                        new int[] {5,5,10}, 3));
+                new Polygon(new int[] {15,10,15},
+                        new int[] {10,5,5}, 3));
         Shape[] result = PolygonExtensions.clip(polygon, clip);
         Point[] test = PolygonExtensions.toPointArray((Polygon)(result[0]));
         LOG.debug("expected: {}", Arrays.toString(expected));
