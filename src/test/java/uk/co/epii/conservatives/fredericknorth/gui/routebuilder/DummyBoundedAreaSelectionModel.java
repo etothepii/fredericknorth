@@ -9,6 +9,7 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +129,6 @@ public class DummyBoundedAreaSelectionModel implements BoundedAreaSelectionModel
 
     @Override
     public List<MeetingPoint> getMeetingPoints() {
-        throw new UnsupportedOperationException("This operation is not supported by the dummy");
+        return new ArrayList<MeetingPoint>();
     }
 }
