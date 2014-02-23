@@ -2,7 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.maps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleCollection;
+import uk.co.epii.conservatives.fredericknorth.geometry.RectangleCollection;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;

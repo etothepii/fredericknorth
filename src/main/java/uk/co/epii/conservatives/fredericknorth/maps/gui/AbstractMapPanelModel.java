@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.NearestPoint;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
-import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleCollection;
+import uk.co.epii.conservatives.fredericknorth.geometry.RectangleCollection;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
