@@ -504,6 +504,7 @@ public class RouteBuilderPanelModel implements Activateable {
                 @Override
                 public void run() {
                     synchronized (pdfRenderer) {
+                        pdfRenderer.setMeetingPoints(boundedAreaSelectionModel.getMeetingPoints());
                         pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile, progressTracker);
                         enable();
                     }
