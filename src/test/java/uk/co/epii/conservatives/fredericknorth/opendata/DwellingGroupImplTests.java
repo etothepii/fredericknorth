@@ -399,4 +399,33 @@ public class DwellingGroupImplTests {
         assertEquals(expected, result);
     }
 
+    @Test
+    public void getIdentifierSummaryTest23() {
+        for (int i = 1; i <= 41; i += 2) {
+            dwellingGroup.add(new DwellingImpl(i + "", 'A', dwellingGroup));
+        }
+        for (int i = 2; i <= 70; i += 2) {
+            dwellingGroup.add(new DwellingImpl(i + "", 'A', dwellingGroup));
+        }
+        String result = dwellingGroup.getIdentifierSummary();
+        String expected = "1 - 42 & 44 - 70 EVENS ONLY";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void getIdentifierSummaryTest24() {
+        for (int i = 1; i <= 11; i += 2) {
+            dwellingGroup.add(new DwellingImpl(i + "", 'A', dwellingGroup));
+        }
+        for (int i = 2; i <= 24; i += 2) {
+            dwellingGroup.add(new DwellingImpl(i + "", 'A', dwellingGroup));
+        }
+        dwellingGroup.add(new DwellingImpl("1A", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("1B", 'A', dwellingGroup));
+        dwellingGroup.add(new DwellingImpl("1C", 'A', dwellingGroup));
+        String result = dwellingGroup.getIdentifierSummary();
+        String expected = "1 - 12, 14 - 24 EVENS ONLY, 1A, 1B & 1C";
+        assertEquals(expected, result);
+    }
+
 }
