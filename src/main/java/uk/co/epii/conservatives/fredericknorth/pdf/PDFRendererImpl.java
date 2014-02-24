@@ -370,7 +370,7 @@ class PDFRendererImpl implements PDFRenderer {
         g.setTransform(AffineTransform.getScaleInstance(1d, 1d));
         if (meetingPoint != null) {
             for (MapLabel mapLabel : mapLabelFactory.getMapLabels(
-                    new Rectangle(mapView.getSize()), Arrays.asList(meetingPoint), mapView.getMap().getGraphics())) {
+                    new Rectangle(mapView.getSize()), Arrays.asList(meetingPoint), mapView.getMap().getGraphics(), mapView)) {
                 mapLabel.paint(g);
             }
         }

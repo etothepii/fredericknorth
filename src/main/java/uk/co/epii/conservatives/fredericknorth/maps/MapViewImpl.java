@@ -117,7 +117,7 @@ public class MapViewImpl implements MapView {
         BufferedImage bufferedImage = new BufferedImage(viewPortSize.width, viewPortSize.height, map.getType());
         Graphics g = bufferedImage.getGraphics();
         g.drawImage(map, 0, 0, null);
-        for (MapLabel mapLabel : mapLabelFactory.getMapLabels(new Rectangle(viewPortSize), getImageLocations(locations), g)) {
+        for (MapLabel mapLabel : mapLabelFactory.getMapLabels(new Rectangle(viewPortSize), getImageLocations(locations), g, this)) {
             mapLabel.paint(g);
         }
         return bufferedImage;
