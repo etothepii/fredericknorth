@@ -6,7 +6,6 @@ import uk.co.epii.conservatives.fredericknorth.geometry.*;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
@@ -481,6 +480,16 @@ public class PolygonExtensions {
         }
         return new Polygon(xpoints, ypoints, reducedPointCount);
     }
+    public static ClippedPolygons clipAndSegments(Polygon[] polygons, Rectangle clip) {
+        List<Shape> shapes = new ArrayList<Shape>();
+        List<Point[]> wobblyPoints = new ArrayList<Point[]>();
+        for (Polygon polygon : polygons) {
+            ClippedPolygons clippedPolygons = clipAndSegments(polygon, clip);
+            shapes.addAll(Arrays.asList(clippedPolygons.clips));
+            wobblyPoints.addAll(Arrays.asList(clippedPolygons.firstAndLastWobblySegments));
+        }
+        return new ClippedPolygons(wobblyPoints.toArray(new Point[0][]), shapes.toArray(new Shape[0]));
+    }
 
     public static Shape[] clip(Polygon[] polygons, Rectangle clip) {
         List<Shape> shapes = new ArrayList<Shape>();
@@ -494,6 +503,28 @@ public class PolygonExtensions {
 
     public static Shape[] clip(Polygon polygon, Rectangle clip) {
         List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
+        return buildClippedShapes(polygon, clip, clippedSegments);
+    }
+
+    public static ClippedPolygons clipAndSegments(Polygon polygon, Rectangle clip) {
+        List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
+        List<Point[]> firstLastInternalSegments = new ArrayList<Point[]>();
+        for (ClippedSegment clippedSegment : clippedSegments) {
+            if (!clippedSegment.isInside() || clippedSegment.size() < 2) {
+                continue;
+            }
+            firstLastInternalSegments.add(new Point[] {
+                    clippedSegment.getPoints().get(0),
+                    clippedSegment.getPoints().get(1)});
+            firstLastInternalSegments.add(new Point[] {
+                    clippedSegment.getPoints().get(clippedSegment.size() - 2),
+                    clippedSegment.getPoints().get(clippedSegment.size() - 1)});
+        }
+        return new ClippedPolygons(firstLastInternalSegments.toArray(new Point[0][]),
+                buildClippedShapes(polygon, clip, clippedSegments));
+    }
+
+    private static Shape[] buildClippedShapes(Polygon polygon, Rectangle clip, List<ClippedSegment> clippedSegments) {
         if (clippedSegments.size() == 1) {
             if (clippedSegments.get(0).isInside()) {
                 return new Shape[] {polygon};
@@ -572,7 +603,6 @@ public class PolygonExtensions {
         }
         return clippedSegments;
     }
-
 
     public static Point[] toPointArray(Polygon polygon) {
         Point[] points = new Point[polygon.npoints];
