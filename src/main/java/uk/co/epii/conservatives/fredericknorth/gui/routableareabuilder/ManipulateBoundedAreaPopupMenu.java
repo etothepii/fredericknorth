@@ -20,8 +20,11 @@ public class ManipulateBoundedAreaPopupMenu extends JPopupMenu {
     private final BoundedAreaType[] types;
     private final JMenuItem rename;
     private final JMenuItem delete;
+    private final JMenuItem addEditMeetingPoint;
+    private final JMenuItem deleteMeetingPoint;
     private final BoundedAreaType masterType;
     private BoundedArea boundedArea;
+    private MeetingPoint meetingPoint;
 
     public ManipulateBoundedAreaPopupMenu(BoundedAreaType masterType) {
         this.masterType = masterType;
@@ -29,12 +32,18 @@ public class ManipulateBoundedAreaPopupMenu extends JPopupMenu {
         types = new BoundedAreaType[] {null, masterType};
         rename = new JMenuItem("Rename");
         delete = new JMenuItem("Delete");
+        addEditMeetingPoint = new JMenuItem("Add Meeting Point");
+        deleteMeetingPoint = new JMenuItem("Delete Meeting Point");
         insert(create[0], 0);
         insert(create[1], 1);
         addSeparator();
         insert(rename, 3);
         insert(delete, 4);
+        addSeparator();
+        insert(addEditMeetingPoint, 6);
+        insert(deleteMeetingPoint, 7);
         setBoundedArea(null);
+        setMeetingPoint(null);
     }
 
     public void setBoundedArea(BoundedArea boundedArea) {
@@ -47,6 +56,24 @@ public class ManipulateBoundedAreaPopupMenu extends JPopupMenu {
 
     public BoundedArea getBoundedArea() {
         return boundedArea;
+    }
+
+    public void setMeetingPoint(MeetingPoint meetingPoint) {
+        this.meetingPoint = meetingPoint;
+        if (meetingPoint == null) {
+            addEditMeetingPoint.setText("Add Meeting Point");
+            deleteMeetingPoint.setText("");
+            deleteMeetingPoint.setEnabled(false);
+        }
+        else {
+            addEditMeetingPoint.setText(String.format("Rename '%s'", meetingPoint.getName()));
+            deleteMeetingPoint.setText(String.format("Delete '%s'", meetingPoint.getName()));
+            deleteMeetingPoint.setEnabled(true);
+        }
+    }
+
+    public MeetingPoint getMeetingPoint() {
+        return meetingPoint;
     }
 
     private void updateMenu(int relationship) {
@@ -90,6 +117,22 @@ public class ManipulateBoundedAreaPopupMenu extends JPopupMenu {
 
     public void removeCreateChildActionListener(ActionListener actionListener) {
         create[CHILD].removeActionListener(actionListener);
+    }
+
+    public void addCreateEditMeetingPointActionListener(ActionListener actionListener) {
+        addEditMeetingPoint.addActionListener(actionListener);
+    }
+
+    public void removeCreateEditMeetingPointActionListener(ActionListener actionListener) {
+        addEditMeetingPoint.removeActionListener(actionListener);
+    }
+
+    public void addDeleteMeetingPointActionListener(ActionListener actionListener) {
+        deleteMeetingPoint.addActionListener(actionListener);
+    }
+
+    public void removeDeleteMeetingPointActionListener(ActionListener actionListener) {
+        deleteMeetingPoint.removeActionListener(actionListener);
     }
 
 }

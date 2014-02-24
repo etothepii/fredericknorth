@@ -39,7 +39,7 @@ public class Main
 	public static void main(final String[] args) throws Exception
 	{
         progressTracker = new ProgressTrackerFrame(
-                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 20);
+                ImageIO.read(Main.class.getResourceAsStream("/letterbox.jpg")), 19);
         progressTracker.setVisible(true);
         progress("Loading Config");
         ApplicationContext springContext = new ClassPathXmlApplicationContext("applicationContext.xml");
@@ -87,6 +87,7 @@ public class Main
             System.exit(1);
         }
         progress("Starting ...");
+        progressTracker.isIndeterminate();
         MainWindowModel mainWindowModel = new MainWindowModel(applicationContext);
         MainWindow mainWindow = new MainWindow(applicationContext, mainWindowModel);
         mainWindow.setLocationRelativeTo(null);

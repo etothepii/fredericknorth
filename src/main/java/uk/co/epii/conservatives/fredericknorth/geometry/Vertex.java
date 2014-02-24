@@ -98,6 +98,12 @@ public class Vertex {
         double mod_a = Math.sqrt(a_x * a_x + a_y * a_y);
         double mod_b = Math.sqrt(b_x * b_x + b_y * b_y);
         double cos_theta = dot_product / mod_a / mod_b;
+        if (cos_theta > 1 && cos_theta < 1.000001) {
+            return Math.acos(1d);
+        }
+        if (cos_theta < -1 && cos_theta > -1.000001) {
+            return Math.acos(-1d);
+        }
         return Math.acos(cos_theta);
     }
 

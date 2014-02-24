@@ -33,7 +33,7 @@ public class ClippedPolygonFactory {
         this.internalSegments = new TreeMap<Point, ClippedSegment>(clockwiseComparator);
         clockwise = PolygonExtensions.isClockwise(polygon);
         for (ClippedSegment clippedSegment : clippedSegments) {
-            if (clippedSegment.inside) {
+            if (clippedSegment.isInside()) {
                 if (internalSegments.containsKey(clippedSegment.first())) {
                     throw new UnsupportedOperationException("Unable to build factory as multiple points " +
                             "hit the boundary at the same point");
@@ -93,18 +93,19 @@ public class ClippedPolygonFactory {
         ClippedSegment initialSegment = removeNextClippedSegment(new Point(clip.x, clip.y));
         Point first = initialSegment.first();
         Point last = initialSegment.last();
-        points.addAll(initialSegment.points);
+        points.addAll(initialSegment.getPoints());
         while (!internalSegments.isEmpty()) {
-            ClippedSegment clippedSegment = removeNextClippedSegment(last);
-            if (isCBetweenAAndBClockwise(last, clippedSegment.first(), first)) {
+            ClippedSegment clippedSegment = getNextClippedSegment(last);
+            if (isCBetweenAAndB(last, clippedSegment.first(), first)) {
                 break;
             }
+            removeNextClippedSegment(last);
             points.addAll(Arrays.asList(getPointsBetween(last, clippedSegment.first())));
-            points.addAll(clippedSegment.points);
+            points.addAll(clippedSegment.getPoints());
             last = clippedSegment.last();
         }
         points.addAll(Arrays.asList(getPointsBetween(last, first)));
-        return PolygonExtensions.construct(points);
+        return PolygonExtensions.removeRedundancies(PolygonExtensions.construct(points));
     }
 
     private Point[] getPointsBetween(Point a, Point b) {
@@ -138,6 +139,32 @@ public class ClippedPolygonFactory {
             previous = internalSegments.lastKey();
         }
         return internalSegments.remove(previous);
+    }
+
+    private ClippedSegment getNextClippedSegment(Point last) {
+        if (clockwise) {
+            return getNextClockwiseClippedSegment(last);
+        }
+        else {
+            return getNextAnticlockwiseClippedSegment(last);
+        }
+    }
+
+
+    private ClippedSegment getNextClockwiseClippedSegment(Point last) {
+        Point next = internalSegments.higherKey(last);
+        if (next == null) {
+            next = internalSegments.firstKey();
+        }
+        return internalSegments.get(next);
+    }
+
+    private ClippedSegment getNextAnticlockwiseClippedSegment(Point last) {
+        Point previous = internalSegments.lowerKey(last);
+        if (previous == null) {
+            previous = internalSegments.lastKey();
+        }
+        return internalSegments.get(previous);
     }
 
     private Point[] getAnticlockwisePointsBetween(Point a, Point b) {
@@ -207,7 +234,7 @@ public class ClippedPolygonFactory {
                     return points.toArray(new Point[2]);
                 }
                 points.add(getCorner(SwingConstants.SOUTH_WEST));
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[3]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -222,7 +249,7 @@ public class ClippedPolygonFactory {
                     return points.toArray(new Point[1]);
                 }
                 points.add(getCorner(SwingConstants.SOUTH_WEST));
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[2]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -237,7 +264,7 @@ public class ClippedPolygonFactory {
                     return points.toArray(new Point[0]);
                 }
                 points.add(getCorner(SwingConstants.SOUTH_WEST));
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[1]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -252,7 +279,7 @@ public class ClippedPolygonFactory {
                 return points.toArray(new Point[4]);
             case SwingConstants.SOUTH_WEST:
             case SwingConstants.WEST:
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[0]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -288,6 +315,13 @@ public class ClippedPolygonFactory {
         }
     }
 
+    private boolean isCBetweenAAndB(Point a, Point b, Point c) {
+        if (clockwise) {
+            return isCBetweenAAndBClockwise(a, b, c);
+        }
+        return isCBetweenAAndBAnticlockwise(a, b, c);
+    }
+
     private boolean isCBetweenAAndBAnticlockwise(Point a, Point b, Point c) {
         return !isCBetweenAAndBClockwise(a, b, c);
     }
@@ -295,10 +329,10 @@ public class ClippedPolygonFactory {
     private boolean isCBetweenAAndBClockwise(Point a, Point b, Point c) {
         int da = clockwiseDistance(a);
         int db = clockwiseDistance(b);
-        int dc = clockwiseDistance(b);
+        int dc = clockwiseDistance(c);
         if (db < da) db += clip.width * 2 + clip.height * 2;
         if (dc < da) dc += clip.width * 2 + clip.height * 2;
-        return db < dc;
+        return dc < db;
     }
 
 

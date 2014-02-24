@@ -65,4 +65,58 @@ public class PointExtensions {
     public static String getLocationString(Point point) {
         return String.format("E%sN%s", point.x, point.y);
     }
+
+    public static boolean isNearEdge(Point a, Point b, Point c, double tolerenceSquared) {
+        double crossProduct = crossProduct(a, b, c);
+        double distSquared = crossProduct * crossProduct / distanceSquared(a, b);
+        double dot1 = dotProduct(a, b, c);
+        if (dot1 > 0) {
+            if (distanceSquared(b, c) < tolerenceSquared) {
+                return true;
+            }
+            return false;
+        }
+        double dot2 = dotProduct(b, a, c);
+        if (dot2 > 0) {
+            if (distanceSquared(a, c) < tolerenceSquared) {
+                return true;
+            }
+            return false;
+        }
+        if (distSquared < tolerenceSquared) {
+            return true;
+        }
+        return false;
+    }
+
+    private static double dotProduct(Point a, Point b, Point c)
+    {
+        double[] AB = new double[2];
+        double[] BC = new double[2];
+        AB[0] = b.x - a.x;
+        AB[1] = b.y - a.y;
+        BC[0] = c.x - b.x;
+        BC[1] = c.y - b.y;
+        double dot = AB[0] * BC[0] + AB[1] * BC[1];
+
+        return dot;
+    }
+
+    private static double crossProduct(Point a, Point b, Point c)
+    {
+        double[] AB = new double[2];
+        double[] AC = new double[2];
+        AB[0] = b.x - a.x;
+        AB[1] = b.y - a.y;
+        AC[0] = c.x - a.x;
+        AC[1] = c.y - a.y;
+        return AB[0] * AC[1] - AB[1] * AC[0];
+    }
+
+    private static double distanceSquared(Point a, Point b) {
+
+        double d1 = a.x - b.x;
+        double d2 = a.y - b.y;
+        return d1 * d1 + d2 * d2;
+    }
 }

@@ -18,6 +18,7 @@ public abstract class AbstractBoundedAreaSelectionModel implements BoundedAreaSe
             LoggerFactory.getLogger(AbstractBoundedAreaSelectionModel.class.getName().concat("_sync"));
 
     private final List<SelectedBoundedAreaChangedListener> selectedBoundedAreaChangedListenerArrayList;
+    private final List<MeetingPoint> meetingPoints = new ArrayList<MeetingPoint>();
 
     protected AbstractBoundedAreaSelectionModel() {
         this.selectedBoundedAreaChangedListenerArrayList = new ArrayList<SelectedBoundedAreaChangedListener>();
@@ -35,6 +36,11 @@ public abstract class AbstractBoundedAreaSelectionModel implements BoundedAreaSe
         finally {
             LOG_SYNC.debug("Released selectedBoundedAreaChangedListenerArrayList");
         }
+    }
+
+    @Override
+    public List<MeetingPoint> getMeetingPoints() {
+        return meetingPoints;
     }
 
     @Override

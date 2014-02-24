@@ -5,13 +5,12 @@ import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
+import uk.co.epii.conservatives.fredericknorth.geometry.PolygonSifter;
+import uk.co.epii.conservatives.fredericknorth.geometry.SquareSearchPolygonSifterImpl;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedEvent;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedListener;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.*;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
@@ -358,14 +357,16 @@ public class RouteBuilderPanelModel implements Activateable {
             else {
                 progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
                         parent.getRoutedDwellingGroups().size());
+                PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(),
+                        parent.getUnroutedDwellingGroups().size());
                 for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
-                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
-                            routableArea.addDwellingGroup(dwellingGroup, false);
+                    if (polygonSifter.contains(dwellingGroup.getPoint())) {
+                        routableArea.addDwellingGroup(dwellingGroup, false);
                     }
                     progressTracker.increment();
                 }
                 for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
-                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                    if (polygonSifter.contains(dwellingGroup.getPoint())) {
                         routableArea.addDwellingGroup(dwellingGroup, true);
                     }
                     progressTracker.increment();
@@ -377,14 +378,16 @@ public class RouteBuilderPanelModel implements Activateable {
             Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes(bounds);
             if (!postcodes.isEmpty()) {
                 progressTracker.startSubsection(postcodes.size());
+                PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(), postcodes.size());
+                int count = 0;
                 for (PostcodeDatum postcode : postcodes) {
-                    if (postcode.getPoint() != null &&
-                            PolygonExtensions.contains(boundedArea.getAreas(), postcode.getPoint())) {
+                    if (postcode.getPoint() != null && polygonSifter.contains(postcode.getPoint())) {
                         for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
                             routableArea.addDwellingGroup(dwellingGroup, false);
                         }
                     }
-                    progressTracker.increment();
+                    count++;
+                    progressTracker.increment(routableArea.getName() +": " + 100 * count / postcodes.size() + "%");
                 }
             }
         }
@@ -428,21 +431,26 @@ public class RouteBuilderPanelModel implements Activateable {
 
     private List<OverlayItem> getDwellingGroupOverlays() {
         ArrayList<List<DwellingGroup>> dwellingGroupLists = new ArrayList<List<DwellingGroup>>(4);
+        LOG.debug("Getting Unselected Unrouted DwellingGroups");
         dwellingGroupLists.add(unroutedDwellingGroups.getSelected(SelectedState.UNSELECTED));
+        LOG.debug("Getting Unselected Routed DwellingGroups");
         dwellingGroupLists.add(routedDwellingGroups.getSelected(SelectedState.UNSELECTED));
+        LOG.debug("Getting Selected Unrouted DwellingGroups");
         dwellingGroupLists.add(unroutedDwellingGroups.getSelected(SelectedState.SELECTED));
+        LOG.debug("Getting Selected Routed DwellingGroups");
         dwellingGroupLists.add(routedDwellingGroups.getSelected(SelectedState.SELECTED));
-        Color[] colors = new Color[] {Color.BLUE, Color.GREEN, Color.RED, Color.RED};
         int count = 0;
         for (List<DwellingGroup> dwellingGroupsList : dwellingGroupLists) {
             count += dwellingGroupsList.size();
         }
         List<OverlayItem> overlayItems = new ArrayList<OverlayItem>(count);
         for (int i = 0; i < dwellingGroupLists.size(); i++) {
+            LOG.debug("Creating DwellingGroup Overlays");
             for (DwellingGroup dwellingGroup : dwellingGroupLists.get(i)) {
                 overlayItems.add(
                         new DottedDwellingGroupOverlayItemImpl(dwellingGroup, i));
             }
+            LOG.debug("Created DwellingGroup Overlays");
         }
         return overlayItems;
     }
@@ -452,6 +460,9 @@ public class RouteBuilderPanelModel implements Activateable {
         List<OverlayItem> dwellingGroupOverlays = getDwellingGroupOverlays();
         ArrayList<OverlayItem> overlayItems = new ArrayList<OverlayItem>(dwellingGroupOverlays.size());
         overlayItems.addAll(dwellingGroupOverlays);
+        for (MeetingPoint meetingPoint : boundedAreaSelectionModel.getMeetingPoints()) {
+            overlayItems.add(new MeetingPointOverlayItem(meetingPoint));
+        }
         mapPanelModel.setOverlays(overlayItems);
     }
 
@@ -493,6 +504,7 @@ public class RouteBuilderPanelModel implements Activateable {
                 @Override
                 public void run() {
                     synchronized (pdfRenderer) {
+                        pdfRenderer.setMeetingPoints(boundedAreaSelectionModel.getMeetingPoints());
                         pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile, progressTracker);
                         enable();
                     }
@@ -535,6 +547,7 @@ public class RouteBuilderPanelModel implements Activateable {
         this.active = active;
         if (active) {
             boundedAreaSelectionModel.addBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);
+            setSelectedBoundedArea(getBoundedAreaSelectionModel().getSelected());
         }
         else {
             boundedAreaSelectionModel.removeBoundedAreaSelectionListener(selectedBoundedAreaChangedListener);

@@ -27,10 +27,11 @@ public class MapLabelFactoryImpl implements MapLabelFactory {
     }
 
     @Override
-    public List<MapLabel> getMapLabels(Rectangle imageBounds, List<? extends Location> namedPoints, Graphics g) {
+    public List<MapLabel> getMapLabels(Rectangle imageBounds, List<? extends Location> namedPoints, Graphics g, ImageAndGeoPointTranslator translator) {
         ArrayList<MapLabel> rectangles = new ArrayList<MapLabel>();
         for (Location location : namedPoints) {
-            rectangles.add(getMapLabel(imageBounds, rectangles, location, g));
+            rectangles.add(getMapLabel(imageBounds, rectangles,
+                    new LocationImpl(location.getName(), translator.getImageLocation(location.getPoint())), g));
         }
         return rectangles;
     }

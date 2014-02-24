@@ -71,6 +71,11 @@ public class DummyDwellingGroup implements DwellingGroup {
     }
 
     @Override
+    public PostcodeDatum getPostcode() {
+        return postcode;
+    }
+
+    @Override
     public int compareTo(DwellingGroup o) {
         return name.compareTo(o.getName());
     }

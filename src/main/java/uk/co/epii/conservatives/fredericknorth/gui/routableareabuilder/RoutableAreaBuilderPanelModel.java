@@ -117,6 +117,9 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
                                 priorities.get(boundedAreaType)));
             }
         }
+        for (MeetingPoint meetingPoint : boundedAreaSelectionModel.getMeetingPoints()) {
+            overlayItems.add(new MeetingPointOverlayItem(meetingPoint));
+        }
         overlayItems.add(constructorOverlay);
         mapPanelModel.setOverlays(overlayItems);
     }
@@ -236,19 +239,19 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
         return boundedAreaSelectionModel;
     }
 
-    public BoundedArea getBoundedAreaOver() {
+    public <T> T getMouseOver(Class<T> clazz) {
         Map<OverlayItem, MouseLocation> overlaysMouseOver = mapPanelModel.getImmutableOverlaysMouseOver();
-        List<OverlayItem<BoundedArea>> boundedAreasMouseOver = new ArrayList<OverlayItem<BoundedArea>>(overlaysMouseOver.size());
+        List<OverlayItem<T>> tMouseOver = new ArrayList<OverlayItem<T>>(overlaysMouseOver.size());
         for (Map.Entry<OverlayItem, MouseLocation> entry : overlaysMouseOver.entrySet()) {
             OverlayItem overlayItem = entry.getKey();
-            if (overlayItem.getItem() instanceof BoundedArea) {
-                boundedAreasMouseOver.add((OverlayItem<BoundedArea>)overlayItem);
+            if (clazz.isInstance(overlayItem.getItem())) {
+                tMouseOver.add((OverlayItem<T>)overlayItem);
             }
         }
-        if (boundedAreasMouseOver.isEmpty()) return null;
-        if (boundedAreasMouseOver.size() == 1) return boundedAreasMouseOver.get(0).getItem();
-        Collections.sort(boundedAreasMouseOver);
-        return boundedAreasMouseOver.get(boundedAreasMouseOver.size() - 1).getItem();
+        if (tMouseOver.isEmpty()) return null;
+        if (tMouseOver.size() == 1) return tMouseOver.get(0).getItem();
+        Collections.sort(tMouseOver);
+        return tMouseOver.get(tMouseOver.size() - 1).getItem();
     }
 
     public void save(File selectedFile) {
@@ -376,5 +379,15 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
                 exportWardMaps(child, mapViewGenerator, currentDir, output, outlineOnly);
             }
         }
+    }
+
+    public void createMeetingPoint(String name, Point point) {
+        boundedAreaSelectionModel.getMeetingPoints().add(new MeetingPoint(name, point));
+        updateOverlays();
+    }
+
+    public void removeMeetingPoint(MeetingPoint meetingPoint) {
+        boundedAreaSelectionModel.getMeetingPoints().add(meetingPoint);
+        updateOverlays();
     }
 }

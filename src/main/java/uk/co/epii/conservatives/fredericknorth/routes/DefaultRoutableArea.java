@@ -8,8 +8,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
+import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
+import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -124,30 +129,33 @@ public class DefaultRoutableArea implements RoutableArea {
 
     private void routeUnrouted(int targetSize) {
         int routes = calculateRoutesCount(targetSize);
-        DblClusters<List<DwellingGroup>> clusters = new DblClusters<List<DwellingGroup>>(2, routes);
-        clusters.setKeyer(new DblListKeyer<DwellingGroup>());
-        for (DwellingGroup dwellingGroup : unroutedDwellingGroups.values()) {
-            Point geoLocation = dwellingGroup.getPoint();
-            double[] doubleGeoLocation = new double[] {geoLocation.getX(), geoLocation.getY()};
-            double weight = dwellingGroup.size();
-            ArrayList<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>();
-            dwellingGroups.add(dwellingGroup);
-            clusters.add(weight, doubleGeoLocation, dwellingGroups);
+        DblClusters<List<IndivisbleChunk>> clusters = new DblClusters<List<IndivisbleChunk>>(2, routes);
+        clusters.setKeyer(new DblListKeyer<IndivisbleChunk>());
+        for (IndivisbleChunk indivisbleChunk : getUnroutedIndivisbleChunks()) {
+            Point geoLocation = indivisbleChunk.getMedian();
+            double[] doubleGeoLocation = new double[]{geoLocation.getX(), geoLocation.getY()};
+            double weight = indivisbleChunk.size();
+            ArrayList<IndivisbleChunk> indivisbleChunks = new ArrayList<IndivisbleChunk>();
+            indivisbleChunks.add(indivisbleChunk);
+            clusters.add(weight, doubleGeoLocation, indivisbleChunks);
         }
-        for (DblResult<List<DwellingGroup>> proposedRoute : clusters.results()) {
+        for (DblResult<List<IndivisbleChunk>> proposedRoute : clusters.results()) {
             DwellingGroup largest = null;
-            for (DwellingGroup dwellingGroup : proposedRoute.getKey()) {
-                if (largest == null || largest.size() < dwellingGroup.size()) {
-                    largest = dwellingGroup;
-                }
-                else if (largest.size() == dwellingGroup.size()) {
-                    if (largest.compareTo(dwellingGroup) < 0) {
+            for (IndivisbleChunk indivisbleChunk : proposedRoute.getKey()) {
+                for (DwellingGroup dwellingGroup : indivisbleChunk.getDwellingGroups()) {
+                    if (largest == null || largest.size() < dwellingGroup.size()) {
                         largest = dwellingGroup;
+                    } else if (largest.size() == dwellingGroup.size()) {
+                        if (largest.compareTo(dwellingGroup) < 0) {
+                            largest = dwellingGroup;
+                        }
                     }
                 }
             }
             Route route = createRoute(largest.getName());
-            route.addDwellingGroups(proposedRoute.getKey());
+            for (IndivisbleChunk indivisbleChunk : proposedRoute.getKey()) {
+                route.addDwellingGroups(indivisbleChunk.getDwellingGroups());
+            }
         }
     }
 
@@ -438,5 +446,54 @@ public class DefaultRoutableArea implements RoutableArea {
 
     public void addChild(RoutableArea childRoutableArea) {
         children.put(childRoutableArea.getName(), childRoutableArea);
+    }
+
+    public Collection<IndivisbleChunk> getUnroutedIndivisbleChunks() {
+        HashMap<String, IndivisbleChunk> indivisbleChunks = new HashMap<String, IndivisbleChunk>();
+        for (DwellingGroup dwellingGroup : unroutedDwellingGroups.values()) {
+            IndivisbleChunk indivisbleChunk = indivisbleChunks.get(dwellingGroup.getPostcode().getName());
+            if (indivisbleChunk == null) {
+                indivisbleChunk = new IndivisbleChunk();
+                indivisbleChunks.put(dwellingGroup.getPostcode().getName(), indivisbleChunk);
+            }
+            indivisbleChunk.add(dwellingGroup);
+        }
+        return indivisbleChunks.values();
+    }
+
+    private class IndivisbleChunk {
+
+        private final List<DwellingGroup> dwellingGroups;
+        private int count;
+        private List<Point> points;
+
+        private IndivisbleChunk() {
+            this.dwellingGroups = new ArrayList<DwellingGroup>();
+            points = new ArrayList<Point>();
+        }
+
+        public void add(DwellingGroup dwellingGroup) {
+            dwellingGroups.add(dwellingGroup);
+            count += dwellingGroup.size();
+            for (Dwelling dwelling : dwellingGroup.getDwellings()) {
+                Point p = dwelling.getPoint();
+                if (p == null) {
+                    p = dwellingGroup.getPoint();
+                }
+                points.add(p);
+            }
+        }
+
+        public Point getMedian() {
+            return PointExtensions.getMedian(points);
+        }
+
+        public double size() {
+            return count;
+        }
+
+        public Collection<DwellingGroup> getDwellingGroups() {
+            return dwellingGroups;
+        }
     }
 }

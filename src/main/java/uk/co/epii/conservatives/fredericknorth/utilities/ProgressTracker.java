@@ -20,4 +20,5 @@ public interface ProgressTracker {
     public int getMaximum();
     public int getValue();
     public boolean isIndeterminate();
+    public void setIndeterminate();
 }

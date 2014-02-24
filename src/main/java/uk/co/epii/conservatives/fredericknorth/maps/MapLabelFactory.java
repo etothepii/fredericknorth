@@ -10,6 +10,6 @@ import java.util.List;
  */
 public interface MapLabelFactory {
 
-    public List<MapLabel> getMapLabels(Rectangle imageBounds, List<? extends Location> namedPoints, Graphics g);
+    public List<MapLabel> getMapLabels(Rectangle imageBounds, List<? extends Location> namedPoints, Graphics g, ImageAndGeoPointTranslator translator);
 
 }

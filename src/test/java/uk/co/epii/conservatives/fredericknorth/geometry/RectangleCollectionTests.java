@@ -1,6 +1,7 @@
-package uk.co.epii.conservatives.fredericknorth.geometry.extensions;
+package uk.co.epii.conservatives.fredericknorth.geometry;
 
 import org.junit.Test;
+import uk.co.epii.conservatives.fredericknorth.geometry.RectangleCollection;
 
 import java.awt.*;
 import java.util.Arrays;

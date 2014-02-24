@@ -6,7 +6,6 @@ import uk.co.epii.conservatives.fredericknorth.geometry.*;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
@@ -481,11 +480,59 @@ public class PolygonExtensions {
         }
         return new Polygon(xpoints, ypoints, reducedPointCount);
     }
+    public static ClippedPolygons clipAndSegments(Polygon[] polygons, Rectangle clip) {
+        List<Shape> shapes = new ArrayList<Shape>();
+        List<Point[]> wobblyPoints = new ArrayList<Point[]>();
+        for (Polygon polygon : polygons) {
+            ClippedPolygons clippedPolygons = clipAndSegments(polygon, clip);
+            shapes.addAll(Arrays.asList(clippedPolygons.clips));
+            wobblyPoints.addAll(Arrays.asList(clippedPolygons.firstAndLastWobblySegments));
+        }
+        return new ClippedPolygons(wobblyPoints.toArray(new Point[0][]), shapes.toArray(new Shape[0]));
+    }
+
+    public static Shape[] clip(Polygon[] polygons, Rectangle clip) {
+        List<Shape> shapes = new ArrayList<Shape>();
+        for (Polygon polygon : polygons) {
+            for (Shape shape : clip(polygon, clip)) {
+                shapes.add(shape);
+            }
+        }
+        return shapes.toArray(new Shape[shapes.size()]);
+    }
 
     public static Shape[] clip(Polygon polygon, Rectangle clip) {
         List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
+        return buildClippedShapes(polygon, clip, clippedSegments);
+    }
+
+    public static ClippedPolygons clipAndSegments(Polygon polygon, Rectangle clip) {
+        List<ClippedSegment> clippedSegments = getClippedSegments(polygon, clip);
+        List<Point[]> firstLastInternalSegments = new ArrayList<Point[]>();
+        for (ClippedSegment clippedSegment : clippedSegments) {
+            if (!clippedSegment.isInside() || clippedSegment.size() < 2) {
+                continue;
+            }
+            firstLastInternalSegments.add(new Point[] {
+                    clippedSegment.getPoints().get(0),
+                    clippedSegment.getPoints().get(1)});
+            firstLastInternalSegments.add(new Point[] {
+                    clippedSegment.getPoints().get(clippedSegment.size() - 2),
+                    clippedSegment.getPoints().get(clippedSegment.size() - 1)});
+        }
+        return new ClippedPolygons(firstLastInternalSegments.toArray(new Point[0][]),
+                buildClippedShapes(polygon, clip, clippedSegments));
+    }
+
+    private static Shape[] buildClippedShapes(Polygon polygon, Rectangle clip, List<ClippedSegment> clippedSegments) {
         if (clippedSegments.size() == 1) {
-            return new Shape[] {clippedSegments.get(0).inside ? polygon : clip};
+            if (clippedSegments.get(0).isInside()) {
+                return new Shape[] {polygon};
+            }
+            else if (polygon.contains(clip)) {
+                return new Shape[] {clip};
+            }
+            return new Shape[0];
         }
         return new ClippedPolygonFactory(polygon, clip, clippedSegments).build();
     }
@@ -493,52 +540,56 @@ public class PolygonExtensions {
     public static List<ClippedSegment> getClippedSegments(Polygon polygon, Rectangle clip) {
         polygon = PolygonExtensions.removeRedundancies(polygon);
         Point previous = null;
-        boolean inside = false;
+        Boolean inside = null;
         List<Point> points = new ArrayList<Point>();
         List<ClippedSegment> clippedSegments = new ArrayList<ClippedSegment>();
-        for (int i = 0; i <= polygon.npoints; i++) {
-            Point point = new Point(polygon.xpoints[i % polygon.npoints], polygon.ypoints[i % polygon.npoints]);
-            if (previous == null) {
-                inside = clip.contains(point);
+        int start = 0;
+        for (; start < polygon.npoints; start++) {
+            if ((inside = RectangleExtensions.isInside(clip, new Point(polygon.xpoints[start], polygon.ypoints[start]))) != null) {
+                break;
             }
-            else {
-                if (RectangleExtensions.getEdge(clip, point) == null && RectangleExtensions.getEdge(clip, previous) == null) {
+        }
+        if (inside == null) {
+            inside = true;
+        }
+        for (int i = start; i <= polygon.npoints + start; i++) {
+            Point point = new Point(polygon.xpoints[i % polygon.npoints], polygon.ypoints[i % polygon.npoints]);
+            if (previous != null) {
+                Integer edgeA = RectangleExtensions.getEdge(clip, previous);
+                Integer edgeB = RectangleExtensions.getEdge(clip, point);
+                if (edgeA == null || edgeA != edgeB) {
                     RectangleIntersection[] intersections = RectangleExtensions.getIntersection(clip, previous, point);
                     for (RectangleIntersection intersection : intersections) {
                         points.add(intersection.getIntersection());
-                        clippedSegments.add(new ClippedSegment(points, inside));
+                        clippedSegments.add(new ClippedSegment(points, inside == null ? true : inside));
+                        inside = null;
                         points.clear();
-                        inside = !inside;
                         points.add(intersection.getIntersection());
                     }
                 }
-                else if (RectangleExtensions.getEdge(clip, point) != null) {
-                    if (!inside) {
-                        points.add(point);
-                        clippedSegments.add(new ClippedSegment(points, inside));
-                        points.clear();
-                        inside = !inside;
-                    }
-                }
-                else if (RectangleExtensions.getEdge(clip, previous) != null && !clip.contains(point)) {
-                    clippedSegments.add(new ClippedSegment(points, inside));
-                    points.clear();
-                    points.add(previous);
-                    inside = !inside;
-                }
             }
-            points.add(point);
+            if (points.size() == 0 || !points.get(points.size() - 1).equals(point)) {
+                if (inside == null) {
+                    inside = RectangleExtensions.isInside(clip, point);
+                }
+                points.add(point);
+            }
             previous = point;
+        }
+        for (int i = clippedSegments.size() - 1; i > 0; i--) {
+            if (clippedSegments.get(i - 1).isInside() == clippedSegments.get(i).isInside()) {
+                clippedSegments.get(i - 1).append(clippedSegments.remove(i).getPoints());
+            }
         }
         if (clippedSegments.isEmpty()) {
             clippedSegments.add(new ClippedSegment(points, inside));
         }
-        else if (clippedSegments.get(0).inside == inside) {
+        else if (clippedSegments.get(0).isInside() == inside) {
             if (!points.isEmpty()) {
-                clippedSegments.get(0).points.addAll(0, points.subList(0, points.size() - 1));
+                clippedSegments.get(0).prepend(points.subList(0, points.size() - 1));
             }
         }
-        else if (RectangleExtensions.getEdge(clip, clippedSegments.get(0).points.get(0)) != null) {
+        else if (RectangleExtensions.getEdge(clip, clippedSegments.get(0).first()) != null) {
             clippedSegments.add(new ClippedSegment(points, inside));
         }
         else {
@@ -552,7 +603,6 @@ public class PolygonExtensions {
         }
         return clippedSegments;
     }
-
 
     public static Point[] toPointArray(Polygon polygon) {
         Point[] points = new Point[polygon.npoints];

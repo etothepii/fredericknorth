@@ -288,10 +288,17 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
         }
         Document document = documentBuilder.newDocument();
         BoundedAreaComboBoxModel comboBoxModel = comboBoxModels.get(masterBoundedAreaType);
+        Element dataElt = document.createElement("Data");
         Element boundedAreasElt = document.createElement("BoundedAreas");
         BoundedArea boundedArea = comboBoxModel.getSelectedItem();
         boundedAreasElt.appendChild(boundedArea.toXml(document));
-        document.appendChild(boundedAreasElt);
+        document.appendChild(dataElt);
+        Element meetingPointsElt = document.createElement("MeetingPoints");
+        for (MeetingPoint meetingPoint : getMeetingPoints()) {
+            meetingPointsElt.appendChild(meetingPoint.toXml(document));
+        }
+        dataElt.appendChild(boundedAreasElt);
+        dataElt.appendChild(meetingPointsElt);
         String toWrite = xmlSerializer.toString(document);
         try {
             FileUtils.writeStringToFile(selectedFile, toWrite);
@@ -304,7 +311,28 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
     @Override
     public void loadFrom(File selectedFile, ApplicationContext applicationContext) {
         Document document = xmlSerializer.fromFile(selectedFile);
-        Element boundedAreasElt = document.getDocumentElement();
+        Element dataElt = document.getDocumentElement();
+        if (dataElt.getTagName().equals("BoundedAreas")) {
+            loadBoundedAreas(applicationContext, dataElt);
+            getMeetingPoints().clear();
+        }
+        else {
+            Element boundedAreasElt = (Element)dataElt.getElementsByTagName("BoundedAreas").item(0);
+            Element meetingPointsElt = (Element)dataElt.getElementsByTagName("MeetingPoints").item(0);
+            loadBoundedAreas(applicationContext, boundedAreasElt);
+            loadMeetingPoints(meetingPointsElt);
+        }
+    }
+
+    private void loadMeetingPoints(Element meetingPointsElt) {
+        NodeList meetingPointsNodeList = meetingPointsElt.getElementsByTagName("MeetingPoint");
+        getMeetingPoints().clear();
+        for (int i = 0; i < meetingPointsNodeList.getLength(); i++) {
+            getMeetingPoints().add(MeetingPoint.parse((Element)meetingPointsNodeList.item(i)));
+        }
+    }
+
+    private void loadBoundedAreas(ApplicationContext applicationContext, Element boundedAreasElt) {
         if (!boundedAreasElt.getTagName().equals("BoundedAreas")) throw new IllegalArgumentException(
                 "The element provided is not a Council Tag");
         NodeList routesNodeList = boundedAreasElt.getElementsByTagName("BoundedArea");

@@ -12,11 +12,16 @@ import java.util.List;
  * Time: 00:31
  */
 public class ClippedSegment {
-    public final List<Point> points;
-    public final boolean inside;
+    private final List<Point> points;
+    private final boolean inside;
 
-    public ClippedSegment(Collection<Point> points, boolean inside) {
-        this.points = new ArrayList<Point>(points);
+    public ClippedSegment(List<Point> points, boolean inside) {
+        this.points = new ArrayList<Point>(points.size());
+        for (int i = 0; i < points.size(); i++) {
+            if (i == 0 || !points.get(i).equals(points.get(i - 1))) {
+                this.points.add(points.get(i));
+            }
+        }
         this.inside = inside;
     }
 
@@ -26,6 +31,14 @@ public class ClippedSegment {
 
     public Point last() {
         return points.get(points.size() - 1);
+    }
+
+    public int size() {
+        return points.size();
+    }
+
+    public boolean isInside() {
+        return inside;
     }
 
     @Override
@@ -54,5 +67,23 @@ public class ClippedSegment {
                 "points=" + Arrays.toString(points.toArray(new Point[points.size()])) +
                 ", inside=" + inside +
                 '}';
+    }
+
+    public void prepend(List<Point> points) {
+        if (points.size() > 0 && this.points.size() > 0 && this.points.get(0).equals(points.get(points.size() - 1))) {
+            this.points.remove(0);
+        }
+        this.points.addAll(0, points);
+    }
+
+    public List<Point> getPoints() {
+        return points;
+    }
+
+    public void append(List<Point> points) {
+        if (points.size() > 0 && this.points.size() > 0 && this.points.get(this.points.size() - 1).equals(points.get(0))) {
+            this.points.remove(this.points.size() - 1);
+        }
+        this.points.addAll(points);
     }
 }

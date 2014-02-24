@@ -3,12 +3,15 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
+import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.MeetingPoint;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.SelectedBoundedAreaChangedListener;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -122,5 +125,10 @@ public class DummyBoundedAreaSelectionModel implements BoundedAreaSelectionModel
     @Override
     public BoundedArea getSelected() {
         return boundedArea;
+    }
+
+    @Override
+    public List<MeetingPoint> getMeetingPoints() {
+        return new ArrayList<MeetingPoint>();
     }
 }
