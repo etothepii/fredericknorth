@@ -78,6 +78,11 @@ public class DwellingGroupImpl extends AbstractDwellingGroupImpl {
     }
 
     @Override
+    public PostcodeDatum getPostcode() {
+        return postcode;
+    }
+
+    @Override
     public List<? extends Dwelling> getDwellings() {
         return dwellings;
     }

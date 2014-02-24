@@ -5,6 +5,7 @@ import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.AbstractDwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling;
 
 import java.awt.*;
@@ -53,6 +54,11 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
     @Override
     public String getKey() {
         return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
+    }
+
+    @Override
+    public PostcodeDatum getPostcode() {
+        return postcode;
     }
 
     @Override
