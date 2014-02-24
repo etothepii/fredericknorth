@@ -357,14 +357,16 @@ public class RouteBuilderPanelModel implements Activateable {
             else {
                 progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
                         parent.getRoutedDwellingGroups().size());
+                PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(),
+                        parent.getUnroutedDwellingGroups().size());
                 for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
-                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
-                            routableArea.addDwellingGroup(dwellingGroup, false);
+                    if (polygonSifter.contains(dwellingGroup.getPoint())) {
+                        routableArea.addDwellingGroup(dwellingGroup, false);
                     }
                     progressTracker.increment();
                 }
                 for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
-                    if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                    if (polygonSifter.contains(dwellingGroup.getPoint())) {
                         routableArea.addDwellingGroup(dwellingGroup, true);
                     }
                     progressTracker.increment();
@@ -377,13 +379,15 @@ public class RouteBuilderPanelModel implements Activateable {
             if (!postcodes.isEmpty()) {
                 progressTracker.startSubsection(postcodes.size());
                 PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(), postcodes.size());
+                int count = 0;
                 for (PostcodeDatum postcode : postcodes) {
                     if (postcode.getPoint() != null && polygonSifter.contains(postcode.getPoint())) {
                         for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
                             routableArea.addDwellingGroup(dwellingGroup, false);
                         }
                     }
-                    progressTracker.increment();
+                    count++;
+                    progressTracker.increment(routableArea.getName() +": " + 100 * count / postcodes.size() + "%");
                 }
             }
         }
