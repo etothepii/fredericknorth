@@ -234,7 +234,7 @@ public class ClippedPolygonFactory {
                     return points.toArray(new Point[2]);
                 }
                 points.add(getCorner(SwingConstants.SOUTH_WEST));
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[3]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -249,7 +249,7 @@ public class ClippedPolygonFactory {
                     return points.toArray(new Point[1]);
                 }
                 points.add(getCorner(SwingConstants.SOUTH_WEST));
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[2]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -264,7 +264,7 @@ public class ClippedPolygonFactory {
                     return points.toArray(new Point[0]);
                 }
                 points.add(getCorner(SwingConstants.SOUTH_WEST));
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[1]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
@@ -279,7 +279,7 @@ public class ClippedPolygonFactory {
                 return points.toArray(new Point[4]);
             case SwingConstants.SOUTH_WEST:
             case SwingConstants.WEST:
-                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.SOUTH_WEST) {
+                if (edgeB == SwingConstants.WEST || edgeB == SwingConstants.NORTH_WEST) {
                     return points.toArray(new Point[0]);
                 }
                 points.add(getCorner(SwingConstants.NORTH_WEST));
