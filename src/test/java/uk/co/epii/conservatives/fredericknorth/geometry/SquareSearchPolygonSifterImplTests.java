@@ -51,6 +51,14 @@ public class SquareSearchPolygonSifterImplTests {
     }
 
     @Test
+    public void singleTest4() {
+        Point outside = new Point(539166,181268);
+        SquareSearchPolygonSifterImpl squareSearch = new SquareSearchPolygonSifterImpl(polygons, tests);
+        boolean result = squareSearch.contains(outside);
+        assertFalse(result);
+    }
+
+    @Test
     public void compareWithBruteForce() {
         Rectangle rectangle = PolygonExtensions.getBounds(polygons);
         rectangle = RectangleExtensions.grow(rectangle, Math.max(rectangle.width / 10, rectangle.height / 10));

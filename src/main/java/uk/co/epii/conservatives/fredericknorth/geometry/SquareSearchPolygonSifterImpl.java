@@ -31,7 +31,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         Rectangle bounds = PolygonExtensions.getBounds(polygons);
         double grainDouble = bounds.width;
         grainDouble *= bounds.height;
-        grainDouble *= 150;
+        grainDouble *= 500;
         grainDouble /= points;
         grain = (int)Math.sqrt(grainDouble);
         if (grain < 2) {
@@ -88,22 +88,23 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
     }
 
     private void debug(final Shape[] shapes, final Point p, final Rectangle clip) {
-        final Rectangle bounds = ShapeExtensions.getBounds(shapes);
-        final Shape[] correctShapes = PolygonExtensions.clip(polygons, clip);
+        boolean allRects = true;
+        for (Shape shape : shapes) {
+            if (!(shape instanceof  Rectangle)) {
+                allRects = false;
+            }
+        }
+        if (allRects) {
+            return;
+        }
         JPanel panel = new JPanel() {
             @Override
             public void paint(Graphics graphics) {
                 Graphics2D g = (Graphics2D)graphics;
-                double scale = Math.max(bounds.width / (double)getWidth(), bounds.height / (double)getHeight());
-                scale = 2;
+                double scale = 1;
                 AffineTransform transform = AffineTransform.getScaleInstance(scale, scale);
-                transform.translate(-p.x + getWidth() / 4 , -p.y + getHeight() / 4);
+                transform.translate(-p.x + getWidth() / 2 , -p.y + getHeight() / 2);
                 g.setTransform(transform);
-                Point2D.Double origin = new Point2D.Double();
-                transform.transform(new Point2D.Double(bounds.getX(), bounds.getY()), origin);
-                LOG.info(origin.toString());
-                transform.transform(new Point2D.Double(bounds.getX()+ bounds.width, bounds.getY() + bounds.height), origin);
-                LOG.info(origin.toString());
                 g.setColor(new Color(255, 0, 0, 128));
                 for (Polygon p : polygons) {
                     g.fill(p);
@@ -114,17 +115,12 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
                         g.fillOval(p.xpoints[i] - 1, p.ypoints[i] - 1, 2, 2);
                     }
                 }
-
                 g.setColor(new Color(0, 255, 0, 128));
                 for (Shape s : shapes) {
                     g.fill(s);
                 }
-                g.setColor(new Color(0, 255, 255, 128));
-                for (Shape s : correctShapes) {
-                    g.fill(s);
-                }
                 g.setColor(new Color(0, 0, 255, 128));
-                g.fill(clip);
+//                g.fill(clip);
                 g.setColor(Color.BLACK);
                 g.setTransform(AffineTransform.getScaleInstance(1, 1));
                 g.fillRect(getWidth() / 2 - 1, getHeight() / 2 - 1, 3, 3);
@@ -138,7 +134,7 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         try {
-            Thread.sleep(5000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
