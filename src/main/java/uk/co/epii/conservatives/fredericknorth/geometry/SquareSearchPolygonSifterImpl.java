@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.geometry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.epii.conservatives.fredericknorth.geometry.extensions.ClippedPolygons;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.ShapeExtensions;
@@ -9,7 +10,6 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.ShapeExtensio
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 
 /**
  * User: James Robinson
@@ -22,16 +22,19 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
 
     private Rectangle[][] clips;
     private Polygon[] polygons;
-    private Shape[][][] clippedShapes;
+    private ClippedPolygons[][] clippedShapes;
     private Point coarseGridStart;
     private int grain;
 
     public SquareSearchPolygonSifterImpl(Polygon[] polygons, int points) {
         this.polygons = polygons;
+        if (points < 25000) {
+            return;
+        }
         Rectangle bounds = PolygonExtensions.getBounds(polygons);
         double grainDouble = bounds.width;
         grainDouble *= bounds.height;
-        grainDouble *= 500;
+        grainDouble *= 1500;
         grainDouble /= points;
         grain = (int)Math.sqrt(grainDouble);
         if (grain < 2) {
@@ -42,15 +45,15 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         coarseGridStart = new Point(bounds.x, bounds.y);
         int coarseWidth = bounds.width / grain + 1;
         int coarseHeight = bounds.height / grain + 1;
-        clippedShapes = new Shape[coarseWidth][][];
+        clippedShapes = new ClippedPolygons[coarseWidth][];
         clips = new Rectangle[coarseWidth][];
         for (int x = 0; x < coarseWidth; x++) {
-            clippedShapes[x] = new Shape[coarseHeight][];
+            clippedShapes[x] = new ClippedPolygons[coarseHeight];
             clips[x] = new Rectangle[coarseHeight];
             for (int y = 0; y < coarseHeight; y++) {
                 Rectangle rectangle = new Rectangle(coarseGridStart.x + x * grain, coarseGridStart.y + y * grain, grain, grain);
                 clips[x][y] = RectangleExtensions.grow(rectangle, 5);
-                clippedShapes[x][y] = PolygonExtensions.clip(polygons, clips[x][y]);
+                clippedShapes[x][y] = PolygonExtensions.clipAndSegments(polygons, clips[x][y]);
             }
         }
     }
@@ -64,27 +67,8 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
         int y = (p.y - coarseGridStart.y) / grain;
         if (x < 0 || x >= clippedShapes.length) return false;
         if (y < 0 || y >= clippedShapes[0].length) return false;
-        Shape[] maybeShape = clippedShapes[x][y];
-        debug(maybeShape, p, clips[x][y]);
-        if (tooClose(maybeShape, p)) {
-            return PolygonExtensions.contains(polygons, p);
-        }
-        return ShapeExtensions.contains(maybeShape, p);
-    }
-
-    private boolean tooClose(Shape[] maybeShape, Point p) {
-        double minD = Double.MAX_VALUE;
-        for (Shape s : maybeShape) {
-            if (s instanceof Polygon) {
-                NearestPoint nearestPoint =
-                        PolygonExtensions.getNearestPoint((Polygon)s, new Point2D.Float(p.x, p.y));
-                if (nearestPoint.dSquared < minD) {
-                    minD = nearestPoint.dSquared;
-                }
-            }
-        }
-        LOG.debug("minD: {}", minD);
-        return minD < 2d;
+        Boolean contains = clippedShapes[x][y].contains(p, 5d);
+        return contains == null ? PolygonExtensions.contains(polygons, p) : contains;
     }
 
     private void debug(final Shape[] shapes, final Point p, final Rectangle clip) {
