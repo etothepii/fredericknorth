@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.opendata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -14,6 +15,9 @@ public class NumericIdentifierSummaryImpl implements NumericIdentifierSummary {
     private final List<Integer> all;
     private final List<Integer> odds;
     private final List<Integer> evens;
+
+    private String evensOnly = " even";
+    private String oddsOnly = " odd";
 
     public NumericIdentifierSummaryImpl() {
         all = new ArrayList<Integer>();
@@ -37,9 +41,20 @@ public class NumericIdentifierSummaryImpl implements NumericIdentifierSummary {
         if (all.isEmpty()) {
             return "";
         }
-        String evenAndOdd = getNumericIdentifierOddEvenSummary(finalConcatination);
-        String all = summarize(getGroupings(this.all, 1), "").toString();
-        return evenAndOdd.length() < all.length() ? evenAndOdd : all;
+        Collections.sort(all);
+        Collections.sort(odds);
+        Collections.sort(evens);
+        String[] summaries = new String[] {
+                getNumericIdentifierOddEvenSummary(finalConcatination),
+                summarize(getGroupings(this.all, 1), "").toString(),
+        };
+        String shortestSummary = null;
+        for (String summary : summaries) {
+            if (shortestSummary == null || summary.length() < shortestSummary.length()) {
+                shortestSummary = summary;
+            }
+        }
+        return shortestSummary;
     }
 
     private String getNumericIdentifierOddEvenSummary(String joiningOddsAndEvens) {
@@ -48,23 +63,23 @@ public class NumericIdentifierSummaryImpl implements NumericIdentifierSummary {
             return "";
         }
         else if (evens.isEmpty()) {
-            stringBuilder.append(summarize(getGroupings(odds, 2, ""), " ODDS ONLY"));
+            stringBuilder.append(summarize(getGroupings(odds, 2, ""), oddsOnly));
         }
         else if (odds.isEmpty()) {
-            stringBuilder.append(summarize(getGroupings(evens, 2, ""), " EVENS ONLY"));
+            stringBuilder.append(summarize(getGroupings(evens, 2, ""), evensOnly));
         }
         else {
             List<List<Integer>> evensGroupings = getGroupings(evens, 2);
             List<List<Integer>> oddsGroupings = getGroupings(odds, 2);
             if (evens.get(0) < odds.get(0)) {
-                stringBuilder.append(summarize(evensGroupings, " EVENS ONLY"));
+                stringBuilder.append(summarize(evensGroupings, evensOnly));
                 stringBuilder.append(joiningOddsAndEvens);
-                stringBuilder.append(summarize(oddsGroupings, " ODDS ONLY"));
+                stringBuilder.append(summarize(oddsGroupings, oddsOnly));
             }
             else {
-                stringBuilder.append(summarize(oddsGroupings, " ODDS ONLY"));
+                stringBuilder.append(summarize(oddsGroupings, oddsOnly));
                 stringBuilder.append(joiningOddsAndEvens);
-                stringBuilder.append(summarize(evensGroupings, " EVENS ONLY"));
+                stringBuilder.append(summarize(evensGroupings, evensOnly));
             }
         }
         return stringBuilder.toString();
