@@ -20,6 +20,7 @@ import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
+import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 import uk.co.epii.conservatives.williampittjr.LogoGenerator;
 import uk.co.epii.spencerperceval.tuple.Duple;
 
@@ -476,10 +477,27 @@ class PDFRendererImpl implements PDFRenderer {
                 return a.getKey().compareToIgnoreCase(b.getKey());
             }
         });
+        String commonEnding = getCommonEnding(map.keySet());
         for (Map.Entry<String, DwellingGroupImpl> entry : entries) {
             strings.add(new Duple<String, Integer>(entry.getValue().getName(), entry.getValue().size()));
         }
+        truncate(strings, commonEnding);
         return strings;
+    }
+
+    static String getCommonEnding(Collection<String> strings) {
+    String commonEnding = StringExtentions.getCommonEnding(strings);
+        int comma = commonEnding.indexOf(',');
+        if (comma == -1) {
+            return "";
+        }
+        return commonEnding.substring(comma);
+    }
+
+    static void truncate(List<Duple<String, Integer>> strings, String commonEnding) {
+        for (Duple<String, Integer> duple : strings) {
+            duple.setFirst(duple.getFirst().substring(0, duple.getFirst().length() - commonEnding.length()));
+        }
     }
 
     private Phrase getChunk(String text) {
