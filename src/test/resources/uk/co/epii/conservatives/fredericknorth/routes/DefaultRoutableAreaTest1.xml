@@ -8,7 +8,7 @@
         <Name>Route 3</Name>
         <DwellingGroups>
           <DwellingGroup>
-            <Key>CW3 1AAE535228N180890</Key>
+            <Key>CW3 1AAE535228N180890E Street</Key>
           </DwellingGroup>
         </DwellingGroups>
       </Route>
@@ -24,13 +24,13 @@
             <Name>Route 1</Name>
             <DwellingGroups>
               <DwellingGroup>
-                <Key>CW1 1AAE535369N181182</Key>
+                <Key>CW1 1AAE535165N180986A Street</Key>
               </DwellingGroup>
               <DwellingGroup>
-                <Key>CW1 1AAE535215N180936</Key>
+                <Key>CW1 1AAE535215N180936A Street</Key>
               </DwellingGroup>
               <DwellingGroup>
-                <Key>CW1 1AAE535165N180986</Key>
+                <Key>CW1 1AAE535369N181182B Street</Key>
               </DwellingGroup>
             </DwellingGroups>
           </Route>
@@ -47,7 +47,7 @@
             <Name>Route 2</Name>
             <DwellingGroups>
               <DwellingGroup>
-                <Key>CW2 1AAE535041N181125</Key>
+                <Key>CW2 1AAE535041N181125C Street</Key>
               </DwellingGroup>
             </DwellingGroups>
           </Route>

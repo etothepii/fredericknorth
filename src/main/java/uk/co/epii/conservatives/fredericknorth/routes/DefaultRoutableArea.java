@@ -89,7 +89,7 @@ public class DefaultRoutableArea implements RoutableArea {
         type.setTextContent(boundedArea.getBoundedAreaType().toString());
         Element routesElt = document.createElement("Routes");
         boundedAreaElement.appendChild(routesElt);
-        HashSet<Route> localRoutes = new HashSet<Route>(routes);
+        List<Route> localRoutes = new ArrayList<Route>(routes);
         for (RoutableArea child : children.values()) {
             for (Route route : child.getRoutes()) {
                 localRoutes.remove(route);
@@ -161,7 +161,8 @@ public class DefaultRoutableArea implements RoutableArea {
             while (alreadyExists(proposedName, attempt)) {
                 attempt++;
             }
-            Route route = createRoute(attempt == 1 ? largest.getCommonName() : largest.getCommonName() + " " + attempt);
+            String routeName = attempt == 1 ? largest.getCommonName() : largest.getCommonName() + " " + attempt;
+            Route route = createRoute(routeName);
             for (IndivisbleChunk indivisbleChunk : proposedRoute.getKey()) {
                 route.addDwellingGroups(indivisbleChunk.getDwellingGroups());
             }
@@ -180,7 +181,8 @@ public class DefaultRoutableArea implements RoutableArea {
             return;
         }
         for (Route route : newRoutes) {
-            route.setName(route.getName().substring(0, route.getName().lastIndexOf(commonEnding)));
+            String truncatedName = route.getName().substring(0, route.getName().lastIndexOf(commonEnding));
+            route.setName(truncatedName);
         }
     }
 

@@ -53,7 +53,7 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
 
     @Override
     public String getKey() {
-        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
+        return postcode.getName().concat(PointExtensions.getLocationString(getPoint())).concat(getCommonName());
     }
 
     @Override
