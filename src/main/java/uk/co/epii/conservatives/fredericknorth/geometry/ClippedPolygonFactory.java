@@ -35,7 +35,7 @@ public class ClippedPolygonFactory {
         for (ClippedSegment clippedSegment : clippedSegments) {
             if (clippedSegment.isInside()) {
                 if (internalSegments.containsKey(clippedSegment.first())) {
-                    throw new UnsupportedOperationException("Unable to build factory as multiple points " +
+                    throw new MultiPointsHitClipBoundaryException("Unable to build factory as multiple points " +
                             "hit the boundary at the same point");
                 }
                 this.internalSegments.put(clippedSegment.first(), clippedSegment);
