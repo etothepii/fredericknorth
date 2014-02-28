@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.opendata.db;
 
+import org.apache.log4j.Logger;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
@@ -23,6 +24,8 @@ import java.util.List;
  * Time: 11:36
  */
 public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
+
+    private static final Logger LOG = Logger.getLogger(PostcodeDatumFactory.class);
 
     private final Map<String, PostcodeDatumDatabaseImpl> loaded =
             new HashMap<String, PostcodeDatumDatabaseImpl>();
@@ -50,7 +53,7 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         Map<String, DwellingGroupDatabaseImpl> dwellingGroupsMap = new HashMap<String, DwellingGroupDatabaseImpl>();
         PostcodeDatumDatabaseImpl postcodeImpl = new PostcodeDatumDatabaseImpl(postcode, dwellingGroupsMap);
         for (Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group : groupedByLocation.entrySet()) {
-            for (Map.Entry<StubDwelling, List<Duple<Dwelling, BLPU>>> nameGroup :groupByName(commonNames, group).entrySet()) {
+            for (Map.Entry<StubDwelling, List<Duple<Dwelling, BLPU>>> nameGroup : groupByName(commonNames, group).entrySet()) {
                 StubDwelling dwellingGroupName = getDwellingGroupName(nameGroup);
                 DwellingGroupDatabaseImpl dwellingGroup =
                         getDwellingGroup(postcode, postcodeImpl, group, nameGroup, dwellingGroupName);
@@ -69,12 +72,17 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         StubDwelling common = nameGroup.getKey();
         if (nameGroup.getValue().size() == 1) {
             String[] address = common.getAddress();
-            common = new StubDwelling(Arrays.copyOfRange(address, 1, address.length));
+            address = Arrays.copyOf(address, address.length);
+            address[0] = null;
+            common = new StubDwelling(address);
         }
         return common;
     }
 
-    private DwellingGroupDatabaseImpl getDwellingGroup(Postcode postcode, PostcodeDatumDatabaseImpl postcodeImpl, Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group, Map.Entry<StubDwelling, List<Duple<Dwelling, BLPU>>> nameGroup, StubDwelling common) {
+    private DwellingGroupDatabaseImpl getDwellingGroup(Postcode postcode, PostcodeDatumDatabaseImpl postcodeImpl,
+                                                       Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group,
+                                                       Map.Entry<StubDwelling, List<Duple<Dwelling, BLPU>>> nameGroup,
+                                                       StubDwelling common) {
         Map<DwellingDatabaseImpl, Dwelling> dwellingGroupDatabaseImplMap = new HashMap<DwellingDatabaseImpl, Dwelling>();
         for (Duple<Dwelling, BLPU> duple : nameGroup.getValue()) {
             Dwelling dwelling = duple.getFirst();
@@ -92,7 +100,8 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
                 group.getKey());
     }
 
-    private Map<StubDwelling, List<Duple<Dwelling, BLPU>>> groupByName(Map<Dwelling, Single<StubDwelling>> commonNames, Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group) {
+    private Map<StubDwelling, List<Duple<Dwelling, BLPU>>> groupByName(
+            Map<Dwelling, Single<StubDwelling>> commonNames, Map.Entry<Point, List<Duple<Dwelling, BLPU>>> group) {
         Map<StubDwelling, List<Duple<Dwelling, BLPU>>> groupedByName =
                 new HashMap<StubDwelling, List<Duple<Dwelling, BLPU>>>();
         for (Duple<Dwelling, BLPU> duple : group.getValue()) {
@@ -120,7 +129,7 @@ public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
         return stubDwellingSetMap;
     }
 
-    private Map<Dwelling, Single<StubDwelling>> getCommonNames(Map<Point, List<Duple<Dwelling, BLPU>>> groupedByLocation) {
+    static Map<Dwelling, Single<StubDwelling>> getCommonNames(Map<Point, List<Duple<Dwelling, BLPU>>> groupedByLocation) {
         Map<Dwelling, Single<StubDwelling>> commonNames = new HashMap<Dwelling, Single<StubDwelling>>();
         for (List<Duple<Dwelling, BLPU>> dwellings : groupedByLocation.values()) {
             toNextDwelling: for (Duple<Dwelling, BLPU> duple : dwellings) {
