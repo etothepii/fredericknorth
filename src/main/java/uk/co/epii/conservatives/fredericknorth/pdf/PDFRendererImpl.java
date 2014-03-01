@@ -194,7 +194,7 @@ class PDFRendererImpl implements PDFRenderer {
         if (writer.getPageNumber() % 2 == 1) {
             document.newPage();
         }
-//        document.add(createDwellingList(routeMapGroupings));
+        document.add(createDwellingList(routeMapGroupings));
 
     }
 
