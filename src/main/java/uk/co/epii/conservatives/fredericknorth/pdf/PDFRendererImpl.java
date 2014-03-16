@@ -44,7 +44,7 @@ class PDFRendererImpl implements PDFRenderer {
 
     private static final int WARD_TITLE_SIZE = 24;
     private static final int ROUTE_TITLE_SIZE = 18;
-    private static final int NORMAL_FONT_SIZE = 12;
+    private static final int NORMAL_FONT_SIZE = 10;
     private static final int SMALL_FONT_SIZE = 6;
 
     private static final BaseColor CONSERVATIVE_GREEN = new BaseColor(110, 215, 0);
@@ -66,6 +66,7 @@ class PDFRendererImpl implements PDFRenderer {
     private Comparator<String> addressComparator = new AddressComparator();
     private PdfWriter writer = null;
     private LogoGenerator logoGenerator;
+    private List<Duple<String, List<Dwelling>>> dwellingGroups;
 
     PDFRendererImpl(LogoGenerator logoGenerator, BaseFont conservativeBaseFont, MapLabelFactory mapLabelFactory, LocationFactory locationFactory,
                     MapViewGenerator mapViewGenerator, BoundaryLineController boundaryLineController, List<Location> meetingPoints) {
@@ -180,6 +181,7 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     private void addRouteContent(Route route) throws DocumentException, IOException {
+        int startPage = writer.getPageNumber();
         String wardName = route.getRoutableArea().getName();
         String routeName = route.getName();
         String association = route.getAssociation();
@@ -190,12 +192,16 @@ class PDFRendererImpl implements PDFRenderer {
         document.add(createTitle(association, wardName, routeName));
         List<RouteMapGrouping> routeMapGroupings = getGroupings(route);
         document.add(createRouteMap(routeMapGroupings));
+        document.add(Chunk.NEWLINE);
         document.add(createTable(routeMapGroupings));
         LOG.debug("PageNumber: " + writer.getPageNumber());
-        if (writer.getPageNumber() % 2 == 1) {
+        if (writer.getPageNumber() == startPage) {
             document.newPage();
         }
-        document.add(createDwellingList(routeMapGroupings));
+        else {
+            document.add(Chunk.NEWLINE);
+        }
+        document.add(createDwellingList());
 
     }
 
@@ -225,48 +231,24 @@ class PDFRendererImpl implements PDFRenderer {
         return mainConstituency.getName();
     }
 
-    private Element createDwellingList(List<RouteMapGrouping> routeMapGroupings) {
-        PdfPTable table = new PdfPTable(new float[] {0.05f, 0.95f});
-        for (int i = 0; i < routeMapGroupings.size(); i++) {
-            RouteMapGrouping routeMapGrouping = routeMapGroupings.get(i);
-            PdfPCell cell = new PdfPCell(getChunk((i + 1) + "", SMALL_FONT_SIZE, true, BaseColor.BLACK));
-            cell.setRowspan(routeMapGrouping.hasCommonName() ? 2 : routeMapGrouping.getDwellingGroupList().size() * 2);
+    private Element createDwellingList() {
+        PdfPTable table = new PdfPTable(new float[] {1f});
+        for (Duple<String, List<Dwelling>> dwellingGrouping : dwellingGroups) {
+            PdfPCell cell = new PdfPCell(getChunk(dwellingGrouping.getFirst(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
             table.addCell(cell);
-            if (routeMapGrouping.hasCommonName()) {
-                cell = new PdfPCell(getChunk(routeMapGrouping.getCommonName(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
-                table.addCell(cell);
-                String orderedIdentifiers = toCommaSeperatedString(getOrderedIdentifiers(
-                        routeMapGrouping.getDwellingGroupList(), routeMapGrouping.size()));
-                cell = new PdfPCell(getChunk(orderedIdentifiers, SMALL_FONT_SIZE, true, BaseColor.BLACK));
-                table.addCell(cell);
-            }
-            else {
-                for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
-                    cell = new PdfPCell(getChunk(dwellingGroup.getName(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
-                    table.addCell(cell);
-                    String orderedIdentifiers = toCommaSeperatedString(getOrderedIdentifiers(dwellingGroup));
-                    cell = new PdfPCell(getChunk(orderedIdentifiers, SMALL_FONT_SIZE, true, BaseColor.BLACK));
-                    table.addCell(cell);
-                }
-            }
+            String orderedIdentifiers = toCommaSeperatedString(getOrderedIdentifiers(
+                    dwellingGrouping.getSecond(), dwellingGrouping.getSecond().size()));
+            cell = new PdfPCell(getChunk(orderedIdentifiers, SMALL_FONT_SIZE, true, BaseColor.BLACK));
+            table.addCell(cell);
         }
         table.setWidthPercentage(100f);
         return table;
     }
 
-    private List<String> getOrderedIdentifiers(DwellingGroup dwellingGroup) {
-        ArrayList<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>();
-        dwellingGroups.add(dwellingGroup);
-        return getOrderedIdentifiers(dwellingGroups, dwellingGroup.size());
-
-    }
-
-    private List<String> getOrderedIdentifiers(Collection<? extends DwellingGroup> dwellingGroups, int size) {
+    private List<String> getOrderedIdentifiers(Collection<? extends Dwelling> dwellingGroup, int size) {
         List<String> dwellings = new ArrayList<String>(size);
-        for (DwellingGroup dwellingGroup : dwellingGroups) {
-            for (Dwelling dwelling : dwellingGroup.getDwellings()) {
-                dwellings.add(dwelling.getName());
-            }
+        for (Dwelling dwelling : dwellingGroup) {
+            dwellings.add(dwelling.getName());
         }
         Collections.sort(dwellings, dwellingIdentifierComparator);
         return dwellings;
@@ -438,21 +420,23 @@ class PDFRendererImpl implements PDFRenderer {
         PdfPTable table = new PdfPTable(new float[] {.925f,.075f});
         table.setWidthPercentage(100f);
         int total = 0;
-        List<Duple<String, Integer>> dwellingGroups = getNameGroupedGroupings(routeMapGroupings);
-        for (Duple<String, Integer> dwellingGroup : dwellingGroups) {
-            table.addCell(getChunk(dwellingGroup.getFirst()));
-            PdfPCell dwellings = new PdfPCell(getChunk(dwellingGroup.getSecond() + ""));
-            dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-            table.addCell(dwellings);
-            total += dwellingGroup.getSecond();
+        dwellingGroups = getNameGroupedGroupings(routeMapGroupings);
+        for (Duple<String, List<Dwelling>> dwellingGroup : dwellingGroups) {
+            total += dwellingGroup.getSecond().size();
         }
         PdfPCell cell = new PdfPCell(new Phrase(""));
         cell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(cell);
-        PdfPCell dwellings = new PdfPCell(getChunk(total + "", NORMAL_FONT_SIZE, true, BaseColor.BLACK));
-        dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
-        dwellings.setBackgroundColor(CONSERVATIVE_TINT);
-        table.addCell(dwellings);
+        PdfPCell totalDwellings = new PdfPCell(getChunk(total + "", NORMAL_FONT_SIZE, true, BaseColor.BLACK));
+        totalDwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+        totalDwellings.setBackgroundColor(CONSERVATIVE_TINT);
+        table.addCell(totalDwellings);
+        for (Duple<String, List<Dwelling>> dwellingGroup : dwellingGroups) {
+            table.addCell(getChunk(dwellingGroup.getFirst()));
+            PdfPCell dwellings = new PdfPCell(getChunk(dwellingGroup.getSecond().size() + ""));
+            dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+            table.addCell(dwellings);
+        }
         return table;
     }
 

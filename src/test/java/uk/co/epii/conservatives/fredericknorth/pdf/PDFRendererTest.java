@@ -12,6 +12,8 @@ import uk.co.epii.conservatives.fredericknorth.dummydata.TestCouncilWard;
 import uk.co.epii.conservatives.fredericknorth.maps.LocationFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.MapLabelFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGeneratorRegistrar;
+import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwelling;
+import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 import uk.co.epii.spencerperceval.tuple.Duple;
@@ -61,9 +63,13 @@ public class PDFRendererTest {
 
     public void truncateTest(String[] street, String[] full, String[] expected) {
         String commonEnding = PDFRendererImpl.getCommonEnding(Arrays.asList(street));
-        List<Duple<String, Integer>> duples = new ArrayList<Duple<String, Integer>>();
+        List<Duple<String, List<Dwelling>>> duples = new ArrayList<Duple<String, List<Dwelling>>>();
         for (String string : full) {
-            duples.add(new Duple<String, Integer>(string, 2));
+            List<Dwelling> dwellings = new ArrayList<Dwelling>();
+            for (int i = 1; i <= 2; i++) {
+                dwellings.add(new DummyDwelling(i + "", null));
+            }
+            duples.add(new Duple<String, List<Dwelling>>(string, dwellings));
         }
         PDFRendererImpl.truncate(duples, commonEnding);
         String[] result = new String[duples.size()];

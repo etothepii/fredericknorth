@@ -3,13 +3,13 @@
   <Name>Route 2</Name>
   <DwellingGroups>
     <DwellingGroup>
-      <Key>A1 1ACE324N467</Key>
-    </DwellingGroup>
-    <DwellingGroup>
       <Key>A1 1AAE324N467</Key>
     </DwellingGroup>
     <DwellingGroup>
       <Key>A1 1ABE324N467</Key>
+    </DwellingGroup>
+    <DwellingGroup>
+      <Key>A1 1ACE324N467</Key>
     </DwellingGroup>
   </DwellingGroups>
 </Route>
