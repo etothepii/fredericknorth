@@ -63,6 +63,7 @@ class PDFRendererImpl implements PDFRenderer {
     private final Map<String, Image> cachedLogos = new HashMap<String, Image>();
     private final BoundaryLineController boundaryLineController;
     private List<? extends Location> meetingPoints;
+    private Comparator<String> addressComparator = new AddressComparator();
     private PdfWriter writer = null;
     private LogoGenerator logoGenerator;
 
@@ -455,7 +456,7 @@ class PDFRendererImpl implements PDFRenderer {
         return table;
     }
 
-    private List<Duple<String, Integer>> getNameGroupedGroupings(List<RouteMapGrouping> routeMapGroupings) {
+    private List<Duple<String, List<Dwelling>>> getNameGroupedGroupings(List<RouteMapGrouping> routeMapGroupings) {
         Map<String, DwellingGroupImpl> map = new HashMap<String, DwellingGroupImpl>();
         for (RouteMapGrouping routeMapGrouping : routeMapGroupings) {
             for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
@@ -469,7 +470,7 @@ class PDFRendererImpl implements PDFRenderer {
                 }
             }
         }
-        List<Duple<String, Integer>> strings = new ArrayList<Duple<String, Integer>>(map.size());
+        List<Duple<String, List<Dwelling>>> strings = new ArrayList<Duple<String, List<Dwelling>>>(map.size());
         List<Map.Entry<String, DwellingGroupImpl>> entries = new ArrayList<Map.Entry<String, DwellingGroupImpl>>(map.entrySet());
         Collections.sort(entries, new Comparator<Map.Entry<String, DwellingGroupImpl>>() {
             @Override
@@ -479,9 +480,16 @@ class PDFRendererImpl implements PDFRenderer {
         });
         String commonEnding = getCommonEnding(map.keySet());
         for (Map.Entry<String, DwellingGroupImpl> entry : entries) {
-            strings.add(new Duple<String, Integer>(entry.getValue().getName(), entry.getValue().size()));
+            List<Dwelling> dwellings = new ArrayList<Dwelling>(entry.getValue().getDwellings());
+            strings.add(new Duple<String, List<Dwelling>>(entry.getValue().getName(), dwellings));
         }
         truncate(strings, commonEnding);
+        Collections.sort(strings, new Comparator<Duple<String, List<Dwelling>>>() {
+            @Override
+            public int compare(Duple<String, List<Dwelling>> o1, Duple<String, List<Dwelling>> o2) {
+                return addressComparator.compare(o1.getFirst(), o2.getFirst());
+            }
+        });
         return strings;
     }
 
@@ -494,8 +502,8 @@ class PDFRendererImpl implements PDFRenderer {
         return commonEnding.substring(comma);
     }
 
-    static void truncate(List<Duple<String, Integer>> strings, String commonEnding) {
-        for (Duple<String, Integer> duple : strings) {
+    static void truncate(List<Duple<String, List<Dwelling>>> strings, String commonEnding) {
+        for (Duple<String, List<Dwelling>> duple : strings) {
             duple.setFirst(duple.getFirst().substring(0, duple.getFirst().length() - commonEnding.length()));
         }
     }
