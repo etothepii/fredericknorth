@@ -140,7 +140,7 @@ class RouteImpl implements Route {
                 return o1.getKey().compareTo(o2.getKey());
             }
         });
-        for (DwellingGroup dwellingGroup : dwellingGroups) {
+        for (DwellingGroup dwellingGroup : orderedDwellingGroups) {
             dwellingGroupsElt.appendChild(dwellingGroup.toXml(document));
         }
         return route;

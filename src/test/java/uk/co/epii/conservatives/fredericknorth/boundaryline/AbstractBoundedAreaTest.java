@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.robertwalpole.DataSet;
 
 import java.io.File;
 

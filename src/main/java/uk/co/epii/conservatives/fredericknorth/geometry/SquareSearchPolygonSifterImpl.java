@@ -53,7 +53,13 @@ public class SquareSearchPolygonSifterImpl implements PolygonSifter {
             for (int y = 0; y < coarseHeight; y++) {
                 Rectangle rectangle = new Rectangle(coarseGridStart.x + x * grain, coarseGridStart.y + y * grain, grain, grain);
                 clips[x][y] = RectangleExtensions.grow(rectangle, 5);
-                clippedShapes[x][y] = PolygonExtensions.clipAndSegments(polygons, clips[x][y]);
+                try {
+                    clippedShapes[x][y] = PolygonExtensions.clipAndSegments(polygons, clips[x][y]);
+                }
+                catch (MultiPointsHitClipBoundaryException e) {
+                    clippedShapes = null;
+                    return;
+                }
             }
         }
     }

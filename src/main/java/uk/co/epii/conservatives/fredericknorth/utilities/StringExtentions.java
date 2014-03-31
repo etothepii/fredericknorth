@@ -1,7 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth.utilities;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * User: James Robinson
@@ -35,4 +37,26 @@ public class StringExtentions {
         return stringBuilder.toString();
     }
 
+    public static String getCommonEnding(Collection<String> strings) {
+        String common = null;
+        for (String string : strings) {
+            if (common == null) {
+                common = string;
+            }
+            else {
+                common = getCommonEnding(common, string);
+            }
+        }
+        return common;
+    }
+
+    public static String getCommonEnding(String common, String string) {
+        int i = 0;
+        for (; i < string.length() && i < common.length(); i++) {
+            if (string.charAt(string.length() - i - 1) != common.charAt(common.length() - i - 1)) {
+                break;
+            }
+        }
+        return common.substring(common.length() - i);
+    }
 }

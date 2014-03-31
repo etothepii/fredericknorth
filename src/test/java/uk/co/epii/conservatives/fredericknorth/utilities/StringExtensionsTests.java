@@ -60,4 +60,11 @@ public class StringExtensionsTests {
         assertEquals(expected, result);
     }
 
+    @Test
+    public void getCommonTest1() {
+        String a = "A Road";
+        String b = "B Road";
+        assertEquals(" Road", StringExtentions.getCommonEnding(a, b));
+    }
+
 }

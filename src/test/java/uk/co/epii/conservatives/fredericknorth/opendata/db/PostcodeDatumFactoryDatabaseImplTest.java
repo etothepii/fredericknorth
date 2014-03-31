@@ -6,19 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import sun.util.LocaleServiceProviderPool;
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * User: James Robinson
@@ -53,6 +52,33 @@ public class PostcodeDatumFactoryDatabaseImplTest {
                 new ArrayList<Integer>(Arrays.asList(100,500,900,1100,50)));
         Point expected = new Point(400, 500);
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void getE29BF() {
+        List<PostcodeDatum> postcodes = new ArrayList<PostcodeDatum>(
+                postcodeDatumFactory.getPostcodes(new Rectangle(534699, 183249, 3, 3)));
+        assertEquals(1, postcodes.size());
+        assertEquals(2, ((PostcodeDatumDatabaseImpl)postcodes.get(0)).getDwellingGroups().size());
+    }
+
+    @Test
+    public void getE146LN() {
+        List<PostcodeDatum> postcodes = new ArrayList<PostcodeDatum>(
+                postcodeDatumFactory.getPostcodes(new Rectangle(538203, 181138, 3, 3)));
+        assertEquals(1, postcodes.size());
+        assertEquals(8, ((PostcodeDatumDatabaseImpl)postcodes.get(0)).getDwellingGroups().size());
+    }
+
+    @Test
+    public void getE140AT() {
+        List<PostcodeDatum> postcodes = new ArrayList<PostcodeDatum>(
+                postcodeDatumFactory.getPostcodes(new Rectangle(537991, 180700, 1, 1)));
+        for (DwellingGroup dwellingGroup : ((PostcodeDatumDatabaseImpl)postcodes.get(0)).getDwellingGroups().values()) {
+            if (dwellingGroup.size() == 1) {
+               assertTrue(dwellingGroup.getName().startsWith(dwellingGroup.getDwellings().iterator().next().getName()));
+            }
+        }
     }
 
     private Rectangle getExtents(PostcodeDatum dwellingGroup) {

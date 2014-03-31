@@ -34,12 +34,18 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         if (name != null) {
             return name;
         }
+        String identifierSummary = getIdentifierSummary();
+        return identifierSummary == null ? commonName : String.format("%s %s", identifierSummary, commonName);
+    }
+
+    @Override
+    public String getIdentifierSummary() {
         String identifierSummary;
         if (size() == 0 || (identifierSummary = establishIdentifierSummary()) == null ||
                 identifierSummary.length() == 0 || identifierSummary.equals("null")) {
-            return commonName;
+            return null;
         }
-        return String.format("%s %s", identifierSummary, commonName);
+        return identifierSummary;
     }
 
     private String establishIdentifierSummary() {
@@ -51,10 +57,10 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         }
         filterIdentifierSummaries();
         if (nonNumericsIdentifierSummary.isEmpty()) {
-            return getNumericIdentifierSummary(numericIdentifierSummary, " & ");
+            return numericIdentifierSummary.summarize(" & ");
         }
         if (nonNumericsIdentifierSummary.unmatched.size() + nonNumericsIdentifierSummary.matchedFlats.size() <= 5) {
-            StringBuilder stringBuilder = new StringBuilder(getNumericIdentifierSummary(numericIdentifierSummary, ", "));
+            StringBuilder stringBuilder = new StringBuilder(numericIdentifierSummary.summarize(", "));
             List<String> nonNumericGroupings = nonNumericsIdentifierSummary.getGroupings();
             for (int i = 0; i < nonNumericGroupings.size(); i++) {
                 if (stringBuilder.length() > 0) {
@@ -76,122 +82,17 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         return commonName;
     }
 
-    private String getNumericIdentifierSummary(
-            NumericIdentifierSummary numericIdentifierSummary, String joiningOddsAndEvens) {
-        if (numericIdentifierSummary.all.isEmpty()) {
-            return "";
-        }
-        String evenAndOdd = getNumericIdentifierOddEvenSummary(numericIdentifierSummary, joiningOddsAndEvens);
-        String all = summarize(getGroupings(numericIdentifierSummary.all, 1), "").toString();
-        return evenAndOdd.length() < all.length() ? evenAndOdd : all;
-    }
-
-    private String getNumericIdentifierOddEvenSummary(
-            NumericIdentifierSummary numericIdentifierSummary, String joiningOddsAndEvens) {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (numericIdentifierSummary.all.isEmpty()) {
-            return "";
-        }
-        else if (numericIdentifierSummary.evens.isEmpty()) {
-            stringBuilder.append(summarize(getGroupings(numericIdentifierSummary.odds, 2, ""), " ODDS ONLY"));
-        }
-        else if (numericIdentifierSummary.odds.isEmpty()) {
-            stringBuilder.append(summarize(getGroupings(numericIdentifierSummary.evens, 2, ""), " EVENS ONLY"));
-        }
-        else {
-            List<List<Integer>> evensGroupings = getGroupings(numericIdentifierSummary.evens, 2);
-            List<List<Integer>> oddsGroupings = getGroupings(numericIdentifierSummary.odds, 2);
-            if (numericIdentifierSummary.evens.get(0) < numericIdentifierSummary.odds.get(0)) {
-                stringBuilder.append(summarize(evensGroupings, " EVENS ONLY"));
-                stringBuilder.append(joiningOddsAndEvens);
-                stringBuilder.append(summarize(oddsGroupings, " ODDS ONLY"));
-            }
-            else {
-                stringBuilder.append(summarize(oddsGroupings, " ODDS ONLY"));
-                stringBuilder.append(joiningOddsAndEvens);
-                stringBuilder.append(summarize(evensGroupings, " EVENS ONLY"));
-            }
-        }
-        return stringBuilder.toString();
-    }
-
-    private List<List<Integer>> getGroupings(List<Integer> numbers, int delta) {
-        return getGroupings(numbers, delta, "");
-    }
-
-    private List<List<Integer>> getGroupings(List<Integer> numbers, int delta, String suffix) {
-        List<List<Integer>> groupings = new ArrayList<List<Integer>>();
-        List<Integer> group = new ArrayList<Integer>();
-        for (int number : numbers) {
-            if (!group.isEmpty() && group.get(group.size() - 1) + delta != number) {
-                if (group.size() == 2) {
-                    groupings.add(Arrays.asList(group.get(0)));
-                    groupings.add(Arrays.asList(group.get(1)));
-                }
-                else {
-                    groupings.add(group);
-                }
-                group = new ArrayList<Integer>();
-            }
-            group.add(number);
-        }
-
-        if (group.size() == 2) {
-            groupings.add(Arrays.asList(group.get(0)));
-            groupings.add(Arrays.asList(group.get(1)));
-        }
-        else {
-            groupings.add(group);
-        }
-        return groupings;
-    }
-
-    private StringBuilder summarize(List<List<Integer>> groupings, String suffix) {
-        StringBuilder stringBuilder = new StringBuilder(groupings.size() * 16);
-        stringBuilder.append(getString(groupings.get(0)));
-        for (int i = 1; i < groupings.size() - 1; i++) {
-            stringBuilder.append(", ");
-            stringBuilder.append(getString(groupings.get(i)));
-        }
-        if (groupings.size() > 1) {
-            stringBuilder.append(" & ");
-            stringBuilder.append(getString(groupings.get(groupings.size() - 1)));
-        }
-        stringBuilder.append(suffix);
-        return stringBuilder;
-    }
-
-    private String getString(List<Integer> integers) {
-        if (integers.size() == 1) {
-            return integers.get(0) + "";
-        }
-        else if (integers.size() == 2) {
-            return integers.get(0) + ", " + integers.get(1);
-        }
-        else {
-            return integers.get(0) + " - " + integers.get(integers.size() - 1);
-        }
-    }
-
     public void filterIdentifierSummaries() {
-        numericIdentifierSummary = new NumericIdentifierSummary();
+        numericIdentifierSummary = new NumericIdentifierSummaryImpl();
         nonNumericsIdentifierSummary = new NonNumericIdentifierSummary();
         for (Dwelling dwelling : getDwellings()) {
             try {
-                int number = Integer.parseInt(dwelling.getName());
-                numericIdentifierSummary.all.add(number);
-                if (number % 2 == 0) {
-                    numericIdentifierSummary.evens.add(number);
-                }
-                else {
-                    numericIdentifierSummary.odds.add(number);
-                }
+                numericIdentifierSummary.add(Integer.parseInt(dwelling.getName()));
             }
             catch (NumberFormatException nfe) {
                 nonNumericsIdentifierSummary.add(dwelling.getName());
             }
         }
-        numericIdentifierSummary.sort();
         nonNumericsIdentifierSummary.sort();
     }
 
@@ -233,18 +134,10 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         private void add(Matcher matcher) {
             PrefixAndSuffix prefixAndSuffix = new PrefixAndSuffix(matcher.group(1), matcher.group(3));
             if (!matchedFlats.containsKey(prefixAndSuffix)) {
-                matchedFlats.put(prefixAndSuffix, new NumericIdentifierSummary());
+                matchedFlats.put(prefixAndSuffix, new NumericIdentifierSummaryImpl());
             }
             NumericIdentifierSummary numericIdentifierSummary = matchedFlats.get(prefixAndSuffix);
-            int number = Integer.parseInt(matcher.group(2));
-            if (number % 2 == 0) {
-                numericIdentifierSummary.evens.add(number);
-            }
-            else {
-                numericIdentifierSummary.odds.add(number);
-            }
-            numericIdentifierSummary.all.add(number);
-
+            numericIdentifierSummary.add(Integer.parseInt(matcher.group(2)));
         }
 
         public int size() {
@@ -253,9 +146,6 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
 
         public void sort() {
             Collections.sort(unmatched);
-            for (NumericIdentifierSummary numericIdentifierSummary : matchedFlats.values()) {
-                numericIdentifierSummary.sort();
-            }
         }
 
         public boolean isEmpty() {
@@ -272,7 +162,7 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
                     stringBuilder.append(entry.getKey().prefix.substring(0, entry.getKey().prefix.length() - 1)) ;
                     stringBuilder.append("S ");
                 }
-                stringBuilder.append(getNumericIdentifierSummary(entry.getValue(), " & "));
+                stringBuilder.append(entry.getValue().summarize(" & "));
                 stringBuilder.append(entry.getKey().suffix);
                 groupings.add(stringBuilder.toString());
             }
@@ -308,19 +198,6 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
             int result = prefix.hashCode();
             result = 31 * result + suffix.hashCode();
             return result;
-        }
-    }
-
-    private class NumericIdentifierSummary {
-
-        final List<Integer> odds = new ArrayList<Integer>(size());
-        final List<Integer> evens = new ArrayList<Integer>(size());
-        final List<Integer> all = new ArrayList<Integer>(size());
-
-        public void sort() {
-            Collections.sort(odds);
-            Collections.sort(evens);
-            Collections.sort(all);
         }
     }
 }

@@ -7,6 +7,7 @@ import org.opengis.geometry.BoundingBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.robertwalpole.DataSet;
 
 import java.awt.*;
 import java.awt.geom.Point2D;

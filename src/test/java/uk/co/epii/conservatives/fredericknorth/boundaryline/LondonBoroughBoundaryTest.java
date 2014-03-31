@@ -11,6 +11,7 @@ import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerRegistrar;
+import uk.co.epii.conservatives.robertwalpole.DataSet;
 
 import java.io.File;
 import java.io.IOException;

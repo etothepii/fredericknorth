@@ -20,6 +20,7 @@ public class DummyDwellingGroup implements DwellingGroup {
     String name;
     String commonName;
     Point point;
+    String identifierSummary;
     private PostcodeDatum postcode;
 
     public DummyDwellingGroup(String name, int count, Point point) {
@@ -71,6 +72,11 @@ public class DummyDwellingGroup implements DwellingGroup {
     }
 
     @Override
+    public String getIdentifierSummary() {
+        return identifierSummary;
+    }
+
+    @Override
     public PostcodeDatum getPostcode() {
         return postcode;
     }
@@ -78,6 +84,10 @@ public class DummyDwellingGroup implements DwellingGroup {
     @Override
     public int compareTo(DwellingGroup o) {
         return name.compareTo(o.getName());
+    }
+
+    public void setIdentifierSummary(String identifierSummary) {
+        this.identifierSummary = identifierSummary;
     }
 
     public void setCommonName(String commonName) {

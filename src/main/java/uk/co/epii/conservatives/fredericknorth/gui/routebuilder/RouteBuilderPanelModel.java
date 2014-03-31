@@ -355,21 +355,23 @@ public class RouteBuilderPanelModel implements Activateable {
                 progressTracker.increment();
             }
             else {
-                progressTracker.startSubsection(parent.getUnroutedDwellingGroups().size() +
-                        parent.getRoutedDwellingGroups().size());
+                int total = parent.getUnroutedDwellingGroups().size() +
+                        parent.getRoutedDwellingGroups().size();
+                progressTracker.startSubsection(total);
+                int count = 0;
                 PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(),
                         parent.getUnroutedDwellingGroups().size());
                 for (DwellingGroup dwellingGroup : parent.getUnroutedDwellingGroups()) {
                     if (polygonSifter.contains(dwellingGroup.getPoint())) {
                         routableArea.addDwellingGroup(dwellingGroup, false);
                     }
-                    progressTracker.increment();
+                    progressTracker.increment(routableArea.getName() +": " + 100 * count++ / total + "%");
                 }
                 for (DwellingGroup dwellingGroup : parent.getRoutedDwellingGroups()) {
                     if (polygonSifter.contains(dwellingGroup.getPoint())) {
                         routableArea.addDwellingGroup(dwellingGroup, true);
                     }
-                    progressTracker.increment();
+                    progressTracker.increment(routableArea.getName() +": " + 100 * count++ / total + "%");
                 }
             }
         }

@@ -2,6 +2,7 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
@@ -311,6 +312,7 @@ public class RouteBuilderPanelModelTest {
     }
 
     @Test
+    @Ignore
     public void loadTest() throws InvocationTargetException, InterruptedException {
         initiateAndDraw();
         try {

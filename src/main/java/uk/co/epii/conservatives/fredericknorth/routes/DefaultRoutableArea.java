@@ -15,6 +15,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -88,7 +89,7 @@ public class DefaultRoutableArea implements RoutableArea {
         type.setTextContent(boundedArea.getBoundedAreaType().toString());
         Element routesElt = document.createElement("Routes");
         boundedAreaElement.appendChild(routesElt);
-        HashSet<Route> localRoutes = new HashSet<Route>(routes);
+        List<Route> localRoutes = new ArrayList<Route>(routes);
         for (RoutableArea child : children.values()) {
             for (Route route : child.getRoutes()) {
                 localRoutes.remove(route);
@@ -128,6 +129,8 @@ public class DefaultRoutableArea implements RoutableArea {
     }
 
     private void routeUnrouted(int targetSize) {
+        List<Route> newRoutes = new ArrayList<Route>();
+        List<String> newRoutesNames = new ArrayList<String>();
         int routes = calculateRoutesCount(targetSize);
         DblClusters<List<IndivisbleChunk>> clusters = new DblClusters<List<IndivisbleChunk>>(2, routes);
         clusters.setKeyer(new DblListKeyer<IndivisbleChunk>());
@@ -152,13 +155,46 @@ public class DefaultRoutableArea implements RoutableArea {
                     }
                 }
             }
-            Route route = createRoute(largest.getName());
+            String proposedName = largest.getCommonName();
+            newRoutesNames.add(proposedName);
+            int attempt = 1;
+            while (alreadyExists(proposedName, attempt)) {
+                attempt++;
+            }
+            String routeName = attempt == 1 ? largest.getCommonName() : largest.getCommonName() + " " + attempt;
+            Route route = createRoute(routeName);
             for (IndivisbleChunk indivisbleChunk : proposedRoute.getKey()) {
                 route.addDwellingGroups(indivisbleChunk.getDwellingGroups());
             }
+            newRoutes.add(route);
+        }
+        if (!newRoutes.isEmpty()) {
+            removeCommonEndings(newRoutes, newRoutesNames);
         }
     }
 
+    private void removeCommonEndings(List<Route> newRoutes, List<String> newRoutesNames) {
+        String commonEnding = StringExtentions.getCommonEnding(newRoutesNames);
+        int commaAt = commonEnding.indexOf(',');
+        commonEnding = commaAt == -1 ? "" : commonEnding.substring(commaAt);
+        if (commonEnding.length() == 0) {
+            return;
+        }
+        for (Route route : newRoutes) {
+            String truncatedName = route.getName().substring(0, route.getName().lastIndexOf(commonEnding));
+            route.setName(truncatedName);
+        }
+    }
+
+    private boolean alreadyExists(String proposedName, int attempt) {
+        String toTry = attempt == 1 ? proposedName : proposedName + " " + attempt;
+        for (Route route : getRoutes()) {
+            if (route.getName().equals(toTry)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private int calculateRoutesCount(int targetSize) {
         HashMap<Point, Integer> pointSizes = new HashMap<Point, Integer>(dwellingGroups.size());

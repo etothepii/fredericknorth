@@ -17,7 +17,8 @@
     <log4j.version>1.2.12</log4j.version>
     <junit.version>4.11</junit.version>
     <spencerperceval.version>0.0.5</spencerperceval.version>
-    <williamcavendishbentinck.version>0.1.4</williamcavendishbentinck.version>
+    <robertwalpole.version>0.0.1</robertwalpole.version>
+    <williamcavendishbentinck.version>0.1.6</williamcavendishbentinck.version>
     <williampittjr.version>1.1.0</williampittjr.version>
     <commonsio.version>2.4</commonsio.version>
     <itextpdf.version>5.1.3</itextpdf.version>
@@ -66,6 +67,11 @@
       <groupId>uk.co.epii.conservatives</groupId>
       <artifactId>spencerperceval</artifactId>
       <version>${spencerperceval.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>uk.co.epii.conservatives</groupId>
+      <artifactId>robertwalpole</artifactId>
+      <version>${robertwalpole.version}</version>
     </dependency>
     <dependency>
       <groupId>uk.co.epii.conservatives</groupId>
