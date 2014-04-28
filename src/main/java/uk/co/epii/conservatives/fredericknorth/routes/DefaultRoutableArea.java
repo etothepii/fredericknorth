@@ -11,10 +11,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -22,7 +19,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
@@ -336,7 +335,12 @@ public class DefaultRoutableArea implements RoutableArea {
         Element routableAreasElt = toXml(document);
         document.appendChild(routableAreasElt);
         try {
-            FileUtils.write(selectedFile, new XMLSerializerImpl().toString(document));
+          FileWriter fileWriter = new FileWriter(selectedFile);
+          PrintWriter printWriter = new PrintWriter(fileWriter);
+          printWriter.print(new XMLSerializerImpl().toString(document));
+          printWriter.flush();
+          printWriter.close();
+          fileWriter.close();
         }
         catch (IOException ioe) {
             throw new RuntimeException(ioe);
