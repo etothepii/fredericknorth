@@ -47,9 +47,11 @@ class PDFRendererImpl implements PDFRenderer {
     private static final int NORMAL_FONT_SIZE = 10;
     private static final int SMALL_FONT_SIZE = 6;
 
-    private static final BaseColor CONSERVATIVE_GREEN = new BaseColor(110, 215, 0);
-    private static final BaseColor CONSERVATIVE_BLUE = new BaseColor(0, 135, 220);
+    private static final BaseColor DEFAULT_PRIMARY = new BaseColor(110, 215, 0);
+    private static final BaseColor DEFAULT_SECONDARY = new BaseColor(0, 135, 220);
     private static final BaseColor CONSERVATIVE_TINT = new BaseColor(235, 235, 225);
+    private final BaseColor primary;
+    private final BaseColor secondary;
 
     private File file;
     private Document document;
@@ -76,6 +78,14 @@ class PDFRendererImpl implements PDFRenderer {
         this.mapLabelFactory = mapLabelFactory;
         this.locationFactory = locationFactory;
         this.mapViewGenerator = mapViewGenerator;
+        this.primary = logoGenerator == null ? DEFAULT_PRIMARY : new BaseColor(
+                logoGenerator.getPrimaryColor().getRed(),
+                logoGenerator.getPrimaryColor().getGreen(),
+                logoGenerator.getPrimaryColor().getBlue());
+        this.secondary = logoGenerator == null ? DEFAULT_SECONDARY : new BaseColor(
+                logoGenerator.getSecondaryColor().getRed(),
+                logoGenerator.getSecondaryColor().getGreen(),
+                logoGenerator.getSecondaryColor().getBlue());
         this.meetingPoints = meetingPoints;
         this.routeMapGroupingComparator = new Comparator<RouteMapGrouping>() {
             @Override
@@ -272,7 +282,7 @@ class PDFRendererImpl implements PDFRenderer {
     private Element createTitle(String constituency, String wardName, String routeName) {
         PdfPTable table = new PdfPTable(new float[] {0.5f, 0.5f});
         table.setWidthPercentage(100f);
-        PdfPCell wardCell = new PdfPCell(new Paragraph(getChunk(wardName, WARD_TITLE_SIZE, true, CONSERVATIVE_BLUE)));
+        PdfPCell wardCell = new PdfPCell(new Paragraph(getChunk(wardName, WARD_TITLE_SIZE, true, primary)));
         wardCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(wardCell);
         PdfPCell logoCell = new PdfPCell(getLogo(constituency));
@@ -281,7 +291,7 @@ class PDFRendererImpl implements PDFRenderer {
         logoCell.setRowspan(2);
         logoCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(logoCell);
-        PdfPCell routeCell = new PdfPCell(new Paragraph(getChunk(routeName, ROUTE_TITLE_SIZE, true, CONSERVATIVE_GREEN)));
+        PdfPCell routeCell = new PdfPCell(new Paragraph(getChunk(routeName, ROUTE_TITLE_SIZE, true, secondary)));
         routeCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(routeCell);
         PdfPCell spacer = new PdfPCell();

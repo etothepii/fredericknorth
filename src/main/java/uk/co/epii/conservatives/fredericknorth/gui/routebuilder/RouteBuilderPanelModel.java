@@ -349,7 +349,7 @@ public class RouteBuilderPanelModel implements Activateable {
         LOG.debug("loadRoutableArea: boundedArea {}, parent {}", new Object[] {boundedArea.getName(), parent == null ?
                 "null" : parent.getBoundedArea().getName()});
         DefaultRoutableArea routableArea = new DefaultRoutableArea(boundedArea, parent);
-        progressTracker.startSubsection(2);
+        progressTracker.startSubsection(3);
         if (parent != null) {
             if (parent.getUnroutedDwellingGroups().isEmpty() && parent.getRoutedDwellingGroups().isEmpty()) {
                 progressTracker.increment();

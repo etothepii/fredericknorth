@@ -24,7 +24,6 @@ import uk.co.epii.conservatives.williamcavendishbentinck.DatabaseSession;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * An awesome fredericknorth
@@ -34,7 +33,7 @@ public class Main
 {
 	private static final Logger LOG = Logger.getLogger(Main.class);
 
-    private static ProgressTrackerFrame progressTracker;
+  private static ProgressTrackerFrame progressTracker;
 
 	public static void main(final String[] args) throws Exception
 	{
