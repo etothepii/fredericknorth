@@ -3,7 +3,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-    <bean id="databaseSession" class="uk.co.epii.conservatives.williamcavendishbentinck.DatabaseSessionImpl" init-method="init">
+    <bean id="databaseSession" class="uk.co.epii.politics.williamcavendishbentinck.DatabaseSessionImpl" init-method="init">
         <property name="connection" value="jdbc:mysql://localhost/frederickNorth"/>
         <property name="username" value="frederickNorth"/>
         <property name="password" value="frederickNorth1"/>

@@ -6,7 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensio
 import uk.co.epii.conservatives.fredericknorth.opendata.AbstractDwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling;
+import uk.co.epii.politics.williamcavendishbentinck.tables.Dwelling;
 
 import java.awt.*;
 import java.util.Map;

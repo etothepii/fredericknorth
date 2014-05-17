@@ -12,8 +12,8 @@ import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingGroupDatabase
 import uk.co.epii.conservatives.fredericknorth.opendata.db.PostcodeDatumDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
-import uk.co.epii.conservatives.williamcavendishbentinck.tables.Dwelling;
-import uk.co.epii.conservatives.williamcavendishbentinck.tables.Postcode;
+import uk.co.epii.politics.williamcavendishbentinck.tables.Dwelling;
+import uk.co.epii.politics.williamcavendishbentinck.tables.Postcode;
 
 import java.awt.*;
 import java.util.HashMap;
