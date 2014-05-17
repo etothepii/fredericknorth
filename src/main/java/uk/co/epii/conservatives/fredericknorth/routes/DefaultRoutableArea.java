@@ -34,14 +34,15 @@ public class DefaultRoutableArea implements RoutableArea {
   private Router router;
 
   public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
-        this.boundedArea = boundedArea;
-        routes = new HashSet<Route>();
-        this.parent = parent;
-        children = new HashMap<String, RoutableArea>();
-        routedDwellingGroups = new HashMap<String, DwellingGroup>();
-        unroutedDwellingGroups = new HashMap<String, DwellingGroup>();
-        dwellingGroups = new HashMap<String, DwellingGroup>();
-    }
+    this.boundedArea = boundedArea;
+    routes = new HashSet<Route>();
+    this.parent = parent;
+    children = new HashMap<String, RoutableArea>();
+    routedDwellingGroups = new HashMap<String, DwellingGroup>();
+    unroutedDwellingGroups = new HashMap<String, DwellingGroup>();
+    dwellingGroups = new HashMap<String, DwellingGroup>();
+    router = new ClusterRouter();
+  }
 
     @Override
     public BoundedArea getBoundedArea() {
