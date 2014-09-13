@@ -67,7 +67,7 @@ public class PostcodeDatumFactoryDatabaseImplTest {
         List<PostcodeDatum> postcodes = new ArrayList<PostcodeDatum>(
                 postcodeDatumFactory.getPostcodes(new Rectangle(538203, 181138, 3, 3)));
         assertEquals(1, postcodes.size());
-        assertEquals(8, ((PostcodeDatumDatabaseImpl)postcodes.get(0)).getDwellingGroups().size());
+        assertEquals(11, ((PostcodeDatumDatabaseImpl)postcodes.get(0)).getDwellingGroups().size());
     }
 
     @Test

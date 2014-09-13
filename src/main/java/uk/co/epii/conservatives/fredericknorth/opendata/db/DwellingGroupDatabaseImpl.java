@@ -6,7 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensio
 import uk.co.epii.conservatives.fredericknorth.opendata.AbstractDwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.politics.williamcavendishbentinck.tables.Dwelling;
+import uk.co.epii.politics.williamcavendishbentinck.tables.DeliveryPointAddress;
 
 import java.awt.*;
 import java.util.Map;
@@ -18,12 +18,12 @@ import java.util.Map;
  */
 public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
 
-    private final Map<DwellingDatabaseImpl, Dwelling> dwellings;
+    private final Map<DwellingDatabaseImpl, DeliveryPointAddress> dwellings;
     private final PostcodeDatumDatabaseImpl postcode;
     private Point medianPoint;
 
     public DwellingGroupDatabaseImpl(PostcodeDatumDatabaseImpl postcode,
-            Map<DwellingDatabaseImpl, Dwelling> dwellings,
+            Map<DwellingDatabaseImpl, DeliveryPointAddress> dwellings,
             String commonName, Point medianPoint) {
         super(commonName);
         this.postcode = postcode;
