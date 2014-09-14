@@ -63,6 +63,10 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
 
     @Override
     public int compareTo(DwellingGroup o) {
+        int compareTo = getCommonName().compareTo(o.getCommonName());
+        if (compareTo != 0) {
+          return compareTo;
+        }
         return getName().compareTo(o.getName());
     }
 

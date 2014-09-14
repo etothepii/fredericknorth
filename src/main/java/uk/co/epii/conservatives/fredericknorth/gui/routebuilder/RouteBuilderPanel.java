@@ -238,6 +238,7 @@ public class RouteBuilderPanel extends JPanel {
         JTable dwellingGroupTable = new JTable(dwellingGroupModel);
         dwellingGroupTable.setSelectionModel(dwellingGroupModel.getListSelectionModel());
         dwellingGroupTable.setRowSorter(dwellingGroupModel.getRowSorter());
+        dwellingGroupTable.getColumnModel().getColumn(0).setCellRenderer(new DwellingGroupNameCellRendeder());
         return dwellingGroupTable;
     }
 
