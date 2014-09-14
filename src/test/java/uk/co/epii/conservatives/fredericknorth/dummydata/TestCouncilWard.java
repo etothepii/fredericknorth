@@ -12,6 +12,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingGroupDatabase
 import uk.co.epii.conservatives.fredericknorth.opendata.db.PostcodeDatumDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
+import uk.co.epii.politics.williamcavendishbentinck.tables.DeliveryPointAddress;
 import uk.co.epii.politics.williamcavendishbentinck.tables.Dwelling;
 import uk.co.epii.politics.williamcavendishbentinck.tables.Postcode;
 
@@ -102,7 +103,7 @@ public class TestCouncilWard {
     private static DwellingGroupDatabaseImpl createDwellingGroupDatabaseImpl(PostcodeDatumDatabaseImpl postcodeImpl,
                                                                       String name, int housesFrom, int housesTo, Point point,
                                                                       String format) {
-        Map<DwellingDatabaseImpl, Dwelling> map = new HashMap<DwellingDatabaseImpl, Dwelling>();
+        Map<DwellingDatabaseImpl, DeliveryPointAddress> map = new HashMap<DwellingDatabaseImpl, DeliveryPointAddress>();
         for (int i = housesFrom; i <= housesTo; i++) {
             map.put(new DwellingDatabaseImpl('A', String.format(format, i + ""), point), null);
         }
