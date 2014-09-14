@@ -5,6 +5,7 @@ import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
+import uk.co.epii.conservatives.fredericknorth.routes.Router;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 
 import java.awt.*;
@@ -28,8 +29,9 @@ public class DummyRoutableArea implements RoutableArea {
     private Polygon area;
     private BoundedArea boundedArea;
     private RoutableArea parent;
+  private Router router;
 
-    public DummyRoutableArea(BoundedArea boundedArea, RoutableArea parent, String name, String id) {
+  public DummyRoutableArea(BoundedArea boundedArea, RoutableArea parent, String name, String id) {
         this.boundedArea = boundedArea;
         this.parent = parent;
         this.name = name;
@@ -143,7 +145,12 @@ public class DummyRoutableArea implements RoutableArea {
         throw new UnsupportedOperationException("This operation is not supported in the Dummy");
     }
 
-    @Override
+  @Override
+  public void setRouter(Router router) {
+    this.router = router;
+  }
+
+  @Override
     public void markAsRouted(DwellingGroup dwellingGroup) {
         throw new UnsupportedOperationException("This operation is not supported in the Dummy");
     }

@@ -42,4 +42,5 @@ public interface RoutableArea {
     public void addRoute(Route route, RoutableArea informant);
     public void removeRoute(Route route, RoutableArea informant);
     public void addDwellingGroup(DwellingGroup dwellingGroup, boolean routed);
+    public void setRouter(Router router);
 }

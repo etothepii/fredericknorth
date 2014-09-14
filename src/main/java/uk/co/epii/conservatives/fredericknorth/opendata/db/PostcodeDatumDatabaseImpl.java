@@ -3,7 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.opendata.db;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.conservatives.williamcavendishbentinck.tables.Postcode;
+import uk.co.epii.politics.williamcavendishbentinck.tables.Postcode;
 
 import java.awt.*;
 import java.awt.geom.Point2D;

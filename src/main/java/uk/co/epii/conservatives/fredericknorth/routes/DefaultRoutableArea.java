@@ -1,23 +1,15 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
-import com.tomgibara.cluster.gvm.dbl.DblClusters;
-import com.tomgibara.cluster.gvm.dbl.DblListKeyer;
-import com.tomgibara.cluster.gvm.dbl.DblResult;
-import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
-import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
-import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
-import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,16 +31,18 @@ public class DefaultRoutableArea implements RoutableArea {
     private final HashMap<String, DwellingGroup> unroutedDwellingGroups;
     private final HashMap<String, DwellingGroup> routedDwellingGroups;
     private final HashMap<String, DwellingGroup> dwellingGroups;
+  private Router router;
 
-    public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
-        this.boundedArea = boundedArea;
-        routes = new HashSet<Route>();
-        this.parent = parent;
-        children = new HashMap<String, RoutableArea>();
-        routedDwellingGroups = new HashMap<String, DwellingGroup>();
-        unroutedDwellingGroups = new HashMap<String, DwellingGroup>();
-        dwellingGroups = new HashMap<String, DwellingGroup>();
-    }
+  public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
+    this.boundedArea = boundedArea;
+    routes = new HashSet<Route>();
+    this.parent = parent;
+    children = new HashMap<String, RoutableArea>();
+    routedDwellingGroups = new HashMap<String, DwellingGroup>();
+    unroutedDwellingGroups = new HashMap<String, DwellingGroup>();
+    dwellingGroups = new HashMap<String, DwellingGroup>();
+    router = new PostcodeRouter();
+  }
 
     @Override
     public BoundedArea getBoundedArea() {
@@ -127,105 +121,18 @@ public class DefaultRoutableArea implements RoutableArea {
         routeUnrouted(targetSize);
     }
 
-    private void routeUnrouted(int targetSize) {
-        List<Route> newRoutes = new ArrayList<Route>();
-        List<String> newRoutesNames = new ArrayList<String>();
-        int routes = calculateRoutesCount(targetSize);
-        DblClusters<List<IndivisbleChunk>> clusters = new DblClusters<List<IndivisbleChunk>>(2, routes);
-        clusters.setKeyer(new DblListKeyer<IndivisbleChunk>());
-        for (IndivisbleChunk indivisbleChunk : getUnroutedIndivisbleChunks()) {
-            Point geoLocation = indivisbleChunk.getMedian();
-            double[] doubleGeoLocation = new double[]{geoLocation.getX(), geoLocation.getY()};
-            double weight = indivisbleChunk.size();
-            ArrayList<IndivisbleChunk> indivisbleChunks = new ArrayList<IndivisbleChunk>();
-            indivisbleChunks.add(indivisbleChunk);
-            clusters.add(weight, doubleGeoLocation, indivisbleChunks);
-        }
-        for (DblResult<List<IndivisbleChunk>> proposedRoute : clusters.results()) {
-            DwellingGroup largest = null;
-            for (IndivisbleChunk indivisbleChunk : proposedRoute.getKey()) {
-                for (DwellingGroup dwellingGroup : indivisbleChunk.getDwellingGroups()) {
-                    if (largest == null || largest.size() < dwellingGroup.size()) {
-                        largest = dwellingGroup;
-                    } else if (largest.size() == dwellingGroup.size()) {
-                        if (largest.compareTo(dwellingGroup) < 0) {
-                            largest = dwellingGroup;
-                        }
-                    }
-                }
-            }
-            String proposedName = largest.getCommonName();
-            newRoutesNames.add(proposedName);
-            int attempt = 1;
-            while (alreadyExists(proposedName, attempt)) {
-                attempt++;
-            }
-            String routeName = attempt == 1 ? largest.getCommonName() : largest.getCommonName() + " " + attempt;
-            Route route = createRoute(routeName);
-            for (IndivisbleChunk indivisbleChunk : proposedRoute.getKey()) {
-                route.addDwellingGroups(indivisbleChunk.getDwellingGroups());
-            }
-            newRoutes.add(route);
-        }
-        if (!newRoutes.isEmpty()) {
-            removeCommonEndings(newRoutes, newRoutesNames);
-        }
+  private void routeUnrouted(int targetSize) {
+    for (Route route : router.createRoutes(this, getUnroutedIndivisbleChunks(), targetSize)) {
+      addRoute(route, this);
     }
+  }
 
-    private void removeCommonEndings(List<Route> newRoutes, List<String> newRoutesNames) {
-        String commonEnding = StringExtentions.getCommonEnding(newRoutesNames);
-        int commaAt = commonEnding.indexOf(',');
-        commonEnding = commaAt == -1 ? "" : commonEnding.substring(commaAt);
-        if (commonEnding.length() == 0) {
-            return;
-        }
-        for (Route route : newRoutes) {
-            String truncatedName = route.getName().substring(0, route.getName().lastIndexOf(commonEnding));
-            route.setName(truncatedName);
-        }
-    }
-
-    private boolean alreadyExists(String proposedName, int attempt) {
-        String toTry = attempt == 1 ? proposedName : proposedName + " " + attempt;
-        for (Route route : getRoutes()) {
-            if (route.getName().equals(toTry)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private int calculateRoutesCount(int targetSize) {
-        HashMap<Point, Integer> pointSizes = new HashMap<Point, Integer>(dwellingGroups.size());
-        for (DwellingGroup dwellingGroup : unroutedDwellingGroups.values()) {
-            int count = 0;
-            if (pointSizes.containsKey(dwellingGroup.getPoint())) {
-                count += pointSizes.get(dwellingGroup.getPoint());
-            }
-            count += dwellingGroup.size();
-            pointSizes.put(dwellingGroup.getPoint(), count);
-        }
-        List<Integer> sizes = new ArrayList<Integer>(pointSizes.values());
-        Collections.sort(sizes);
-        int targetIndex = Collections.binarySearch(sizes, targetSize);
-        double size = 0;
-        int countTo = targetIndex < 0 ? ~targetIndex : targetIndex;
-        for (int i = 0; i < countTo; i++) {
-            size += sizes.get(i);
-        }
-        size += (sizes.size() - countTo) * targetSize;
-        return (int)Math.ceil(size / targetSize);
-    }
-
-    @Override
-    public Route createRoute(String name) {
-        RouteImpl route = new RouteImpl(this, name);
-        routes.add(route);
-        if (parent != null) {
-            parent.addRoute(route, this);
-        }
-        return route;
-    }
+  @Override
+  public Route createRoute(String name) {
+    Route route = new RouteImpl(this, name);
+    addRoute(route, this);
+    return route;
+  }
 
     @Override
     public int getRouteCount() {
@@ -374,11 +281,16 @@ public class DefaultRoutableArea implements RoutableArea {
     public void addRoute(Route route, RoutableArea informant) {
         if (routes.add(route)) {
             if (informant == parent) {
-                for (RoutableArea child : children.values()) {
-                    child.addRoute(route, this);
+                children: for (RoutableArea child : children.values()) {
+                  for (DwellingGroup dwellingGroup : route.getDwellingGroups()) {
+                    if (!child.getDwellingGroups().contains(dwellingGroup)) {
+                      continue children;
+                    }
+                  }
+                  child.addRoute(route, this);
                 }
             }
-            else if (children.containsKey(informant.getName())) {
+            else if (informant == this || children.containsKey(informant.getName())) {
                 if (parent != null) {
                     parent.addRoute(route, this);
                 }
@@ -484,7 +396,12 @@ public class DefaultRoutableArea implements RoutableArea {
         }
     }
 
-    public void addChild(RoutableArea childRoutableArea) {
+  @Override
+  public void setRouter(Router router) {
+    this.router = router;
+  }
+
+  public void addChild(RoutableArea childRoutableArea) {
         children.put(childRoutableArea.getName(), childRoutableArea);
     }
 
@@ -501,39 +418,4 @@ public class DefaultRoutableArea implements RoutableArea {
         return indivisbleChunks.values();
     }
 
-    private class IndivisbleChunk {
-
-        private final List<DwellingGroup> dwellingGroups;
-        private int count;
-        private List<Point> points;
-
-        private IndivisbleChunk() {
-            this.dwellingGroups = new ArrayList<DwellingGroup>();
-            points = new ArrayList<Point>();
-        }
-
-        public void add(DwellingGroup dwellingGroup) {
-            dwellingGroups.add(dwellingGroup);
-            count += dwellingGroup.size();
-            for (Dwelling dwelling : dwellingGroup.getDwellings()) {
-                Point p = dwelling.getPoint();
-                if (p == null) {
-                    p = dwellingGroup.getPoint();
-                }
-                points.add(p);
-            }
-        }
-
-        public Point getMedian() {
-            return PointExtensions.getMedian(points);
-        }
-
-        public double size() {
-            return count;
-        }
-
-        public Collection<DwellingGroup> getDwellingGroups() {
-            return dwellingGroups;
-        }
-    }
 }
