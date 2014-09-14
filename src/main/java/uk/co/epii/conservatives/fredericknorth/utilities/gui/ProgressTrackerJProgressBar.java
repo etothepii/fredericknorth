@@ -65,6 +65,10 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
                 LOG.debug("from progressBar.getMaximum(): {}", progressBar.getMaximum());
                 int value = progressBar.getValue();
                 int maximum = progressBar.getMaximum();
+                if (maximum * (long)steps > (long)Integer.MAX_VALUE) {
+                  overflowOccurred();
+                  LOG.error(String.format("The progress bar has overflowed: %d * %d", maximum, steps));
+                }
                 progressBar.setMaximum(maximum * steps);
                 progressBar.setValue(value * steps);
                 LOG.debug("to progressBar.getValue(): {}", progressBar.getValue());
@@ -76,7 +80,22 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
         }
     }
 
-    private void incrementSubsection(int n) {
+  private void overflowOccurred() {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("Sizes:");
+    for (int max : _subsectionSizes) {
+      stringBuilder.append("\n");
+      stringBuilder.append(max);
+    }
+    stringBuilder.append("Progress:");
+    for (int count : _subsectionCounts) {
+      stringBuilder.append("\n");
+      stringBuilder.append(count);
+    }
+    LOG.error("An overflow has occurred: {}", stringBuilder);
+  }
+
+  private void incrementSubsection(int n) {
         if (_subsectionCounts.isEmpty() || _subsectionSizes.isEmpty()) {
             throw new RuntimeException("No Active Subsection");
         }
