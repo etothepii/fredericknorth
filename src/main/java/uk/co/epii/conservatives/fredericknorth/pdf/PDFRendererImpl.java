@@ -134,7 +134,7 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     @Override
-    public void buildRouteGuide(Route route, File file)  {
+    public RenderedRoute buildRouteGuide(Route route, File file)  {
         this.file = file;
         try {
             createDocument();
@@ -144,10 +144,11 @@ class PDFRendererImpl implements PDFRenderer {
         catch (Exception e) {
             throw new RuntimeException(e);
         }
+      return null;
     }
 
     @Override
-    public void buildRoutesGuide(Collection<? extends Route> routesCollection, File file, ProgressTracker progressTracker)  {
+    public Collection<RenderedRoute> buildRoutesGuide(Collection<? extends Route> routesCollection, File file, ProgressTracker progressTracker)  {
         ArrayList<Route> routes = new ArrayList<Route>(routesCollection);
         progressTracker.startSubsection(routes.size());
         Collections.sort(routes, routeNameComparator);
@@ -178,11 +179,13 @@ class PDFRendererImpl implements PDFRenderer {
         catch (Exception e) {
             throw new RuntimeException(e);
         }
+      return null;
     }
 
     @Override
-    public void buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker) {
+    public Collection<RenderedRoute> buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker) {
         buildRoutesGuide(routableArea.getRoutes(), file, progressTracker);
+      return null;
     }
 
     @Override

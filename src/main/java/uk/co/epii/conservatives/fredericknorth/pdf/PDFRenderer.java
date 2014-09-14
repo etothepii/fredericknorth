@@ -16,9 +16,9 @@ import java.util.List;
  */
 public interface PDFRenderer {
 
-    public void buildRouteGuide(Route route, File file);
-    public void buildRoutesGuide(Collection<? extends Route> routes, File file, ProgressTracker progressTracker);
-    public void buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker);
+    public RenderedRoute buildRouteGuide(Route route, File file);
+    public Collection<RenderedRoute> buildRoutesGuide(Collection<? extends Route> routes, File file, ProgressTracker progressTracker);
+    public Collection<RenderedRoute> buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker);
     public void setMeetingPoints(List<? extends Location> meetingPoints);
 
 }

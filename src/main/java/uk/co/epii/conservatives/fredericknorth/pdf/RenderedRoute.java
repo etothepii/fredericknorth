@@ -1,8 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.pdf;
 
 /**
- * Created with IntelliJ IDEA.
- * User: jrrpl
+ * User: James Robinson
  * Date: 14/09/2014
  * Time: 21:39
  */
