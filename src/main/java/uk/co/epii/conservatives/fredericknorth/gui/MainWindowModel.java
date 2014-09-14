@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.gui;
 
+import uk.co.epii.conservatives.fredericknorth.gui.meetingpointselector.MeetingPointSelectorPanelModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBoundedAreaSelectionModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.RoutableAreaBuilderPanelModel;
@@ -23,6 +24,7 @@ public class MainWindowModel implements ChangeListener {
     private final BoundedAreaSelectionModel boundedAreaSelectionModel;
     private final RouteBuilderPanelModel routeBuilderPanelModel;
     private final RoutableAreaBuilderPanelModel routableAreaBuilderPanelModel;
+    private final MeetingPointSelectorPanelModel meetingPointSelectorPanelModel;
     private final Map<Integer, Activateable> tabs;
     private int activeTab;
 
@@ -30,6 +32,7 @@ public class MainWindowModel implements ChangeListener {
         boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
         routableAreaBuilderPanelModel = new RoutableAreaBuilderPanelModel(applicationContext, boundedAreaSelectionModel) ;
         routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, boundedAreaSelectionModel);
+        meetingPointSelectorPanelModel = new MeetingPointSelectorPanelModel(applicationContext);
         tabs = new HashMap<Integer, Activateable>();
         activeTab = -1;
     }
@@ -40,6 +43,10 @@ public class MainWindowModel implements ChangeListener {
 
     public RouteBuilderPanelModel getRouteBuilderPanelModel() {
         return routeBuilderPanelModel;
+    }
+
+    public MeetingPointSelectorPanelModel getMeetingPointSelectorPanelModel() {
+        return meetingPointSelectorPanelModel;
     }
 
     public RoutableAreaBuilderPanelModel getRoutableAreaBuilderPanelModel() {
