@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata.db;
 
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
+import uk.co.epii.politics.williamcavendishbentinck.tables.DeliveryPointAddress;
 
 import java.awt.*;
 
@@ -47,4 +48,6 @@ public class DwellingDatabaseImpl implements Dwelling {
     public void setPoint(Point point) {
         this.point = point;
     }
+
+
 }

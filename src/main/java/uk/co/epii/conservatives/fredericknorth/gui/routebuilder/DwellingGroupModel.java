@@ -26,7 +26,7 @@ class DwellingGroupModel extends AbstractTableModel {
 
 
 
-    private static final Class<?>[] COLUMN_CLASSES = new Class<?>[] {String.class, Integer.class};
+    private static final Class<?>[] COLUMN_CLASSES = new Class<?>[] {DwellingGroup.class, Integer.class};
 
     private final ArrayList<DwellingGroup> dwellingGroups;
     private final HashMap<DwellingGroup, Integer> dwellingGroupIndexMap;
@@ -194,8 +194,7 @@ class DwellingGroupModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-            String value = dwellingGroups.get(rowIndex).getName();
-            return value;
+            return dwellingGroups.get(rowIndex);
         }
         if (columnIndex == 1) {
             return dwellingGroups.get(rowIndex).size();
