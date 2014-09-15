@@ -82,15 +82,12 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
 
   private void overflowOccurred() {
     StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append("Sizes:");
-    for (int max : _subsectionSizes) {
-      stringBuilder.append("\n");
-      stringBuilder.append(max);
-    }
-    stringBuilder.append("Progress:");
-    for (int count : _subsectionCounts) {
-      stringBuilder.append("\n");
-      stringBuilder.append(count);
+    stringBuilder.append("\nProgress:");
+    for (int i = 0; i < _subsectionSizes.size(); i++) {
+      stringBuilder.append("\n    ");
+      stringBuilder.append(_subsectionCounts.get(i));
+      stringBuilder.append(" / ");
+      stringBuilder.append(_subsectionSizes.get(i));
     }
     LOG.error("An overflow has occurred: {}", stringBuilder);
   }

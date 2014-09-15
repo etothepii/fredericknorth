@@ -28,8 +28,13 @@ public class PDFRendererRegistrar {
     private static final Logger LOG = Logger.getLogger(PDFRendererRegistrar.class);
 
     private static final String PDFFontKey = "PDFFont";
+    private static final String URLPrefixKey = "URLPrefix";
+    private static String ThankYouBodyKey = "ThankYouBody";
+    private static String ThankYouTitleKey = "ThankYouTitle";
 
-    public static void registerToContext(ApplicationContext applicationContext) {
+  public static void registerToContext(ApplicationContext applicationContext) {
+        RenderedRouteFactory renderedRouteFactory =
+                new RenderedRouteFactoryImpl(applicationContext.getProperty(URLPrefixKey));
         LOG.info("Loading PDF Font to temp dir");
         String pdfFont = applicationContext.getProperty(PDFFontKey);
         URL pdfFontLocation = PDFRendererImpl.class.getResource(pdfFont);
@@ -43,13 +48,16 @@ public class PDFRendererRegistrar {
             LOG.debug("Copied font from: " + pdfFontLocation.getFile());
             LOG.debug("Copied font to: " + tempFontLocation);
             BaseFont conservativeBaseFont = BaseFont.createFont(tempFontLocation, BaseFont.WINANSI, true);
-            applicationContext.registerDefaultInstance(PDFRenderer.class, new PDFRendererImpl(
-                    new UKIPLogoGeneratorImpl(), conservativeBaseFont,
-                    applicationContext.getDefaultInstance(MapLabelFactory.class),
-                    applicationContext.getDefaultInstance(LocationFactory.class),
-                    applicationContext.getNamedInstance(MapViewGenerator.class, Keys.PDF_GENERATOR),
-                    applicationContext.getDefaultInstance(BoundaryLineController.class),
-                    new ArrayList<Location>()));
+            PDFRendererImpl pdfRenderer = new PDFRendererImpl(
+                  new UKIPLogoGeneratorImpl(), conservativeBaseFont,
+                  applicationContext.getDefaultInstance(MapLabelFactory.class),
+                  applicationContext.getDefaultInstance(LocationFactory.class),
+                  applicationContext.getNamedInstance(MapViewGenerator.class, Keys.PDF_GENERATOR),
+                  applicationContext.getDefaultInstance(BoundaryLineController.class),
+                  new ArrayList<Location>(), renderedRouteFactory);
+            pdfRenderer.setThankYouBody(applicationContext.getProperty(ThankYouBodyKey));
+            pdfRenderer.setThankYouTitle(applicationContext.getProperty(ThankYouTitleKey));
+            applicationContext.registerDefaultInstance(PDFRenderer.class, pdfRenderer);
         }
         catch (IOException e) {
             throw new RuntimeException(e);

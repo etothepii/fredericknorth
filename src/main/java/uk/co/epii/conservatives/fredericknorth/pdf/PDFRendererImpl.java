@@ -3,10 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.pdf;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.*;
 import org.apache.log4j.Logger;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundaryLineController;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
@@ -69,10 +66,16 @@ class PDFRendererImpl implements PDFRenderer {
     private PdfWriter writer = null;
     private LogoGenerator logoGenerator;
     private List<Duple<String, List<Dwelling>>> dwellingGroups;
+    private RenderedRouteFactory renderedRouteFactory;
+    private String thankYouTitle = "Thank you";
+    private String thankYouBody = "Please scan the QR code on the right on your phone";
 
-    PDFRendererImpl(LogoGenerator logoGenerator, BaseFont conservativeBaseFont, MapLabelFactory mapLabelFactory, LocationFactory locationFactory,
-                    MapViewGenerator mapViewGenerator, BoundaryLineController boundaryLineController, List<Location> meetingPoints) {
+    PDFRendererImpl(LogoGenerator logoGenerator, BaseFont conservativeBaseFont, MapLabelFactory mapLabelFactory,
+                    LocationFactory locationFactory, MapViewGenerator mapViewGenerator,
+                    BoundaryLineController boundaryLineController, List<Location> meetingPoints,
+                    RenderedRouteFactory renderedRouteFactory) {
         this.boundaryLineController = boundaryLineController;
+        this.renderedRouteFactory = renderedRouteFactory;
         this.logoGenerator = logoGenerator;
         this.conservativeBaseFont = conservativeBaseFont;
         this.mapLabelFactory = mapLabelFactory;
@@ -134,21 +137,24 @@ class PDFRendererImpl implements PDFRenderer {
     }
 
     @Override
-    public void buildRouteGuide(Route route, File file)  {
+    public RenderedRoute buildRouteGuide(Route route, File file)  {
+        RenderedRoute renderedRoute;
         this.file = file;
         try {
             createDocument();
-            addRouteContent(route);
+            renderedRoute = addRouteContent(route);
             closeDocument();
         }
         catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return renderedRoute;
     }
 
     @Override
-    public void buildRoutesGuide(Collection<? extends Route> routesCollection, File file, ProgressTracker progressTracker)  {
+    public Collection<RenderedRoute> buildRoutesGuide(Collection<? extends Route> routesCollection, File file, ProgressTracker progressTracker)  {
         ArrayList<Route> routes = new ArrayList<Route>(routesCollection);
+        ArrayList<RenderedRoute> renderedRoutes = new ArrayList<RenderedRoute>(routes.size());
         progressTracker.startSubsection(routes.size());
         Collections.sort(routes, routeNameComparator);
         this.file = file;
@@ -167,7 +173,7 @@ class PDFRendererImpl implements PDFRenderer {
                     else {
                         document.newPage();
                     }
-                    addRouteContent(route);
+                    renderedRoutes.add(addRouteContent(route));
                 }
                 finally {
                     progressTracker.increment();
@@ -178,11 +184,20 @@ class PDFRendererImpl implements PDFRenderer {
         catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return renderedRoutes;
     }
 
-    @Override
-    public void buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker) {
-        buildRoutesGuide(routableArea.getRoutes(), file, progressTracker);
+  public void setThankYouTitle(String thankYouTitle) {
+    this.thankYouTitle = thankYouTitle;
+  }
+
+  public void setThankYouBody(String thankYouBody) {
+    this.thankYouBody = thankYouBody;
+  }
+
+  @Override
+    public Collection<RenderedRoute> buildRoutesGuide(RoutableArea routableArea, File file, ProgressTracker progressTracker) {
+        return buildRoutesGuide(routableArea.getRoutes(), file, progressTracker);
     }
 
     @Override
@@ -190,7 +205,8 @@ class PDFRendererImpl implements PDFRenderer {
         this.meetingPoints = meetingPoints;
     }
 
-    private void addRouteContent(Route route) throws DocumentException, IOException {
+    private RenderedRoute addRouteContent(Route route) throws DocumentException, IOException {
+        RenderedRoute renderedRoute = renderedRouteFactory.getRenderedRoute(route);
         int startPage = writer.getPageNumber();
         String wardName = route.getRoutableArea().getName();
         String routeName = route.getName();
@@ -212,10 +228,45 @@ class PDFRendererImpl implements PDFRenderer {
             document.add(Chunk.NEWLINE);
         }
         document.add(createDwellingList());
-
+        document.add(createQRCode(renderedRoute));
+        return renderedRoute;
     }
 
-    private String getConstituency(Route route) {
+  private Element createQRCode(RenderedRoute renderedRoute) throws DocumentException, IOException {
+    LOG.debug(renderedRoute.getUniqueUrl());
+    BarcodeQRCode qrCode = new BarcodeQRCode(renderedRoute.getUniqueUrl(), 1, 1, null);
+    Image qrCodeImage = qrCode.getImage();
+    qrCodeImage.setAlignment(Element.ALIGN_RIGHT | Element.ALIGN_BOTTOM);
+    qrCodeImage.scaleAbsolute(108f, 108f);
+    qrCodeImage.setBorder(0);
+    qrCodeImage.setAbsolutePosition(PageSize.A4.getWidth() - qrCodeImage.getScaledWidth() - 90f, 90f);
+    PdfContentByte under = writer.getDirectContentUnder();
+    under.saveState();
+    under.setRGBColorFill(0xE0, 0xE0, 0xE0);
+    under.setRGBColorStroke(0x00, 0x00, 0x00);
+    under.setLineWidth(3);
+    under.rectangle(72f, 72f, PageSize.A4.getWidth() - 144f, 144f);
+    under.fillStroke();
+    under.restoreState();
+    PdfContentByte over = writer.getDirectContent();
+    over.saveState();
+    ColumnText columnText = new ColumnText(over);
+    columnText.setSimpleColumn(90f, 90f, PageSize.A4.getWidth() - 216f, 198f);
+    Paragraph paragraph = new Paragraph();
+    paragraph.add(getChunk(thankYouTitle, ROUTE_TITLE_SIZE));
+    paragraph.setLeading(ROUTE_TITLE_SIZE);
+    columnText.addElement(paragraph);
+    paragraph = new Paragraph();
+    paragraph.add(Chunk.NEWLINE);
+    paragraph.add(getChunk(thankYouBody, NORMAL_FONT_SIZE));
+    paragraph.setLeading(NORMAL_FONT_SIZE);
+    columnText.addElement(paragraph);
+    columnText.go();
+    over.restoreState();
+    return qrCodeImage;
+  }
+
+  private String getConstituency(Route route) {
         Set<DwellingGroup> dwellingGroups = new HashSet<DwellingGroup>(route.getDwellingGroups());
         Collection<WeightedPoint> weightedPoints = new ArrayList<WeightedPoint>(dwellingGroups.size());
         for (DwellingGroup dwellingGroup : dwellingGroups) {
@@ -244,11 +295,11 @@ class PDFRendererImpl implements PDFRenderer {
     private Element createDwellingList() {
         PdfPTable table = new PdfPTable(new float[] {1f});
         for (Duple<String, List<Dwelling>> dwellingGrouping : dwellingGroups) {
-            PdfPCell cell = new PdfPCell(getChunk(dwellingGrouping.getFirst(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
+            PdfPCell cell = new PdfPCell(getParagraph(dwellingGrouping.getFirst(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
             table.addCell(cell);
             String orderedIdentifiers = toCommaSeperatedString(getOrderedIdentifiers(
                     dwellingGrouping.getSecond(), dwellingGrouping.getSecond().size()));
-            cell = new PdfPCell(getChunk(orderedIdentifiers, SMALL_FONT_SIZE, true, BaseColor.BLACK));
+            cell = new PdfPCell(getParagraph(orderedIdentifiers, SMALL_FONT_SIZE, true, BaseColor.BLACK));
             table.addCell(cell);
         }
         table.setWidthPercentage(100f);
@@ -282,7 +333,7 @@ class PDFRendererImpl implements PDFRenderer {
     private Element createTitle(String constituency, String wardName, String routeName) {
         PdfPTable table = new PdfPTable(new float[] {0.5f, 0.5f});
         table.setWidthPercentage(100f);
-        PdfPCell wardCell = new PdfPCell(new Paragraph(getChunk(wardName, WARD_TITLE_SIZE, true, primary)));
+        PdfPCell wardCell = new PdfPCell(new Paragraph(getParagraph(wardName, WARD_TITLE_SIZE, true, primary)));
         wardCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(wardCell);
         PdfPCell logoCell = new PdfPCell(getLogo(constituency));
@@ -291,7 +342,7 @@ class PDFRendererImpl implements PDFRenderer {
         logoCell.setRowspan(2);
         logoCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(logoCell);
-        PdfPCell routeCell = new PdfPCell(new Paragraph(getChunk(routeName, ROUTE_TITLE_SIZE, true, secondary)));
+        PdfPCell routeCell = new PdfPCell(new Paragraph(getParagraph(routeName, ROUTE_TITLE_SIZE, true, secondary)));
         routeCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(routeCell);
         PdfPCell spacer = new PdfPCell();
@@ -437,13 +488,13 @@ class PDFRendererImpl implements PDFRenderer {
         PdfPCell cell = new PdfPCell(new Phrase(""));
         cell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
         table.addCell(cell);
-        PdfPCell totalDwellings = new PdfPCell(getChunk(total + "", NORMAL_FONT_SIZE, true, BaseColor.BLACK));
+        PdfPCell totalDwellings = new PdfPCell(getParagraph(total + "", NORMAL_FONT_SIZE, true, BaseColor.BLACK));
         totalDwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
         totalDwellings.setBackgroundColor(CONSERVATIVE_TINT);
         table.addCell(totalDwellings);
         for (Duple<String, List<Dwelling>> dwellingGroup : dwellingGroups) {
-            table.addCell(getChunk(dwellingGroup.getFirst()));
-            PdfPCell dwellings = new PdfPCell(getChunk(dwellingGroup.getSecond().size() + ""));
+            table.addCell(getPhrase(dwellingGroup.getFirst()));
+            PdfPCell dwellings = new PdfPCell(getPhrase(dwellingGroup.getSecond().size() + ""));
             dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
             table.addCell(dwellings);
         }
@@ -502,15 +553,25 @@ class PDFRendererImpl implements PDFRenderer {
         }
     }
 
-    private Phrase getChunk(String text) {
-        return getChunk(text, NORMAL_FONT_SIZE);
+    private Chunk getChunk(String text, int size) {
+      return getChunk(text, size, false, BaseColor.BLACK);
     }
 
-    private Phrase getChunk(String text, int size) {
-        return getChunk(text, size, false, BaseColor.BLACK);
+    private Chunk getChunk(String text, int size, boolean bold, BaseColor baseColor) {
+      Font font = new Font(conservativeBaseFont, size, bold ? Font.BOLD : Font.NORMAL);
+      font.setColor(baseColor);
+      return new Chunk(text, font);
     }
 
-    private Paragraph getChunk(String text, int size, boolean bold, BaseColor baseColor) {
+    private Phrase getPhrase(String text) {
+        return getPhrase(text, NORMAL_FONT_SIZE);
+    }
+
+    private Phrase getPhrase(String text, int size) {
+        return getParagraph(text, size, false, BaseColor.BLACK);
+    }
+
+    private Paragraph getParagraph(String text, int size, boolean bold, BaseColor baseColor) {
         Font font = new Font(conservativeBaseFont, size, bold ? Font.BOLD : Font.NORMAL);
         font.setColor(baseColor);
         return new Paragraph(new Chunk(text, font));
