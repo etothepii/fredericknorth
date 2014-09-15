@@ -14,6 +14,7 @@ import uk.co.epii.conservatives.fredericknorth.maps.MapLabelFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGeneratorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
+import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 import uk.co.epii.spencerperceval.tuple.Duple;
