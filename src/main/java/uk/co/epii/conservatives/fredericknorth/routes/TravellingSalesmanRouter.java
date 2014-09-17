@@ -20,11 +20,11 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     reset(routing);
     groupByLocation(chunks);
     removeOverLarge(targetSize);
-    solveTravellingSalesmanProplem(targetSize);
+    solveTravellingSalesmanProblem(targetSize);
     return routes;
   }
 
-  private void solveTravellingSalesmanProplem(int targetSize) {
+  private void solveTravellingSalesmanProblem(int targetSize) {
   }
 
   private void removeOverLarge(int targetSize) {
