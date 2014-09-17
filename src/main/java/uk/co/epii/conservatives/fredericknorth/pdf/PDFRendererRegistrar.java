@@ -11,6 +11,7 @@ import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.maps.LocationFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapLabelFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
+import uk.co.epii.conservatives.williampittjr.ConservativeLogoGeneratorImpl;
 import uk.co.epii.conservatives.williampittjr.UKIPLogoGeneratorImpl;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class PDFRendererRegistrar {
             LOG.debug("Copied font to: " + tempFontLocation);
             BaseFont conservativeBaseFont = BaseFont.createFont(tempFontLocation, BaseFont.WINANSI, true);
             PDFRendererImpl pdfRenderer = new PDFRendererImpl(
-                  new UKIPLogoGeneratorImpl(), conservativeBaseFont,
+                  new ConservativeLogoGeneratorImpl(), conservativeBaseFont,
                   applicationContext.getDefaultInstance(MapLabelFactory.class),
                   applicationContext.getDefaultInstance(LocationFactory.class),
                   applicationContext.getNamedInstance(MapViewGenerator.class, Keys.PDF_GENERATOR),
