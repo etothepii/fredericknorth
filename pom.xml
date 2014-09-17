@@ -354,8 +354,8 @@
         <url>http://www.epii.co.uk/artifactory/libs-release-local</url>
     </repository>
     <repository>
-       <id>jsprit-snapshots</id>
-       <url>https://github.com/jsprit/mvn-rep/raw/master/releases</url>
+      <id>jsprit-releases</id>
+      <url>http://github.com/jsprit/mvn-rep/raw/master/releases</url>
     </repository>
   </repositories>
   <distributionManagement>
