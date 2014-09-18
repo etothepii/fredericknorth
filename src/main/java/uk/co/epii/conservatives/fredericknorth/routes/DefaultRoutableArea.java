@@ -41,7 +41,7 @@ public class DefaultRoutableArea implements RoutableArea {
     routedDwellingGroups = new HashMap<String, DwellingGroup>();
     unroutedDwellingGroups = new HashMap<String, DwellingGroup>();
     dwellingGroups = new HashMap<String, DwellingGroup>();
-    router = new PostcodeRouter();
+    router = new TravellingSalesmanRouter();
   }
 
     @Override

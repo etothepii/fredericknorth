@@ -37,6 +37,7 @@
     <java.source.version>1.6</java.source.version>
     <java.target.version>1.6</java.target.version>
     <shade.version>2.1</shade.version>
+    <jsprit.version>1.4</jsprit.version>
   </properties>
 
   <scm>
@@ -48,6 +49,21 @@
   <name>${project.artifactId}</name>
 
   <dependencies>
+    <dependency>
+      <groupId>jsprit</groupId>
+      <artifactId>jsprit-core</artifactId>
+      <version>${jsprit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jsprit</groupId>
+      <artifactId>jsprit-analysis</artifactId>
+      <version>${jsprit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jsprit</groupId>
+      <artifactId>jsprit-instances</artifactId>
+      <version>${jsprit.version}</version>
+    </dependency>
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
@@ -336,6 +352,10 @@
         <id>etothepii</id>
         <name>etothepii-release</name>
         <url>http://www.epii.co.uk/artifactory/libs-release-local</url>
+    </repository>
+    <repository>
+      <id>jsprit-releases</id>
+      <url>https://github.com/jsprit/mvn-rep/raw/master/releases</url>
     </repository>
   </repositories>
   <distributionManagement>
