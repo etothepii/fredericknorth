@@ -53,7 +53,7 @@ public class DummyDwellingGroup implements DwellingGroup {
 
     @Override
     public List<? extends Dwelling> getDwellings() {
-        throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
+      return dwellings;
     }
 
     @Override
