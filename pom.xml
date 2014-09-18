@@ -355,7 +355,7 @@
     </repository>
     <repository>
       <id>jsprit-releases</id>
-      <url>http://github.com/jsprit/mvn-rep/raw/master/releases</url>
+      <url>https://github.com/jsprit/mvn-rep/raw/master/releases</url>
     </repository>
   </repositories>
   <distributionManagement>
