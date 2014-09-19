@@ -24,16 +24,16 @@ import static org.junit.Assert.fail;
  * Date: 04/11/2013
  * Time: 00:54
  */
-public class PostcodeDatumFactoryDatabaseImplTest {
+public class DwellingGroupFactoryDatabaseImplTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PostcodeDatumFactoryDatabaseImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DwellingGroupFactoryDatabaseImpl.class);
 
-    private static PostcodeDatumFactoryDatabaseImpl postcodeDatumFactory;
+    private static DwellingGroupFactoryDatabaseImpl postcodeDatumFactory;
 
     @BeforeClass
     public static void setUp() {
         ApplicationContext springContext = new ClassPathXmlApplicationContext("applicationContext.xml");
-        postcodeDatumFactory = (PostcodeDatumFactoryDatabaseImpl)springContext.getBean("postcodeDatumFactory");
+        postcodeDatumFactory = (DwellingGroupFactoryDatabaseImpl)springContext.getBean("postcodeDatumFactory");
     }
 
     @Test

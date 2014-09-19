@@ -16,9 +16,9 @@ import java.util.regex.Pattern;
  * Date: 12/07/2013
  * Time: 02:30
  */
-public class PostcodeDatumFactoryImpl implements PostcodeDatumFactory {
+public class DwellingGroupFactoryImpl implements DwellingGroupFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PostcodeDatumFactoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DwellingGroupFactoryImpl.class);
 
     private final HashMap<String, PostcodeDatumImpl> postcodes = new HashMap<String, PostcodeDatumImpl>();
     private final HashSet<String> postCodePreficesRequired = new HashSet<String>();

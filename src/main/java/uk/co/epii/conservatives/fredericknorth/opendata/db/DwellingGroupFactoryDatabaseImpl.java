@@ -3,7 +3,7 @@ package uk.co.epii.conservatives.fredericknorth.opendata.db;
 import org.apache.log4j.Logger;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
 import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
 import uk.co.epii.politics.williamcavendishbentinck.DatabaseSession;
 import uk.co.epii.politics.williamcavendishbentinck.stubs.StubDwelling;
 import uk.co.epii.politics.williamcavendishbentinck.tables.BLPU;
@@ -24,9 +24,9 @@ import java.util.List;
  * Date: 03/11/2013
  * Time: 11:36
  */
-public class PostcodeDatumFactoryDatabaseImpl implements PostcodeDatumFactory {
+public class DwellingGroupFactoryDatabaseImpl implements DwellingGroupFactory {
 
-    private static final Logger LOG = Logger.getLogger(PostcodeDatumFactory.class);
+    private static final Logger LOG = Logger.getLogger(DwellingGroupFactory.class);
 
     private final Map<String, PostcodeDatumDatabaseImpl> loaded =
             new HashMap<String, PostcodeDatumDatabaseImpl>();
