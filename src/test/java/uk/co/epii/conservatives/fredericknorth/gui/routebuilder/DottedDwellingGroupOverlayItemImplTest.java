@@ -7,7 +7,6 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.*;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class DottedDwellingGroupOverlayItemImplTest {
     @Test
     public void compareTwoBuildingsOnChapelHouseTest() {
         TestApplicationContext testApplicationContext = new TestApplicationContext();
-        PostcodeDatumFactoryRegistrar.registerToContext(testApplicationContext);
+        DwellingGroupFactoryRegistrar.registerToContext(testApplicationContext);
         DwellingProcessorRegistrar.registerToContext(testApplicationContext, new NullProgressTracker(),
                 DottedDwellingGroupOverlayItemImplTest.class.getResourceAsStream("/chapelHouseStreetDwellings.txt"));
         DotFactoryRegistrar.registerToContext(testApplicationContext);

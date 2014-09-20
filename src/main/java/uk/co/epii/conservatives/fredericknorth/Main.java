@@ -6,8 +6,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.*;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindow;
 import uk.co.epii.conservatives.fredericknorth.gui.MainWindowModel;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
 import uk.co.epii.conservatives.fredericknorth.reports.DwellingCountReportBuilderRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.DotFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
@@ -48,11 +47,8 @@ public class Main
             progress("Loading Boundary Line Controller");
             BoundaryLineControllerRegistrar.registerToContext(applicationContext);
             progress("Loading Postcode Data");
-            applicationContext.registerDefaultInstance(PostcodeDatumFactory.class,
-                    (PostcodeDatumFactory)springContext.getBean("postcodeDatumFactory"));
-            progress("Loading Dwelling Processor");
-            applicationContext.registerDefaultInstance(DwellingProcessor.class,
-                    (DwellingProcessor)springContext.getBean("dwellingProcessor"));
+            applicationContext.registerDefaultInstance(DwellingGroupFactory.class,
+                    (DwellingGroupFactory)springContext.getBean("postcodeDatumFactory"));
             progress("Loading OS Map Locator");
             OSMapLocatorRegistrar.registerToContext(applicationContext);
             progress("Loading Location Factory");

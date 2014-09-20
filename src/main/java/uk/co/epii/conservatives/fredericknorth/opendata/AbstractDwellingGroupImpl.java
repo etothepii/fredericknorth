@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +79,8 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         return "";
     }
 
-    @Override
+
+  @Override
     public String getCommonName() {
         return commonName;
     }
@@ -85,7 +88,7 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
     public void filterIdentifierSummaries() {
         numericIdentifierSummary = new NumericIdentifierSummaryImpl();
         nonNumericsIdentifierSummary = new NonNumericIdentifierSummary();
-        for (Dwelling dwelling : getDwellings()) {
+        for (Location dwelling : getDwellings()) {
             try {
                 numericIdentifierSummary.add(Integer.parseInt(dwelling.getName()));
             }

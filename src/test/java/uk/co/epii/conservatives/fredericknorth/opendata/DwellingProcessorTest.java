@@ -6,7 +6,6 @@ import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import static org.junit.Assert.*;
@@ -25,7 +24,7 @@ public class DwellingProcessorTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         TestApplicationContext applicationContext = new TestApplicationContext();
-        PostcodeDatumFactoryRegistrar.registerToContext(applicationContext);
+        DwellingGroupFactoryRegistrar.registerToContext(applicationContext);
         DwellingProcessorRegistrar.registerToContext(
                 applicationContext, new NullProgressTracker(), DwellingProcessorTest.class.getResourceAsStream("/smallDwellingSet.txt"));
         dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);

@@ -150,7 +150,7 @@ public class PDFRendererTest {
     @Test
     public void createMultipleSimpleRoutesTest() {
 //        ApplicationContext applicationContext = new TestApplicationContext();
-//        PostcodeDatumFactoryRegistrar.registerToContext(applicationContext);
+//        DwellingGroupFactoryRegistrar.registerToContext(applicationContext);
 //        DwellingProcessorRegistrar.registerToContext(applicationContext, new NullProgressTracker(),
 //                PDFRendererTest.class.getResourceAsStream("/millwallDwellingsSubset.txt"));
 //        OSMapLocatorRegistrar.registerToContext(applicationContext);

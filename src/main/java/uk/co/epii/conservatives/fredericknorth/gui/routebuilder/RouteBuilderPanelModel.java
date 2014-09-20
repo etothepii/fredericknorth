@@ -4,16 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.geometry.PolygonSifter;
 import uk.co.epii.conservatives.fredericknorth.geometry.SquareSearchPolygonSifterImpl;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
-import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.*;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
@@ -53,8 +49,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final RoutesModel routesModel;
     private final HashMap<BoundedArea, RoutableArea> routableAreas;
     private final BoundedAreaSelectionModel boundedAreaSelectionModel;
-    private final PostcodeDatumFactory postcodeDatumFactory;
-    private final DwellingProcessor dwellingProcessor;
+    private final DwellingGroupFactory dwellingGroupFactory;
     private final Executor executor;
     private final XMLSerializer xmlSerializer;
     private final SelectedBoundedAreaChangedListener selectedBoundedAreaChangedListener;
@@ -84,8 +79,7 @@ public class RouteBuilderPanelModel implements Activateable {
         this.routableAreas = routableAreas;
         this.mapViewGenerator = applicationContext.getDefaultInstance(MapViewGenerator.class);
         this.dotFactory = applicationContext.getDefaultInstance(DotFactory.class);
-        this.postcodeDatumFactory = applicationContext.getDefaultInstance(PostcodeDatumFactory.class);
-        this.dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
+        this.dwellingGroupFactory = applicationContext.getDefaultInstance(DwellingGroupFactory.class);
         this.applicationContext = applicationContext;
         this.pdfRenderer = applicationContext.getDefaultInstance(PDFRenderer.class);
         routedDwellingGroups = new DwellingGroupModel(applicationContext);
@@ -377,19 +371,17 @@ public class RouteBuilderPanelModel implements Activateable {
         }
         else {
             Rectangle bounds = PolygonExtensions.getBounds(boundedArea.getAreas());
-            Collection<? extends PostcodeDatum> postcodes = postcodeDatumFactory.getPostcodes(bounds);
-            if (!postcodes.isEmpty()) {
-                progressTracker.startSubsection(postcodes.size());
-                PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(), postcodes.size());
+            Collection<? extends DwellingGroup> dwellingGroups = dwellingGroupFactory.getDwellingGroups(bounds);
+            if (!dwellingGroups.isEmpty()) {
+                progressTracker.startSubsection(dwellingGroups.size());
+                PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(), dwellingGroups.size());
                 int count = 0;
-                for (PostcodeDatum postcode : postcodes) {
-                    if (postcode.getPoint() != null && polygonSifter.contains(postcode.getPoint())) {
-                        for (DwellingGroup dwellingGroup : dwellingProcessor.getDwellingGroups(postcode.getName())) {
-                            routableArea.addDwellingGroup(dwellingGroup, false);
-                        }
+                for (DwellingGroup dwellingGroup : dwellingGroups) {
+                    if (dwellingGroup.getPoint() != null && polygonSifter.contains(dwellingGroup.getPoint())) {
+                        routableArea.addDwellingGroup(dwellingGroup, false);
                     }
                     count++;
-                    progressTracker.increment(routableArea.getName() +": " + 100 * count / postcodes.size() + "%");
+                    progressTracker.increment(routableArea.getName() +": " + 100 * count / dwellingGroups.size() + "%");
                 }
             }
         }

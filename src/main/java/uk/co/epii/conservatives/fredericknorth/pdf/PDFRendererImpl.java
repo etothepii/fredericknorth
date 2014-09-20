@@ -10,9 +10,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.maps.*;
 import uk.co.epii.conservatives.fredericknorth.maps.extentions.WeightedPointExtensions;
-import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
@@ -65,7 +63,7 @@ class PDFRendererImpl implements PDFRenderer {
     private Comparator<String> addressComparator = new AddressComparator();
     private PdfWriter writer = null;
     private LogoGenerator logoGenerator;
-    private List<Duple<String, List<Dwelling>>> dwellingGroups;
+    private List<Duple<String, List<Location>>> dwellingGroups;
     private RenderedRouteFactory renderedRouteFactory;
     private String thankYouTitle = "Thank you";
     private String thankYouBody = "Please scan the QR code on the right on your phone";
@@ -294,7 +292,7 @@ class PDFRendererImpl implements PDFRenderer {
 
     private Element createDwellingList() {
         PdfPTable table = new PdfPTable(new float[] {1f});
-        for (Duple<String, List<Dwelling>> dwellingGrouping : dwellingGroups) {
+        for (Duple<String, List<Location>> dwellingGrouping : dwellingGroups) {
             PdfPCell cell = new PdfPCell(getParagraph(dwellingGrouping.getFirst(), SMALL_FONT_SIZE, true, BaseColor.BLACK));
             table.addCell(cell);
             String orderedIdentifiers = toCommaSeperatedString(getOrderedIdentifiers(
@@ -306,9 +304,9 @@ class PDFRendererImpl implements PDFRenderer {
         return table;
     }
 
-    private List<String> getOrderedIdentifiers(Collection<? extends Dwelling> dwellingGroup, int size) {
+    private List<String> getOrderedIdentifiers(Collection<? extends Location> dwellingGroup, int size) {
         List<String> dwellings = new ArrayList<String>(size);
-        for (Dwelling dwelling : dwellingGroup) {
+        for (Location dwelling : dwellingGroup) {
             dwellings.add(dwelling.getName());
         }
         Collections.sort(dwellings, dwellingIdentifierComparator);
@@ -482,7 +480,7 @@ class PDFRendererImpl implements PDFRenderer {
         table.setWidthPercentage(100f);
         int total = 0;
         dwellingGroups = getNameGroupedGroupings(routeMapGroupings);
-        for (Duple<String, List<Dwelling>> dwellingGroup : dwellingGroups) {
+        for (Duple<String, List<Location>> dwellingGroup : dwellingGroups) {
             total += dwellingGroup.getSecond().size();
         }
         PdfPCell cell = new PdfPCell(new Phrase(""));
@@ -492,7 +490,7 @@ class PDFRendererImpl implements PDFRenderer {
         totalDwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
         totalDwellings.setBackgroundColor(CONSERVATIVE_TINT);
         table.addCell(totalDwellings);
-        for (Duple<String, List<Dwelling>> dwellingGroup : dwellingGroups) {
+        for (Duple<String, List<Location>> dwellingGroup : dwellingGroups) {
             table.addCell(getPhrase(dwellingGroup.getFirst()));
             PdfPCell dwellings = new PdfPCell(getPhrase(dwellingGroup.getSecond().size() + ""));
             dwellings.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
@@ -501,37 +499,37 @@ class PDFRendererImpl implements PDFRenderer {
         return table;
     }
 
-    private List<Duple<String, List<Dwelling>>> getNameGroupedGroupings(List<RouteMapGrouping> routeMapGroupings) {
-        Map<String, DwellingGroupImpl> map = new HashMap<String, DwellingGroupImpl>();
+    private List<Duple<String, List<Location>>> getNameGroupedGroupings(List<RouteMapGrouping> routeMapGroupings) {
+        Map<String, List<Location>> map = new HashMap<String, List<Location>>();
         for (RouteMapGrouping routeMapGrouping : routeMapGroupings) {
             for (DwellingGroup dwellingGroup : routeMapGrouping.getDwellingGroupList()) {
-                DwellingGroupImpl superDwellingGroup = map.get(dwellingGroup.getCommonName());
+                List<Location> superDwellingGroup = map.get(dwellingGroup.getCommonName());
                 if (superDwellingGroup == null) {
-                    superDwellingGroup = new DwellingGroupImpl(dwellingGroup.getCommonName(), null, null);
+                    superDwellingGroup = new ArrayList<Location>();
                     map.put(dwellingGroup.getCommonName(), superDwellingGroup);
                 }
-                for (Dwelling dwelling : dwellingGroup.getDwellings()) {
+                for (Location dwelling : dwellingGroup.getDwellings()) {
                     superDwellingGroup.add(dwelling);
                 }
             }
         }
-        List<Duple<String, List<Dwelling>>> strings = new ArrayList<Duple<String, List<Dwelling>>>(map.size());
-        List<Map.Entry<String, DwellingGroupImpl>> entries = new ArrayList<Map.Entry<String, DwellingGroupImpl>>(map.entrySet());
-        Collections.sort(entries, new Comparator<Map.Entry<String, DwellingGroupImpl>>() {
+        List<Duple<String, List<Location>>> strings = new ArrayList<Duple<String, List<Location>>>(map.size());
+        List<Map.Entry<String, List<Location>>> entries = new ArrayList<Map.Entry<String, List<Location>>>(map.entrySet());
+        Collections.sort(entries, new Comparator<Map.Entry<String, List<Location>>>() {
             @Override
-            public int compare(Map.Entry<String, DwellingGroupImpl> a, Map.Entry<String, DwellingGroupImpl> b) {
+            public int compare(Map.Entry<String, List<Location>> a, Map.Entry<String, List<Location>> b) {
                 return a.getKey().compareToIgnoreCase(b.getKey());
             }
         });
         String commonEnding = getCommonEnding(map.keySet());
-        for (Map.Entry<String, DwellingGroupImpl> entry : entries) {
-            List<Dwelling> dwellings = new ArrayList<Dwelling>(entry.getValue().getDwellings());
-            strings.add(new Duple<String, List<Dwelling>>(entry.getValue().getName(), dwellings));
+        for (Map.Entry<String, List<Location>> entry : entries) {
+            List<Location> dwellings = new ArrayList<Location>(entry.getValue());
+            strings.add(new Duple<String, List<Location>>(entry.getKey(), dwellings));
         }
         truncate(strings, commonEnding);
-        Collections.sort(strings, new Comparator<Duple<String, List<Dwelling>>>() {
+        Collections.sort(strings, new Comparator<Duple<String, List<Location>>>() {
             @Override
-            public int compare(Duple<String, List<Dwelling>> o1, Duple<String, List<Dwelling>> o2) {
+            public int compare(Duple<String, List<Location>> o1, Duple<String, List<Location>> o2) {
                 return addressComparator.compare(o1.getFirst(), o2.getFirst());
             }
         });
@@ -547,8 +545,8 @@ class PDFRendererImpl implements PDFRenderer {
         return commonEnding.substring(comma);
     }
 
-    static void truncate(List<Duple<String, List<Dwelling>>> strings, String commonEnding) {
-        for (Duple<String, List<Dwelling>> duple : strings) {
+    static void truncate(List<Duple<String, List<Location>>> strings, String commonEnding) {
+        for (Duple<String, List<Location>> duple : strings) {
             duple.setFirst(duple.getFirst().substring(0, duple.getFirst().length() - commonEnding.length()));
         }
     }

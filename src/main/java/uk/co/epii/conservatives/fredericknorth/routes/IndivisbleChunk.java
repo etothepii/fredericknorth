@@ -1,7 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
-import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
 import java.awt.*;
@@ -27,7 +27,7 @@ public class IndivisbleChunk {
     if (largest == null || dwellingGroup.size() > largest.size()) {
       largest = dwellingGroup;
     }
-    for (Dwelling dwelling : dwellingGroup.getDwellings()) {
+    for (Location dwelling : dwellingGroup.getDwellings()) {
       Point p = dwelling.getPoint();
       if (p == null) {
         p = dwellingGroup.getPoint();
@@ -48,7 +48,4 @@ public class IndivisbleChunk {
     return dwellingGroups;
   }
 
-  public String getPostcode() {
-    return largest == null ? null : largest.getPostcode().getName();
-  }
 }

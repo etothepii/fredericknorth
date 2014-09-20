@@ -5,7 +5,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
 
 import java.util.*;
 
@@ -71,7 +70,6 @@ class RouteImpl implements Route {
         if (!name.equals(routeName)) {
             throw new RuntimeException("This is not the Route for this node as the names differ");
         }
-        DwellingProcessor dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
         NodeList associationList = routeElt.getElementsByTagName("Association");
         if (associationList.getLength() == 0) {
             setAssociation(null);

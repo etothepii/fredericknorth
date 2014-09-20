@@ -77,7 +77,7 @@ public class DummyDwellingGroup implements DwellingGroup {
     }
 
     @Override
-    public PostcodeDatum getPostcode() {
+    public PostcodeDatum getPostcodes() {
         return postcode;
     }
 

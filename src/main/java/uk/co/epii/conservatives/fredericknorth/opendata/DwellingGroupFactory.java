@@ -11,5 +11,5 @@ import java.util.HashMap;
  */
 public interface DwellingGroupFactory {
 
-    public Collection<? extends DwellingGroup> getPostcodes(Rectangle bounds);
+    public Collection<? extends DwellingGroup> getDwellingGroups(Rectangle bounds);
 }
