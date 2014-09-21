@@ -48,7 +48,7 @@ public class Main
             BoundaryLineControllerRegistrar.registerToContext(applicationContext);
             progress("Loading Postcode Data");
             applicationContext.registerDefaultInstance(DwellingGroupFactory.class,
-                    (DwellingGroupFactory)springContext.getBean("postcodeDatumFactory"));
+                    (DwellingGroupFactory)springContext.getBean("dwellingGroupFactory"));
             progress("Loading OS Map Locator");
             OSMapLocatorRegistrar.registerToContext(applicationContext);
             progress("Loading Location Factory");

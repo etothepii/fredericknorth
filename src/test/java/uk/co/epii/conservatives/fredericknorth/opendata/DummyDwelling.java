@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
+
 import java.awt.*;
 
 /**
@@ -7,7 +9,7 @@ import java.awt.*;
  * Date: 10/07/2013
  * Time: 23:27
  */
-public class DummyDwelling implements Dwelling {
+public class DummyDwelling implements Location {
 
     private final String identifier;
     private DwellingGroup dwellingGroup;
@@ -16,11 +18,6 @@ public class DummyDwelling implements Dwelling {
     public DummyDwelling(String identifier, DummyDwellingGroup dwellingGroup) {
         this.identifier = identifier;
         this.dwellingGroup = dwellingGroup;
-    }
-
-    @Override
-    public char getCouncilTaxBand() {
-        return 'A';
     }
 
     @Override

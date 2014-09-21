@@ -12,4 +12,6 @@ import java.util.HashMap;
 public interface DwellingGroupFactory {
 
     public Collection<? extends DwellingGroup> getDwellingGroups(Rectangle bounds);
+    public DwellingGroup load(Point point, String dwellingGroupKey);
+
 }

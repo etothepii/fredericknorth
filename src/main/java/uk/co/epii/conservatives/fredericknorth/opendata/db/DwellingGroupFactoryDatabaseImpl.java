@@ -51,11 +51,29 @@ public class DwellingGroupFactoryDatabaseImpl implements DwellingGroupFactory {
             colocated = new ArrayList<DeliveryPointAddress>();
             dwellings.put(point, colocated);
           }
+          if (dwelling.getSecond() == null) {
+            throw new NullPointerException();
+          }
           colocated.add(dwelling.getSecond());
         }
         loadedAreas.add(bounds);
         return extractAndCache(dwellings);
     }
+
+  @Override
+  public DwellingGroup load(Point point, String dwellingGroupKey) {
+    getDwellingGroups(new Rectangle(point, new Dimension(1, 1)));
+    Collection<DwellingGroupDatabaseImpl> dwellingGroups = loaded.get(point);
+    if (dwellingGroups == null) {
+      return null;
+    }
+    for (DwellingGroup dwellingGroup : dwellingGroups) {
+      if (dwellingGroup.getKey().equals(dwellingGroupKey)) {
+        return dwellingGroup;
+      }
+    }
+    return null;
+  }
 
   private Collection<? extends DwellingGroup> fromCache(Rectangle bounds) {
     ArrayList<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>();

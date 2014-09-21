@@ -3,11 +3,8 @@ package uk.co.epii.conservatives.fredericknorth.routes;
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
-import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea.BoundedAreaConstructor;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyPostcodeDatum;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -42,9 +39,7 @@ public class TravellingSalesmanRouterTest {
     groups.add(new DummyDwellingGroup("B4", 7, new Point(95,5)));
     groups.add(new DummyDwellingGroup("B5", 6, new Point(95,5)));
     groups.add(new DummyDwellingGroup("B6", 5, new Point(95,95)));
-    int count = 0;
     for (DummyDwellingGroup group : groups) {
-      group.setPostcode(new DummyPostcodeDatum("POSTCODE" + (++count)));
       group.setCommonName(group.getName());
       routing.addDwellingGroup(group, false);
     }

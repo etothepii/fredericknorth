@@ -52,9 +52,15 @@ public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
     @Override
     public Element toXml(Document document) {
         Element dwellingGroup = document.createElement("DwellingGroup");
+        Element x = document.createElement("X");
+        x.setTextContent(medianPoint.x + "");
+        Element y = document.createElement("Y");
+        y.setTextContent(medianPoint.y + "");
         Element name = document.createElement("Key");
         name.setTextContent(getKey());
         dwellingGroup.appendChild(name);
+        dwellingGroup.appendChild(x);
+        dwellingGroup.appendChild(y);
         return dwellingGroup;
     }
 
