@@ -9,17 +9,14 @@ import uk.co.epii.conservatives.fredericknorth.Keys;
 import uk.co.epii.conservatives.fredericknorth.TestApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundaryLineControllerRegistrar;
 import uk.co.epii.conservatives.fredericknorth.dummydata.TestCouncilWard;
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.conservatives.fredericknorth.maps.LocationFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.MapLabelFactoryRegistrar;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGeneratorRegistrar;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwelling;
-import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
-import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
-import uk.co.epii.conservatives.fredericknorth.utilities.StringExtentions;
 import uk.co.epii.spencerperceval.tuple.Duple;
 
-import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,13 +61,13 @@ public class PDFRendererTest {
 
     public void truncateTest(String[] street, String[] full, String[] expected) {
         String commonEnding = PDFRendererImpl.getCommonEnding(Arrays.asList(street));
-        List<Duple<String, List<Dwelling>>> duples = new ArrayList<Duple<String, List<Dwelling>>>();
+        List<Duple<String, List<Location>>> duples = new ArrayList<Duple<String, List<Location>>>();
         for (String string : full) {
-            List<Dwelling> dwellings = new ArrayList<Dwelling>();
+            List<Location> dwellings = new ArrayList<Location>();
             for (int i = 1; i <= 2; i++) {
                 dwellings.add(new DummyDwelling(i + "", null));
             }
-            duples.add(new Duple<String, List<Dwelling>>(string, dwellings));
+            duples.add(new Duple<String, List<Location>>(string, dwellings));
         }
         PDFRendererImpl.truncate(duples, commonEnding);
         String[] result = new String[duples.size()];
@@ -150,7 +147,7 @@ public class PDFRendererTest {
     @Test
     public void createMultipleSimpleRoutesTest() {
 //        ApplicationContext applicationContext = new TestApplicationContext();
-//        PostcodeDatumFactoryRegistrar.registerToContext(applicationContext);
+//        DwellingGroupFactoryRegistrar.registerToContext(applicationContext);
 //        DwellingProcessorRegistrar.registerToContext(applicationContext, new NullProgressTracker(),
 //                PDFRendererTest.class.getResourceAsStream("/millwallDwellingsSubset.txt"));
 //        OSMapLocatorRegistrar.registerToContext(applicationContext);

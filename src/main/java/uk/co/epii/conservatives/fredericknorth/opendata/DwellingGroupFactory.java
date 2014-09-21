@@ -9,8 +9,9 @@ import java.util.HashMap;
  * Date: 01/07/2013
  * Time: 08:16
  */
-public interface PostcodeDatumFactory {
+public interface DwellingGroupFactory {
 
-    public PostcodeDatum getInstance(String postcode);
-    public Collection<? extends PostcodeDatum> getPostcodes(Rectangle bounds);
+    public Collection<? extends DwellingGroup> getDwellingGroups(Rectangle bounds);
+    public DwellingGroup load(Point point, String dwellingGroupKey);
+
 }

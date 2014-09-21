@@ -402,20 +402,11 @@ public class DefaultRoutableArea implements RoutableArea {
   }
 
   public void addChild(RoutableArea childRoutableArea) {
-        children.put(childRoutableArea.getName(), childRoutableArea);
-    }
+    children.put(childRoutableArea.getName(), childRoutableArea);
+  }
 
-    public Collection<IndivisbleChunk> getUnroutedIndivisbleChunks() {
-        HashMap<String, IndivisbleChunk> indivisbleChunks = new HashMap<String, IndivisbleChunk>();
-        for (DwellingGroup dwellingGroup : unroutedDwellingGroups.values()) {
-            IndivisbleChunk indivisbleChunk = indivisbleChunks.get(dwellingGroup.getPostcode().getName());
-            if (indivisbleChunk == null) {
-                indivisbleChunk = new IndivisbleChunk();
-                indivisbleChunks.put(dwellingGroup.getPostcode().getName(), indivisbleChunk);
-            }
-            indivisbleChunk.add(dwellingGroup);
-        }
-        return indivisbleChunks.values();
-    }
+  public Collection<IndivisbleChunk> getUnroutedIndivisbleChunks() {
+    return new Chunker().chunk(unroutedDwellingGroups.values());
+  }
 
 }

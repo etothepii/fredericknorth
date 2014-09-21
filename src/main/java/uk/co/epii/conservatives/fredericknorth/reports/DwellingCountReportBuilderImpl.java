@@ -9,8 +9,8 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExte
 import uk.co.epii.conservatives.fredericknorth.maps.ImageAndGeoPointTranslator;
 import uk.co.epii.conservatives.fredericknorth.maps.MapView;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatumFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
 import uk.co.epii.conservatives.fredericknorth.utilities.NullProgressTracker;
 
 import java.awt.*;
@@ -29,19 +29,19 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
 
     private static final Logger LOG = LoggerFactory.getLogger(DwellingCountReportBuilderImpl.class);
 
-    private final PostcodeDatumFactory postcodeDatumFactory;
     private final MapViewGenerator mapViewGenerator;
     private Map<BoundedAreaType, Color> colours = new HashMap<BoundedAreaType, Color>();
+    private DwellingGroupFactory dwellingGroupFactory;
 
-    public DwellingCountReportBuilderImpl(PostcodeDatumFactory postcodeDatumFactory,
+    public DwellingCountReportBuilderImpl(DwellingGroupFactory dwellingGroupFactory,
                                           MapViewGenerator mapViewGenerator) {
-        this.postcodeDatumFactory = postcodeDatumFactory;
+        this.dwellingGroupFactory = dwellingGroupFactory;
         this.mapViewGenerator = mapViewGenerator;
     }
 
     @Override
     public Map<BoundedArea, int[]> countDwellings(BoundedArea boundedArea) {
-        return countDwellings(boundedArea, postcodeDatumFactory.getPostcodes(
+        return countDwellings(boundedArea, dwellingGroupFactory.getDwellingGroups(
                 PolygonExtensions.getBounds(boundedArea.getAreas())));
     }
 
@@ -200,19 +200,15 @@ class DwellingCountReportBuilderImpl implements DwellingCountReportBuilder {
     }
 
     private Map<BoundedArea, int[]>
-                countDwellings(BoundedArea boundedArea, Collection<? extends PostcodeDatum> postcodes) {
-        LOG.debug("{}: {}", new Object[] {boundedArea.getName(), postcodes.size()});
+                countDwellings(BoundedArea boundedArea, Collection<? extends DwellingGroup> dwellingGroups) {
+        LOG.debug("{}: {}", new Object[] {boundedArea.getName(), dwellingGroups.size()});
         HashMap<BoundedArea, int[]> countMap = new HashMap<BoundedArea, int[]>();
-        List<PostcodeDatum> containedPostcodes = new ArrayList<PostcodeDatum>(postcodes.size());
-        int[] count = new int[10];
-        for (PostcodeDatum postcodeDatum : postcodes) {
-            if (postcodeDatum.getPoint() == null) {
-                LOG.debug("{}", postcodeDatum.getName());
-                continue;
-            }
-            if (PolygonExtensions.contains(boundedArea.getAreas(), postcodeDatum.getPoint())) {
-                containedPostcodes.add(postcodeDatum);
-                int[] dwellings = postcodeDatum.getCouncilBandCount();
+        List<DwellingGroup> containedPostcodes = new ArrayList<DwellingGroup>(dwellingGroups.size());
+        int[] count = new int[1];
+        for (DwellingGroup dwellingGroup : dwellingGroups) {
+            if (PolygonExtensions.contains(boundedArea.getAreas(), dwellingGroup.getPoint())) {
+                containedPostcodes.add(dwellingGroup);
+                int[] dwellings = new int[] {dwellingGroup.size()};
                 for (int i = 0; i < 9; i++) {
                     count[i] += dwellings[i];
                     count[9] += dwellings[i];

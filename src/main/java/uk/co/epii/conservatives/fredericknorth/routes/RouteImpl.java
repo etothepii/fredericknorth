@@ -3,11 +3,13 @@ package uk.co.epii.conservatives.fredericknorth.routes;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DwellingProcessor;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -71,7 +73,7 @@ class RouteImpl implements Route {
         if (!name.equals(routeName)) {
             throw new RuntimeException("This is not the Route for this node as the names differ");
         }
-        DwellingProcessor dwellingProcessor = applicationContext.getDefaultInstance(DwellingProcessor.class);
+        DwellingGroupFactory dwellingGroupFactory = applicationContext.getDefaultInstance(DwellingGroupFactory.class);
         NodeList associationList = routeElt.getElementsByTagName("Association");
         if (associationList.getLength() == 0) {
             setAssociation(null);
@@ -84,10 +86,12 @@ class RouteImpl implements Route {
         List<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>(dwellingGroupNodeList.getLength());
         for (int i = 0; i < dwellingGroupNodeList.getLength(); i++) {
             Element dwellingGroupElt = (Element)dwellingGroupNodeList.item(i);
-            String dwellingGroupName = dwellingGroupElt.getElementsByTagName("Name").item(0).getTextContent();
-            String dwellingGroupPostcode = dwellingGroupElt.getElementsByTagName("Postcode").item(0).getTextContent();
+            String dwellingGroupKey = dwellingGroupElt.getElementsByTagName("Key").item(0).getTextContent();
+            String x = dwellingGroupElt.getElementsByTagName("X").item(0).getTextContent();
+            String y = dwellingGroupElt.getElementsByTagName("Y").item(0).getTextContent();
+            Point point = new Point(Integer.parseInt(x), Integer.parseInt(y));
             DwellingGroup dwellingGroup =
-                    dwellingProcessor.load(dwellingGroupPostcode, dwellingGroupName, applicationContext, dwellingGroupElt);
+                    dwellingGroupFactory.load(point, dwellingGroupKey);
             dwellingGroups.add(dwellingGroup);
         }
         addDwellingGroups(dwellingGroups);

@@ -1,12 +1,15 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,16 +19,16 @@ import java.util.List;
  */
 public class DummyDwellingGroup implements DwellingGroup {
 
-    ArrayList<Dwelling> dwellings;
+    ArrayList<Location> dwellings;
     String name;
     String commonName;
     Point point;
     String identifierSummary;
-    private PostcodeDatum postcode;
+    String postcode;
 
-    public DummyDwellingGroup(String name, int count, Point point) {
+  public DummyDwellingGroup(String name, int count, Point point) {
         this.name = name;
-        dwellings = new ArrayList<Dwelling>();
+        dwellings = new ArrayList<Location>();
         for (int i = 1; i <= count; i++) {
             dwellings.add(new DummyDwelling(i + "", this));
         }
@@ -47,12 +50,8 @@ public class DummyDwellingGroup implements DwellingGroup {
         return dwellings.size();
     }
 
-    public void setPostcode(PostcodeDatum postcode) {
-        this.postcode = postcode;
-    }
-
     @Override
-    public List<? extends Dwelling> getDwellings() {
+    public List<? extends Location> getDwellings() {
       return dwellings;
     }
 
@@ -61,9 +60,18 @@ public class DummyDwellingGroup implements DwellingGroup {
         throw new UnsupportedOperationException("This method is not supported in this Dummy instance");
     }
 
-    @Override
+  @Override
+  public Collection<String> getPostcodes() {
+    return Arrays.asList(new String[] {postcode});
+  }
+
+  public void setPostcode(String postcode) {
+    this.postcode = postcode;
+  }
+
+  @Override
     public String getKey() {
-        return postcode.getName().concat(PointExtensions.getLocationString(getPoint()));
+        return PointExtensions.getLocationString(getPoint()).concat(getCommonName());
     }
 
     @Override
@@ -74,11 +82,6 @@ public class DummyDwellingGroup implements DwellingGroup {
     @Override
     public String getIdentifierSummary() {
         return identifierSummary;
-    }
-
-    @Override
-    public PostcodeDatum getPostcode() {
-        return postcode;
     }
 
     @Override

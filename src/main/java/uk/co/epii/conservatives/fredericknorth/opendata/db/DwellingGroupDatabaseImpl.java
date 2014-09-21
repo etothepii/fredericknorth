@@ -3,13 +3,13 @@ package uk.co.epii.conservatives.fredericknorth.opendata.db;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensions;
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.conservatives.fredericknorth.opendata.AbstractDwellingGroupImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.PostcodeDatum;
-import uk.co.epii.politics.williamcavendishbentinck.tables.DeliveryPointAddress;
 
 import java.awt.*;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -18,47 +18,61 @@ import java.util.Map;
  */
 public class DwellingGroupDatabaseImpl extends AbstractDwellingGroupImpl {
 
-    private final Map<DwellingDatabaseImpl, DeliveryPointAddress> dwellings;
-    private final PostcodeDatumDatabaseImpl postcode;
-    private Point medianPoint;
+    private final List<DwellingDatabaseImpl> dwellings;
+    private final Set<String> postcode;
+    private final Point medianPoint;
 
-    public DwellingGroupDatabaseImpl(PostcodeDatumDatabaseImpl postcode,
-            Map<DwellingDatabaseImpl, DeliveryPointAddress> dwellings,
+    public DwellingGroupDatabaseImpl(
+            Collection<DwellingDatabaseImpl> dwellings,
             String commonName, Point medianPoint) {
         super(commonName);
-        this.postcode = postcode;
-        this.dwellings = dwellings;
+        postcode = extractPostcode(dwellings);
+        this.dwellings = new ArrayList<DwellingDatabaseImpl>(dwellings);
         this.medianPoint = medianPoint;
     }
 
-    @Override
+  private Set<String> extractPostcode(Collection<DwellingDatabaseImpl> dwellings) {
+    Set<String> postcodes = new HashSet<String>();
+    for (DwellingDatabaseImpl dwelling : dwellings) {
+      postcodes.add(dwelling.getDeliveryPointAddress().getPostcode());
+    }
+    return postcodes;
+  }
+
+  @Override
     public int size() {
         return dwellings.size();
     }
 
     @Override
-    public Iterable<? extends uk.co.epii.conservatives.fredericknorth.opendata.Dwelling> getDwellings() {
-        return dwellings.keySet();
+    public Iterable<? extends Location> getDwellings() {
+        return dwellings;
     }
 
     @Override
     public Element toXml(Document document) {
         Element dwellingGroup = document.createElement("DwellingGroup");
+        Element x = document.createElement("X");
+        x.setTextContent(medianPoint.x + "");
+        Element y = document.createElement("Y");
+        y.setTextContent(medianPoint.y + "");
         Element name = document.createElement("Key");
         name.setTextContent(getKey());
         dwellingGroup.appendChild(name);
+        dwellingGroup.appendChild(x);
+        dwellingGroup.appendChild(y);
         return dwellingGroup;
     }
 
+  @Override
+  public Collection<String> getPostcodes() {
+    return postcode;
+  }
 
-    @Override
+
+  @Override
     public String getKey() {
-        return postcode.getName().concat(PointExtensions.getLocationString(getPoint())).concat(getCommonName());
-    }
-
-    @Override
-    public PostcodeDatum getPostcode() {
-        return postcode;
+        return PointExtensions.getLocationString(getPoint()).concat(getCommonName());
     }
 
     @Override

@@ -3,7 +3,6 @@ package uk.co.epii.conservatives.fredericknorth.routes;
 import org.junit.Before;
 import org.junit.Test;
 import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
-import uk.co.epii.conservatives.fredericknorth.opendata.DummyPostcodeDatum;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
 import java.awt.*;
@@ -29,11 +28,8 @@ public class RouteImplTest {
     @Before
     public void setUp() throws Exception {
         bRoad = new DummyDwellingGroup("B Road", 20, new Point(0, 0));
-        bRoad.setPostcode(new DummyPostcodeDatum("A1 1AA"));
         bRoadFlats = new DummyDwellingGroup("Flat 26, B Road", 20, new Point(0, 0));
-        bRoadFlats.setPostcode(new DummyPostcodeDatum("A1 1AB"));
         cStreet = new DummyDwellingGroup("C Street", 20, new Point(25, 25));
-        cStreet.setPostcode(new DummyPostcodeDatum("A1 1AC"));
         ArrayList<DwellingGroup> dwellingGroups = new ArrayList<DwellingGroup>();
         dwellingGroups.add(bRoad);
         dwellingGroups.add(bRoadFlats);

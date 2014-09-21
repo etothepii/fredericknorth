@@ -9,12 +9,8 @@
         <property name="password" value="frederickNorth1"/>
     </bean>
 
-    <bean id="postcodeDatumFactory" class="uk.co.epii.conservatives.fredericknorth.opendata.db.PostcodeDatumFactoryDatabaseImpl">
+    <bean id="dwellingGroupFactory" class="uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingGroupFactoryDatabaseImpl">
         <property name="databaseSession" ref="databaseSession"/>
-    </bean>
-
-    <bean id="dwellingProcessor" class="uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingProcessorDatabaseImpl">
-        <property name="postcodeDatumFactory" ref="postcodeDatumFactory" />
     </bean>
 
 </beans>

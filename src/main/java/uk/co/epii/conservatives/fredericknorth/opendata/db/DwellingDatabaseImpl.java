@@ -1,6 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.opendata.db;
 
-import uk.co.epii.conservatives.fredericknorth.opendata.Dwelling;
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.politics.williamcavendishbentinck.tables.DeliveryPointAddress;
 
 import java.awt.*;
@@ -10,25 +10,16 @@ import java.awt.*;
  * Date: 02/11/2013
  * Time: 21:16
  */
-public class DwellingDatabaseImpl implements Dwelling {
+public class DwellingDatabaseImpl implements Location {
 
-    private char councilTaxBand;
     private String name;
     private Point point;
+    private DeliveryPointAddress deliveryPointAddress;
 
-    public DwellingDatabaseImpl(char councilTaxBand, String name, Point point) {
-        this.councilTaxBand = councilTaxBand;
+    public DwellingDatabaseImpl(String name, Point point, DeliveryPointAddress deliveryPointAddress) {
         this.name = name;
         this.point = point;
-    }
-
-    @Override
-    public char getCouncilTaxBand() {
-        return councilTaxBand;
-    }
-
-    public void setCouncilTaxBand(char councilTaxBand) {
-        this.councilTaxBand = councilTaxBand;
+        this.deliveryPointAddress = deliveryPointAddress;
     }
 
     @Override
@@ -49,5 +40,11 @@ public class DwellingDatabaseImpl implements Dwelling {
         this.point = point;
     }
 
+    public DeliveryPointAddress getDeliveryPointAddress() {
+        return deliveryPointAddress;
+    }
 
+    public void setDeliveryPointAddress(DeliveryPointAddress deliveryPointAddress) {
+        this.deliveryPointAddress = deliveryPointAddress;
+    }
 }

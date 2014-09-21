@@ -1,7 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.dummydata;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
-import org.junit.Before;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.DefaultBoundedArea;
@@ -9,16 +8,14 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PointExtensio
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingGroupDatabaseImpl;
-import uk.co.epii.conservatives.fredericknorth.opendata.db.PostcodeDatumDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
-import uk.co.epii.politics.williamcavendishbentinck.tables.DeliveryPointAddress;
-import uk.co.epii.politics.williamcavendishbentinck.tables.Dwelling;
-import uk.co.epii.politics.williamcavendishbentinck.tables.Postcode;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * User: James Robinson
@@ -40,9 +37,6 @@ public class TestCouncilWard {
     public static DwellingGroupDatabaseImpl cw2StreetD;
     public static DwellingGroupDatabaseImpl cwStreetE;
     public static DwellingGroupDatabaseImpl cwStreetF;
-    public static PostcodeDatumDatabaseImpl cw1Postcode;
-    public static PostcodeDatumDatabaseImpl cw2Postcode;
-    public static PostcodeDatumDatabaseImpl cwPostcode;
 
     public static void reset() {
         councilWard = new DefaultBoundedArea(BoundedAreaType.UNITARY_DISTRICT_WARD, "Council Ward");
@@ -56,24 +50,21 @@ public class TestCouncilWard {
         councilWardRoutes.addChild(postalDistrictCW1Routes);
         councilWardRoutes.addChild(postalDistrictCW2Routes);
         Map<String, DwellingGroupDatabaseImpl> map = new HashMap<String, DwellingGroupDatabaseImpl>();
-        cw1Postcode = createPostcodeDatumDatabaseImpl("CW1 1AA", new Point(535267, 181084), map);
-        cw1StreetA = createDwellingGroupDatabaseImpl(cw1Postcode, "A Street", 1, 10, new Point(535165, 180986), "%s");
-        cw1StreetA2 = createDwellingGroupDatabaseImpl(cw1Postcode, "A Street", 11, 20, new Point(535215, 180936), "%s");
+        cw1StreetA = createDwellingGroupDatabaseImpl("A Street", 1, 10, new Point(535165, 180986), "%s");
+        cw1StreetA2 = createDwellingGroupDatabaseImpl("A Street", 11, 20, new Point(535215, 180936), "%s");
         map.put(PointExtensions.getLocationString(cw1StreetA.getPoint()), cw1StreetA);
         map.put(PointExtensions.getLocationString(cw1StreetA2.getPoint()), cw1StreetA2);
-        cw1StreetB = createDwellingGroupDatabaseImpl(cw1Postcode, "B Street", 1, 20, new Point(535369, 181182), "%s");
+        cw1StreetB = createDwellingGroupDatabaseImpl("B Street", 1, 20, new Point(535369, 181182), "%s");
         map.put(PointExtensions.getLocationString(cw1StreetB.getPoint()), cw1StreetB);
         map = new HashMap<String, DwellingGroupDatabaseImpl>();
-        cw2Postcode = createPostcodeDatumDatabaseImpl("CW2 1AA", new Point(535043, 181123), map);
-        cw2StreetC = createDwellingGroupDatabaseImpl(cw2Postcode, "C Street", 1, 10, new Point(535041, 181125), "%s");
+        cw2StreetC = createDwellingGroupDatabaseImpl("C Street", 1, 10, new Point(535041, 181125), "%s");
         map.put(PointExtensions.getLocationString(cw2StreetC.getPoint()), cw2StreetC);
-        cw2StreetD = createDwellingGroupDatabaseImpl(cw2Postcode, "D Street", 1, 10, new Point(535045, 181121), "%s");
+        cw2StreetD = createDwellingGroupDatabaseImpl("D Street", 1, 10, new Point(535045, 181121), "%s");
         map.put(PointExtensions.getLocationString(cw2StreetD.getPoint()), cw2StreetD);
         map = new HashMap<String, DwellingGroupDatabaseImpl>();
-        cwPostcode = createPostcodeDatumDatabaseImpl("CW3 1AA", new Point(535238, 180880),  map);
-        cwStreetE = createDwellingGroupDatabaseImpl(cwPostcode, "E Street", 1, 10, new Point(535228, 180890), "%s");
+        cwStreetE = createDwellingGroupDatabaseImpl("E Street", 1, 10, new Point(535228, 180890), "%s");
         map.put(PointExtensions.getLocationString(cwStreetE.getPoint()), cwStreetE);
-        cwStreetF = createDwellingGroupDatabaseImpl(cwPostcode, "F Street", 1, 10, new Point(535248, 180870), "%s");
+        cwStreetF = createDwellingGroupDatabaseImpl("F Street", 1, 10, new Point(535248, 180870), "%s");
         map.put(PointExtensions.getLocationString(cwStreetF.getPoint()), cwStreetF);
         postalDistrictCW1Routes.addDwellingGroup(cw1StreetA, false);
         postalDistrictCW1Routes.addDwellingGroup(cw1StreetA2, false);
@@ -93,21 +84,14 @@ public class TestCouncilWard {
         route3.addDwellingGroups(Arrays.asList(new DwellingGroup[] {cwStreetE}));
     }
 
-    private static PostcodeDatumDatabaseImpl createPostcodeDatumDatabaseImpl(
-            String postcode, Point point, Map<String, DwellingGroupDatabaseImpl> map) {
-        PostcodeDatumDatabaseImpl postcodeDatumDatabase = new PostcodeDatumDatabaseImpl(
-                new Postcode(postcode, 10, point.x, point.y), map);
-        return postcodeDatumDatabase;
-    }
-
-    private static DwellingGroupDatabaseImpl createDwellingGroupDatabaseImpl(PostcodeDatumDatabaseImpl postcodeImpl,
+    private static DwellingGroupDatabaseImpl createDwellingGroupDatabaseImpl(
                                                                       String name, int housesFrom, int housesTo, Point point,
                                                                       String format) {
-        Map<DwellingDatabaseImpl, DeliveryPointAddress> map = new HashMap<DwellingDatabaseImpl, DeliveryPointAddress>();
+        List<DwellingDatabaseImpl> dwellings = new ArrayList<DwellingDatabaseImpl>();
         for (int i = housesFrom; i <= housesTo; i++) {
-            map.put(new DwellingDatabaseImpl('A', String.format(format, i + ""), point), null);
+            dwellings.add(new DwellingDatabaseImpl(String.format(format, i + ""), point, null));
         }
-        DwellingGroupDatabaseImpl dwellingGroup = new DwellingGroupDatabaseImpl(postcodeImpl, map, name, point);
+        DwellingGroupDatabaseImpl dwellingGroup = new DwellingGroupDatabaseImpl(dwellings, name, point);
         return dwellingGroup;
     }
 

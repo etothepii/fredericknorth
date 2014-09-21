@@ -280,7 +280,7 @@ public class RoutableAreaBuilderPanelModel implements Activateable {
             ImageIO.write(bufferedImage, "png", largeMap);
             FileWriter fileWriter = new FileWriter(csvFile);
             PrintWriter printWriter = new PrintWriter(fileWriter);
-            printWriter.println("index,name,A,B,C,D,E,F,G,H,I,Total");
+            printWriter.println("index,name,Total");
             printWriter.flush();
             int index = 0;
             for (BoundedArea boundedArea : flattenedList) {
