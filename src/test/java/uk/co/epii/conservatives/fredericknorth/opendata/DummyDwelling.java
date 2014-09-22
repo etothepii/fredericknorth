@@ -20,6 +20,11 @@ public class DummyDwelling implements Location {
         this.dwellingGroup = dwellingGroup;
     }
 
+    public DummyDwelling(String identifier, DummyDwellingGroup dwellingGroup, Point point) {
+      this(identifier, dwellingGroup);
+      this.point = point;
+    }
+
     @Override
     public String getName() {
         return identifier;

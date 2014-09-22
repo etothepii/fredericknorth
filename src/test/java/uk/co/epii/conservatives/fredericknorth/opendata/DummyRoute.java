@@ -9,6 +9,7 @@ import uk.co.epii.conservatives.fredericknorth.routes.Route;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * User: James Robinson
@@ -29,7 +30,12 @@ public class DummyRoute implements Route {
         dwellingGroupHashSet = new HashSet<DwellingGroup>();
     }
 
-    @Override
+  @Override
+  public UUID getUuid() {
+    return UUID.fromString("00000");
+  }
+
+  @Override
     public String getName() {
         return name;
     }

@@ -1,11 +1,14 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * User: James Robinson
@@ -13,6 +16,8 @@ import java.util.List;
  * Time: 15:05
  */
 public class DefaultBoundedArea extends AbstractBoundedArea {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBoundedArea.class);
 
     public DefaultBoundedArea(BoundedAreaType type, String name) {
         super(type, name);
@@ -42,10 +47,19 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
     public static DefaultBoundedArea load(Element boundedArea) {
         if (!boundedArea.getTagName().equals("BoundedArea"))
             throw new IllegalArgumentException("The element provided is not a BoundedArea");
+
         String name = boundedArea.getElementsByTagName("Name").item(0).getTextContent();
         BoundedAreaType boundedAreaType = BoundedAreaType.valueOf(
                 boundedArea.getElementsByTagName("Type").item(0).getTextContent());
         DefaultBoundedArea defaultBoundedArea = new DefaultBoundedArea(boundedAreaType, name);
+        NodeList uuidList = boundedArea.getElementsByTagName("UUID");
+        if (uuidList.getLength() == 0) {
+          LOG.warn("Loaded BoundedArea without a uuid");
+        }
+        else {
+          String uuidStr = uuidList.item(0).getTextContent();
+          defaultBoundedArea.setUuid(UUID.fromString(uuidStr));
+        }
         Element areaElt = (Element)boundedArea.getElementsByTagName("Area").item(0);
         Element allPointsElt = (Element)areaElt.getElementsByTagName("AllPoints").item(0);
         defaultBoundedArea.getPoints().addAll(getAllPointsFromNode(allPointsElt == null ? areaElt : allPointsElt));

@@ -18,6 +18,7 @@ import java.util.List;
  */
 class RouteImpl implements Route {
 
+    private UUID uuid;
     private Set<DwellingGroup> dwellingGroups;
     private String name;
     private RoutableArea routableArea;
@@ -29,7 +30,18 @@ class RouteImpl implements Route {
         dwellingGroups = new HashSet<DwellingGroup>();
     }
 
-    @Override
+  public UUID getUuid() {
+    if (uuid == null) {
+      uuid = UUID.randomUUID();
+    }
+    return uuid;
+  }
+
+  public void setUuid(UUID uuid) {
+    this.uuid = uuid;
+  }
+
+  @Override
     public String getName() {
         return name;
     }
@@ -127,6 +139,9 @@ class RouteImpl implements Route {
     @Override
     public Element toXml(Document document) {
         Element route = document.createElement("Route");
+        Element uuidElt = document.createElement("UUID");
+        uuidElt.setTextContent(getUuid().toString());
+        route.appendChild(uuidElt);
         Element nameElt = document.createElement("Name");
         nameElt.setTextContent(name);
         route.appendChild(nameElt);

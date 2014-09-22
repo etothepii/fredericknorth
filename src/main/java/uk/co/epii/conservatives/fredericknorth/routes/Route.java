@@ -7,6 +7,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * User: James Robinson
@@ -15,6 +16,7 @@ import java.util.Set;
  */
 public interface Route {
 
+    public UUID getUuid();
     public String getName();
     public void setName(String name);
     public Set<DwellingGroup> getDwellingGroups();

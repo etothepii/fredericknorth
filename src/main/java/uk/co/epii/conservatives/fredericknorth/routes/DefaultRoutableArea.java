@@ -1,5 +1,6 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -24,6 +25,8 @@ import java.util.List;
  */
 public class DefaultRoutableArea implements RoutableArea {
 
+  private static final Logger LOG = Logger.getLogger(DefaultRoutableArea.class);
+
     private final BoundedArea boundedArea;
     private final HashSet<Route> routes;
     private final RoutableArea parent;
@@ -31,7 +34,7 @@ public class DefaultRoutableArea implements RoutableArea {
     private final HashMap<String, DwellingGroup> unroutedDwellingGroups;
     private final HashMap<String, DwellingGroup> routedDwellingGroups;
     private final HashMap<String, DwellingGroup> dwellingGroups;
-  private Router router;
+    private Router router;
 
   public DefaultRoutableArea(BoundedArea boundedArea, RoutableArea parent) {
     this.boundedArea = boundedArea;
@@ -130,6 +133,12 @@ public class DefaultRoutableArea implements RoutableArea {
   @Override
   public Route createRoute(String name) {
     Route route = new RouteImpl(this, name);
+    addRoute(route, this);
+    return route;
+  }
+
+  private RouteImpl createRouteImpl(String name) {
+    RouteImpl route = new RouteImpl(this, name);
     addRoute(route, this);
     return route;
   }
@@ -348,7 +357,15 @@ public class DefaultRoutableArea implements RoutableArea {
 
     private void loadRoute(Element routeElt) {
         String routeName = routeElt.getElementsByTagName("Name").item(0).getTextContent();
-        Route route = createRoute(routeName);
+        RouteImpl route = createRouteImpl(routeName);
+        NodeList nodeList = routeElt.getElementsByTagName("UUID");
+        if (nodeList.getLength() == 0) {
+          LOG.warn("Loaded a route without a UUID");
+        }
+        else {
+          String uuidStr = nodeList.item(0).getTextContent();
+          route.setUuid(UUID.fromString(uuidStr));
+        }
         NodeList dwellingGroups = ((Element)routeElt.getElementsByTagName("DwellingGroups").item(0)).getElementsByTagName("DwellingGroup");
         for (int i = 0; i < dwellingGroups.getLength(); i++) {
             Element dwellingGroup = (Element) dwellingGroups.item(i);

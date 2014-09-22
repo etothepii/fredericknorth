@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * User: James Robinson
@@ -26,6 +27,7 @@ import java.util.List;
 public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
 
     private String name;
+    private UUID uuid;
     private final BoundedAreaType type;
     protected final List<List<Point>> _points;
     protected final List<List<Point>> _enclavePoints;
@@ -39,9 +41,18 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
         _childrenList = new ArrayList<BoundedArea>();
     }
 
+  public UUID getUuid() {
+    if (uuid == null) {
+      uuid = UUID.randomUUID();
+    }
+    return uuid;
+  }
 
+  public void setUuid(UUID uuid) {
+    this.uuid = uuid;
+  }
 
-    public String getName() {
+  public String getName() {
         return name;
     }
 
@@ -93,6 +104,9 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
     @Override
     public Element toXml(Document document) {
         Element boundedAreaElt = document.createElement("BoundedArea");
+        Element uuidElt = document.createElement("UUID");
+        uuidElt.setTextContent(getUuid().toString());
+        boundedAreaElt.appendChild(uuidElt);
         Element typeElt = document.createElement("Type");
         typeElt.setTextContent(getBoundedAreaType().name());
         boundedAreaElt.appendChild(typeElt);

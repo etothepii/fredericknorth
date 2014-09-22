@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -88,7 +89,12 @@ public class DwellingCountReportBuilderImplTest {
             this.boundedAreas = boundedAreas;
         }
 
-        @Override
+      @Override
+      public UUID getUuid() {
+        return UUID.fromString("0000000");
+      }
+
+      @Override
         public String getName() {
             return name;
         }

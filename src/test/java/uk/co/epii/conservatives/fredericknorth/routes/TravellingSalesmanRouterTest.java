@@ -8,6 +8,7 @@ import uk.co.epii.conservatives.fredericknorth.opendata.DummyDwellingGroup;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -33,17 +34,19 @@ public class TravellingSalesmanRouterTest {
     constructor.addCurrent();
     DefaultRoutableArea routing = new DefaultRoutableArea(constructor.lockDown(), null);
     List<DummyDwellingGroup> groups = new ArrayList<DummyDwellingGroup>();
-    groups.add(new DummyDwellingGroup("B1", 10, new Point(5,5)));
-    groups.add(new DummyDwellingGroup("B2", 9, new Point(5,50)));
-    groups.add(new DummyDwellingGroup("B3", 8, new Point(5,95)));
-    groups.add(new DummyDwellingGroup("B4", 7, new Point(95,5)));
-    groups.add(new DummyDwellingGroup("B5", 6, new Point(95,5)));
-    groups.add(new DummyDwellingGroup("B6", 5, new Point(95,95)));
+    groups.add(new DummyDwellingGroup("B1", 10, new Point(5,5), "A1"));
+    groups.add(new DummyDwellingGroup("B2", 9, new Point(5,50), "A2"));
+    groups.add(new DummyDwellingGroup("B3", 8, new Point(5,95), "A3"));
+    groups.add(new DummyDwellingGroup("B4", 7, new Point(95,5), "A4"));
+    groups.add(new DummyDwellingGroup("B5", 6, new Point(95,5), "A5"));
+    groups.add(new DummyDwellingGroup("B6", 5, new Point(95,95), "A6"));
     for (DummyDwellingGroup group : groups) {
       group.setCommonName(group.getName());
       routing.addDwellingGroup(group, false);
     }
-    List<Route> routes = router.createRoutes(routing, routing.getUnroutedIndivisbleChunks(), 30);
+    Chunker chunker = new Chunker();
+    Collection<IndivisbleChunk> indivisbleChunks = chunker.chunk(groups);
+    List<Route> routes = router.createRoutes(routing, indivisbleChunks, 30);
     assertEquals(routes.size(), 2);
   }
 

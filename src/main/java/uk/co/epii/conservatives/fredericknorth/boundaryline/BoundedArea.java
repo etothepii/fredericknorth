@@ -8,6 +8,7 @@ import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.UUID;
 
 /**
  * User: James Robinson
@@ -16,6 +17,7 @@ import java.io.File;
  */
 public interface BoundedArea {
 
+    public UUID getUuid();
     public String getName();
     public void setName(String name);
     public BoundedArea[] getChildren();

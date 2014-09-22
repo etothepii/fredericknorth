@@ -26,13 +26,18 @@ public class DummyDwellingGroup implements DwellingGroup {
     String identifierSummary;
     String postcode;
 
-  public DummyDwellingGroup(String name, int count, Point point) {
+    public DummyDwellingGroup(String name, int count, Point point) {
         this.name = name;
         dwellings = new ArrayList<Location>();
         for (int i = 1; i <= count; i++) {
-            dwellings.add(new DummyDwelling(i + "", this));
+            dwellings.add(new DummyDwelling(i + "", this, point));
         }
         this.point = point;
+    }
+
+    public DummyDwellingGroup(String name, int count, Point point, String postcode) {
+      this(name, count, point);
+      this.postcode = postcode;
     }
 
     @Override
