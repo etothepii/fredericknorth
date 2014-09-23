@@ -16,6 +16,7 @@
     <slf4j.version>1.6.4</slf4j.version>
     <log4j.version>1.2.12</log4j.version>
     <junit.version>4.11</junit.version>
+    <xerces.version>2.11.0</xerces.version>
     <spencerperceval.version>0.0.7</spencerperceval.version>
     <robertwalpole.version>0.0.2</robertwalpole.version>
     <williamcavendishbentinck.version>0.1.18</williamcavendishbentinck.version>
@@ -34,8 +35,8 @@
     <mysql.version>5.1.26</mysql.version>
     <spring.version>2.5.6</spring.version>
     <maven.compiler.version>2.3.2</maven.compiler.version>
-    <java.source.version>1.6</java.source.version>
-    <java.target.version>1.6</java.target.version>
+    <java.source.version>1.7</java.source.version>
+    <java.target.version>1.7</java.target.version>
     <shade.version>2.1</shade.version>
     <jsprit.version>1.4</jsprit.version>
   </properties>
@@ -140,6 +141,11 @@
       <artifactId>itextpdf</artifactId>
       <version>${itextpdf.version}</version>
       <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>${xerces.version}</version>
     </dependency>
     <dependency>
       <groupId>com.itextpdf.tool</groupId>
