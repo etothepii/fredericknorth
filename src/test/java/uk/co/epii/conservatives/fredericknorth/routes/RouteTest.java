@@ -9,6 +9,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.awt.*;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,7 +22,8 @@ public class RouteTest {
 
     @Test
     public void emptyRouteToXmlTest() throws Exception {
-        Route route = new RouteImpl(null, "Route 1");
+        RouteImpl route = new RouteImpl(null, "Route 1");
+        route.setUuid(UUID.fromString("dd62690c-f193-41d2-a999-9b088be3ef68"));
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         Document document = documentBuilder.newDocument();
