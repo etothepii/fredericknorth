@@ -28,6 +28,7 @@ public class DummyDwellingGroup implements DwellingGroup {
 
     public DummyDwellingGroup(String name, int count, Point point) {
         this.name = name;
+        this.commonName = name;
         dwellings = new ArrayList<Location>();
         for (int i = 1; i <= count; i++) {
             dwellings.add(new DummyDwelling(i + "", this, point));

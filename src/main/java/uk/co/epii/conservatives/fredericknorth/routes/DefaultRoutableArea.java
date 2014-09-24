@@ -137,6 +137,13 @@ public class DefaultRoutableArea implements RoutableArea {
     return route;
   }
 
+  public Route createRoute(String name, String uuid) {
+    RouteImpl route = new RouteImpl(this, name);
+    route.setUuid(UUID.fromString(uuid));
+    addRoute(route, this);
+    return route;
+  }
+
   private RouteImpl createRouteImpl(String name) {
     RouteImpl route = new RouteImpl(this, name);
     addRoute(route, this);

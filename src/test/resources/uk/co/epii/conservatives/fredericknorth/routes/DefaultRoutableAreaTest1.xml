@@ -5,10 +5,13 @@
     <Type>UNITARY_DISTRICT_WARD</Type>
     <Routes>
       <Route>
+        <UUID>613ea749-af7c-451c-ba5a-eba6c8d4057b</UUID>
         <Name>Route 3</Name>
         <DwellingGroups>
           <DwellingGroup>
-            <Key>CW3 1AAE535228N180890E Street</Key>
+            <Key>E535228N180890E Street</Key>
+            <X>535228</X>
+            <Y>180890</Y>
           </DwellingGroup>
         </DwellingGroups>
       </Route>
@@ -21,16 +24,23 @@
         <Type>POLLING_DISTRICT</Type>
         <Routes>
           <Route>
+            <UUID>df361dca-4aab-4289-b8c8-852be031957e</UUID>
             <Name>Route 1</Name>
             <DwellingGroups>
               <DwellingGroup>
-                <Key>CW1 1AAE535165N180986A Street</Key>
+                <Key>E535165N180986A Street</Key>
+                <X>535165</X>
+                <Y>180986</Y>
               </DwellingGroup>
               <DwellingGroup>
-                <Key>CW1 1AAE535215N180936A Street</Key>
+                <Key>E535215N180936A Street</Key>
+                <X>535215</X>
+                <Y>180936</Y>
               </DwellingGroup>
               <DwellingGroup>
-                <Key>CW1 1AAE535369N181182B Street</Key>
+                <Key>E535369N181182B Street</Key>
+                <X>535369</X>
+                <Y>181182</Y>
               </DwellingGroup>
             </DwellingGroups>
           </Route>
@@ -44,10 +54,13 @@
         <Type>POLLING_DISTRICT</Type>
         <Routes>
           <Route>
+            <UUID>0cb395cd-a11e-4793-b7b0-2dcc772be7b9</UUID>
             <Name>Route 2</Name>
             <DwellingGroups>
               <DwellingGroup>
-                <Key>CW2 1AAE535041N181125C Street</Key>
+                <Key>E535041N181125C Street</Key>
+                <X>535041</X>
+                <Y>181125</Y>
               </DwellingGroup>
             </DwellingGroups>
           </Route>
