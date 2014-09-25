@@ -13,12 +13,14 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
 
-    protected String commonName;
+  private static final int MAX_IDENTIFIER_SUMMARY_LENGTH = 20;
+  protected String commonName;
     private String name;
     private NumericIdentifierSummary numericIdentifierSummary;
     private NonNumericIdentifierSummary nonNumericsIdentifierSummary;
+    private String identifierSummary;
 
-    public AbstractDwellingGroupImpl(String commonName) {
+  public AbstractDwellingGroupImpl(String commonName) {
         this(commonName, null);
     }
 
@@ -42,15 +44,20 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
 
     @Override
     public String getIdentifierSummary() {
-        String identifierSummary;
         if (size() == 0 || (identifierSummary = establishIdentifierSummary()) == null ||
                 identifierSummary.length() == 0 || identifierSummary.equals("null")) {
             return null;
         }
-        return identifierSummary;
+        if (identifierSummary.length() < MAX_IDENTIFIER_SUMMARY_LENGTH) {
+            return identifierSummary;
+        }
+        return null;
     }
 
     private String establishIdentifierSummary() {
+        if (identifierSummary != null) {
+          return identifierSummary;
+        }
         if (size() == 0) {
             throw new RuntimeException("Impossible to get summary from no houses");
         }
