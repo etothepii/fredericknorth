@@ -9,7 +9,9 @@ import uk.co.epii.conservatives.fredericknorth.geometry.SquareSearchPolygonSifte
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.*;
+import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
+import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.pdf.RenderedRoute;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
@@ -23,6 +25,7 @@ import uk.co.epii.politics.williamcavendishbentinck.DatabaseSession;
 import uk.co.epii.politics.williamcavendishbentinck.tables.Leaflet;
 import uk.co.epii.politics.williamcavendishbentinck.tables.LeafletMap;
 import uk.co.epii.politics.williamcavendishbentinck.tables.Route;
+import uk.co.epii.politics.williamcavendishbentinck.tables.RouteMember;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -552,6 +555,16 @@ public class RouteBuilderPanelModel implements Activateable {
     Route databaseRoute = new Route(route.getUuid().toString(), route.getName(), parent.getId(), getOwner(), getOwnerGroup(),
             getDeliveredBy(), null);
     databaseSession.upload(Arrays.asList(databaseRoute));
+    List<RouteMember> routeMembers = new ArrayList<RouteMember>(route.getDwellingCount());
+    for (DwellingGroup dwellingGroup : route.getDwellingGroups()) {
+      for (Location location : dwellingGroup.getDwellings()) {
+        if (location instanceof DwellingDatabaseImpl) {
+          DwellingDatabaseImpl dwelling = (DwellingDatabaseImpl)location;
+          routeMembers.add(new RouteMember(0, databaseRoute.getId(), dwelling.getDeliveryPointAddress().getUprn()));
+        }
+      }
+    }
+    databaseSession.upload(routeMembers);
     return databaseRoute;
   }
 
