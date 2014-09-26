@@ -70,8 +70,10 @@ public class RouteBuilderPanel extends JPanel {
     private final LogarithmicJSlider targetSizeSlider;
     private final JTextField targetSizeField;
     private final MapImageObserver mapImageObserver;
+    private final DistributionWindow distributionWindow;
 
     public RouteBuilderPanel(RouteBuilderPanelModel RouteBuilderPanelModel, ApplicationContext applicationContext) throws HeadlessException {
+        distributionWindow = new DistributionWindow(SwingUtilities.getWindowAncestor(this), new DistributionModel());
         progressTracker = new ProgressTrackerJProgressBar(1);
         routeBuilderPanelModel = RouteBuilderPanelModel;
         routeBuilderPanelModel.setProgressTracker(progressTracker);
@@ -401,10 +403,13 @@ public class RouteBuilderPanel extends JPanel {
                     fileChooser.setSelectedFile(exportTo);
                 }
                 int returnValue = fileChooser.showSaveDialog(routeBuilderPanel);
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    exportTo = fileChooser.getSelectedFile();
-                    routeBuilderPanelModel.export(exportTo);
+                if (returnValue != JFileChooser.APPROVE_OPTION) {
+                  return;
                 }
+                exportTo = fileChooser.getSelectedFile();
+                distributionWindow.setVisible(true);
+                DistributionModel distributionModel = distributionWindow.getDistributionModel();
+                routeBuilderPanelModel.export(exportTo, distributionModel);
             }
         });
         mapPanel.addMouseWheelListener(new MouseWheelListener() {

@@ -19,12 +19,12 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBoundedArea.class);
 
-    public DefaultBoundedArea(BoundedAreaType type, String name) {
-        super(type, name);
+    public DefaultBoundedArea(BoundedArea parent, BoundedAreaType type, String name) {
+        super(parent, type, name);
     }
 
     public DefaultBoundedArea(BoundedArea boundedArea) {
-        super(boundedArea.getBoundedAreaType(), boundedArea.getName());
+        super(boundedArea.getParent(), boundedArea.getBoundedAreaType(), boundedArea.getName());
         for (Polygon polygon : boundedArea.getAreas()) {
             List<Point> points = new ArrayList<Point>();
             getPoints().add(points);
@@ -44,14 +44,14 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
         }
     }
 
-    public static DefaultBoundedArea load(Element boundedArea) {
+    public static DefaultBoundedArea load(BoundedArea parent, Element boundedArea) {
         if (!boundedArea.getTagName().equals("BoundedArea"))
             throw new IllegalArgumentException("The element provided is not a BoundedArea");
 
         String name = boundedArea.getElementsByTagName("Name").item(0).getTextContent();
         BoundedAreaType boundedAreaType = BoundedAreaType.valueOf(
                 boundedArea.getElementsByTagName("Type").item(0).getTextContent());
-        DefaultBoundedArea defaultBoundedArea = new DefaultBoundedArea(boundedAreaType, name);
+        DefaultBoundedArea defaultBoundedArea = new DefaultBoundedArea(parent, boundedAreaType, name);
         NodeList uuidList = boundedArea.getElementsByTagName("UUID");
         if (uuidList.getLength() == 0) {
           LOG.warn("Loaded BoundedArea without a uuid");
@@ -77,7 +77,7 @@ public class DefaultBoundedArea extends AbstractBoundedArea {
             for (int i = 0; i < childrenList.getLength(); i++) {
                 Element child = (Element)childrenList.item(i);
                 if (child.getParentNode() == children) {
-                    DefaultBoundedArea loaded = load(child);
+                    DefaultBoundedArea loaded = load(defaultBoundedArea, child);
                     if (loaded.getBoundedAreaType() == boundedAreaType.getChildType()) {
                         defaultBoundedArea.getChildrenList().add(loaded);
                     }

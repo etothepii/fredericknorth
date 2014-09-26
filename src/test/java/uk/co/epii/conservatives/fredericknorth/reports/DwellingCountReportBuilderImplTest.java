@@ -78,6 +78,7 @@ public class DwellingCountReportBuilderImplTest {
 
         private String name;
         private BoundedArea[] boundedAreas;
+        private BoundedArea parent;
 
         private DummyBoundedArea(String name) {
             this.name = name;
@@ -92,6 +93,14 @@ public class DwellingCountReportBuilderImplTest {
       @Override
       public UUID getUuid() {
         return UUID.fromString("0000000");
+      }
+
+      public BoundedArea getParent() {
+        return parent;
+      }
+
+      public void setParent(BoundedArea parent) {
+        this.parent = parent;
       }
 
       @Override

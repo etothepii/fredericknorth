@@ -10,6 +10,7 @@ import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtens
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.*;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
+import uk.co.epii.conservatives.fredericknorth.pdf.RenderedRoute;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
@@ -18,12 +19,17 @@ import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRenderer;
+import uk.co.epii.politics.williamcavendishbentinck.DatabaseSession;
+import uk.co.epii.politics.williamcavendishbentinck.tables.Leaflet;
+import uk.co.epii.politics.williamcavendishbentinck.tables.LeafletMap;
+import uk.co.epii.politics.williamcavendishbentinck.tables.Route;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
+import java.sql.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -492,14 +498,17 @@ public class RouteBuilderPanelModel implements Activateable {
         setSelectedBoundedArea(boundedAreaSelectionModel.getSelected(), true);
     }
 
-    public void export(final File selectedFile) {
+    public void export(final File selectedFile, final DistributionModel distributionModel) {
         synchronized (pdfRenderer) {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
                     synchronized (pdfRenderer) {
                         pdfRenderer.setMeetingPoints(boundedAreaSelectionModel.getMeetingPoints());
-                        pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()), selectedFile, progressTracker);
+                        Collection<RenderedRoute> renderedRoutes =
+                                pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()),
+                                        selectedFile, progressTracker);
+                        uploadRenderedRoutes(progressTracker, distributionModel, renderedRoutes);
                         enable();
                     }
                 }
@@ -508,7 +517,76 @@ public class RouteBuilderPanelModel implements Activateable {
         }
     }
 
-    public void invertSelectionInRoutedAndUnrouted() {
+  private void uploadRenderedRoutes(ProgressTracker progressTracker, DistributionModel distributionModel, Collection<RenderedRoute> renderedRoutes) {
+    if (distributionModel == null) {
+      progressTracker.increment();
+      return;
+    }
+    DatabaseSession databaseSession = applicationContext.getDefaultInstance(DatabaseSession.class);
+    Leaflet leaflet = new Leaflet(UUID.randomUUID().toString(),
+            new java.sql.Date(distributionModel.getDistributionStart().getTime()),
+            distributionModel.getTitle(),
+            distributionModel.getDescription());
+    databaseSession.upload(Arrays.asList(leaflet));
+    progressTracker.startSubsection(renderedRoutes.size());
+    for (RenderedRoute renderedRoute : renderedRoutes) {
+      uploadRenderedRoute(databaseSession, leaflet, renderedRoute);
+      progressTracker.increment();
+    }
+  }
+
+  private void uploadRenderedRoute(DatabaseSession databaseSession, Leaflet leaflet, RenderedRoute renderedRoute) {
+    Route route = getRouteFromDatabase(databaseSession, renderedRoute.getRoute());
+    LeafletMap leafletMap = new LeafletMap(
+            renderedRoute.getUUID().toString(), leaflet.getId(), route.getId(), null, null);
+    databaseSession.upload(Arrays.asList(leafletMap));
+  }
+
+  private Route getRouteFromDatabase(DatabaseSession databaseSession, uk.co.epii.conservatives.fredericknorth.routes.Route route) {
+    List<Route> routes = databaseSession.getByUuid(Route.class, route.getUuid());
+    if (routes.size() > 0) {
+      return routes.get(0);
+    }
+    uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea parent =
+            getBoundedArea(databaseSession, route.getRoutableArea().getBoundedArea());
+    Route databaseRoute = new Route(route.getUuid().toString(), route.getName(), parent.getId(), getOwner(), getOwnerGroup(),
+            getDeliveredBy(), null);
+    databaseSession.upload(Arrays.asList(databaseRoute));
+    return databaseRoute;
+  }
+
+  private Integer getDeliveredBy() {
+    return null;
+  }
+
+  private uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea getBoundedArea(
+          DatabaseSession databaseSession, BoundedArea boundedArea) {
+    if (boundedArea == null) {
+      return null;
+    }
+    List<uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea> boundedAreas = databaseSession.getByUuid(
+            uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea.class, boundedArea.getUuid());
+    if (boundedAreas.size() > 0) {
+      return boundedAreas.get(0);
+    }
+    uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea parent =
+            getBoundedArea(databaseSession, boundedArea.getParent());
+    uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea databaseBoundedArea =
+            new uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea(boundedArea.getUuid().toString(),
+                    parent.getId(), getOwner(), getOwnerGroup(), boundedArea.getName(), null);
+    databaseSession.upload(Arrays.asList(databaseBoundedArea));
+    return databaseBoundedArea;
+  }
+
+  private Integer getOwnerGroup() {
+    return null;
+  }
+
+  private Integer getOwner() {
+    return null;
+  }
+
+  public void invertSelectionInRoutedAndUnrouted() {
         routedAndUnroutedToolTipModel.invertSelection();
         for (DwellingGroup dwellingGroup :
                 routedAndUnroutedToolTipModel.getDwellingGroupModel().getSelected(SelectedState.SELECTED)) {

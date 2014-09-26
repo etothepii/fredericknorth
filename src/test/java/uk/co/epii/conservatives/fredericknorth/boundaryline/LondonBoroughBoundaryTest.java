@@ -37,12 +37,13 @@ public class LondonBoroughBoundaryTest {
 
         SimpleFeatureIterator wardIterator = wards.getFeatureSource().getFeatures().features();
         BoundaryLineFeature towerHamletsBoundary =
-                new BoundaryLineFeature(towerHamlets, BoundedAreaType.UNITARY_DISTRICT);
+                new BoundaryLineFeature(null, towerHamlets, BoundedAreaType.UNITARY_DISTRICT);
         while (wardIterator.hasNext()) {
             SimpleFeature ward = wardIterator.next();
             MultiPolygon wardMultiPolygon = (MultiPolygon)ward.getAttribute("the_geom");
             if (towerHamletsPolygon.contains(wardMultiPolygon)) {
-                towerHamletsBoundary.addChild(new BoundaryLineFeature(ward, BoundedAreaType.UNITARY_DISTRICT_WARD));
+                towerHamletsBoundary.addChild(new BoundaryLineFeature(towerHamletsBoundary, ward,
+                        BoundedAreaType.UNITARY_DISTRICT_WARD));
             }
         }
         ApplicationContext applicationContext = new TestApplicationContext();

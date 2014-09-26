@@ -17,6 +17,7 @@ import java.util.UUID;
  */
 public interface BoundedArea {
 
+    public BoundedArea getParent();
     public UUID getUuid();
     public String getName();
     public void setName(String name);

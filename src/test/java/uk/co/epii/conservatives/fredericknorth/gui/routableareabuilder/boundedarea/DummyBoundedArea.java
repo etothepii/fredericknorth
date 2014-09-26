@@ -1,6 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.boundedarea;
 
 import uk.co.epii.conservatives.fredericknorth.boundaryline.AbstractBoundedArea;
+import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedAreaType;
 
 import java.awt.*;
@@ -14,8 +15,8 @@ import java.util.List;
  */
 public class DummyBoundedArea extends AbstractBoundedArea {
 
-    public DummyBoundedArea(BoundedAreaType type, String name, Polygon polygon) {
-        super(type, name);
+    public DummyBoundedArea(BoundedArea parent, BoundedAreaType type, String name, Polygon polygon) {
+        super(parent, type, name);
         List<List<Point>> list = getPoints();
         List<Point> points = new ArrayList<Point>();
         list.add(points);

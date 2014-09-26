@@ -52,7 +52,7 @@ public class RouteBuilderPanelModelTest {
 
     @Before
     public void setUp() throws Exception {
-        BoundedArea neighbourhood = new DummyBoundedArea(BoundedAreaType.NEIGHBOURHOOD,
+        BoundedArea neighbourhood = new DummyBoundedArea(null, BoundedAreaType.NEIGHBOURHOOD,
                 "A Bounded Area", new Polygon(new int[] {0, 0, 100, 100}, new int[] {0, 100, 100, 0}, 4));
         routableArea = new DefaultRoutableArea(neighbourhood, null);
         bRoad = new DummyDwellingGroup("B Road", 25, new Point(10, 90));

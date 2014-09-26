@@ -13,7 +13,7 @@ import java.io.File;
 public interface BoundedAreaFactory {
 
     public BoundedArea load(File file);
-    public BoundedArea load(Element element);
+    public BoundedArea load(BoundedArea boundedArea, Element element);
     public BoundedArea load(Document document);
     public BoundedArea load(String string);
 

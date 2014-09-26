@@ -26,13 +26,13 @@ class BoundedAreaFactoryImpl implements BoundedAreaFactory {
     }
 
     @Override
-    public BoundedArea load(Element element) {
-        return DefaultBoundedArea.load(element);
+    public BoundedArea load(BoundedArea parent, Element element) {
+        return DefaultBoundedArea.load(parent, element);
     }
 
     @Override
     public BoundedArea load(Document document) {
-        return load(document.getDocumentElement());
+        return load(null, document.getDocumentElement());
     }
 
     @Override

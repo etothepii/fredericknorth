@@ -21,8 +21,8 @@ public class BoundaryLineFeature extends AbstractBoundedArea {
 
     private SimpleFeature boundaryLineFeature;
 
-    public BoundaryLineFeature(SimpleFeature boundaryLineFeature, BoundedAreaType boundedAreaType) {
-        super(boundedAreaType, "");
+    public BoundaryLineFeature(BoundedArea parent, SimpleFeature boundaryLineFeature, BoundedAreaType boundedAreaType) {
+        super(parent, boundedAreaType, "");
         this.boundaryLineFeature = boundaryLineFeature;
         MultiPolygon multiPolygon = (MultiPolygon)this.boundaryLineFeature.getAttribute("the_geom");
         setName((String)this.boundaryLineFeature.getAttribute("NAME"));

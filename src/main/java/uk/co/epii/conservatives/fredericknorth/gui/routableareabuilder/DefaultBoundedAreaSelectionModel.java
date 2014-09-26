@@ -345,7 +345,7 @@ public class DefaultBoundedAreaSelectionModel extends AbstractBoundedAreaSelecti
             if (elt.getParentNode() != boundedAreasElt) {
                 continue;
             }
-            BoundedArea boundedArea = boundedAreaFactory.load(elt);
+            BoundedArea boundedArea = boundedAreaFactory.load(null, elt);
             typesWitnessed.add(boundedArea.getBoundedAreaType());
             masterAreas.add(boundedArea);
         }

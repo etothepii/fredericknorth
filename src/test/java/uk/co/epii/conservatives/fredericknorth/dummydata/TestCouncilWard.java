@@ -40,9 +40,9 @@ public class TestCouncilWard {
     public static DwellingGroupDatabaseImpl cwStreetF;
 
     public static void reset() {
-        councilWard = new DefaultBoundedArea(BoundedAreaType.UNITARY_DISTRICT_WARD, "Council Ward");
-        postalDistrictCW1 = new DefaultBoundedArea(BoundedAreaType.POLLING_DISTRICT, "CW1");
-        postalDistrictCW2 = new DefaultBoundedArea(BoundedAreaType.POLLING_DISTRICT, "CW2");
+        councilWard = new DefaultBoundedArea(null, BoundedAreaType.UNITARY_DISTRICT_WARD, "Council Ward");
+        postalDistrictCW1 = new DefaultBoundedArea(councilWard, BoundedAreaType.POLLING_DISTRICT, "CW1");
+        postalDistrictCW2 = new DefaultBoundedArea(councilWard, BoundedAreaType.POLLING_DISTRICT, "CW2");
         councilWard.addChild(postalDistrictCW1);
         councilWard.addChild(postalDistrictCW2);
         councilWardRoutes = new DefaultRoutableArea(councilWard, null);

@@ -22,7 +22,7 @@ public class DistributionWindow extends JDialog {
   private JButton no;
   private boolean cancelled;
 
-  public DistributionWindow(JFrame owner, DistributionModel distributionModel) {
+  public DistributionWindow(Window owner, DistributionModel distributionModel) {
     super(owner, "Would you like to attach these route maps to a Leaflet?", ModalityType.APPLICATION_MODAL);
     getContentPane().setBackground(Color.WHITE);
     title = new JTextField();

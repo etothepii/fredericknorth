@@ -29,17 +29,24 @@ public class AbstractBoundedArea implements BoundedArea, Iterable<BoundedArea> {
     private String name;
     private UUID uuid;
     private final BoundedAreaType type;
+    private final BoundedArea parent;
     protected final List<List<Point>> _points;
     protected final List<List<Point>> _enclavePoints;
     protected final List<BoundedArea> _childrenList;
 
-    protected AbstractBoundedArea(BoundedAreaType type, String name) {
+    protected AbstractBoundedArea(BoundedArea parent, BoundedAreaType type, String name) {
+        this.parent = parent;
         this.type = type;
         this.name = name;
         _points = new ArrayList<List<Point>>();
         _enclavePoints = new ArrayList<List<Point>>();
         _childrenList = new ArrayList<BoundedArea>();
     }
+
+  @Override
+  public BoundedArea getParent() {
+    return parent;
+  }
 
   public UUID getUuid() {
     if (uuid == null) {

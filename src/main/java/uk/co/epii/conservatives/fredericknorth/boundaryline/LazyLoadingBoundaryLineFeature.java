@@ -28,9 +28,9 @@ public class LazyLoadingBoundaryLineFeature extends AbstractBoundedArea {
     private volatile boolean loadedPoints = false;
     private volatile boolean loadedChildren = false;
 
-    LazyLoadingBoundaryLineFeature(BoundaryLineController boundaryLineController,
+    LazyLoadingBoundaryLineFeature(BoundedArea parent, BoundaryLineController boundaryLineController,
                                    SimpleFeature boundaryLineFeature, BoundedAreaType boundedAreaType) {
-        super(boundedAreaType, "");
+        super(parent, boundedAreaType, "");
         this.boundaryLineController = boundaryLineController;
         this.boundaryLineFeature = boundaryLineFeature;
         setName((String)this.boundaryLineFeature.getAttribute("NAME"));

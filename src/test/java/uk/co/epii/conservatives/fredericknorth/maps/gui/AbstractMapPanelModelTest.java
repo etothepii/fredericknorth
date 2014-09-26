@@ -37,7 +37,7 @@ public class AbstractMapPanelModelTest {
         hashMap.put(BoundedAreaType.POLLING_DISTRICT, Color.RED);
         abstractMapPanelModel.setOverlayRenderer(BoundedArea.class, BoundedAreaExtensions.getOverlayRenderer(hashMap, 5));
         BoundedAreaOverlayItem boundedAreaOverlayItem = new BoundedAreaOverlayItem(
-                new AbstractBoundedArea(BoundedAreaType.POLLING_DISTRICT, "Blah") {
+                new AbstractBoundedArea(null, BoundedAreaType.POLLING_DISTRICT, "Blah") {
             @Override
             public BoundedArea[] getChildren() {
                 return new BoundedArea[0];

@@ -17,5 +17,5 @@ public interface BoundaryLineController {
     public List<BoundedArea> getKnownDescendents(BoundedArea parent, BoundedAreaType type);
     public BoundedArea getContainingFeature(BoundedAreaType type, double x, double y);
     public BoundedArea getContainingFeature(BoundedAreaType type, Point p);
-    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, Polygon[] s);
+    public List<BoundedArea> getFeaturesContainedWithin(BoundedAreaType type, BoundedArea boundedArea);
 }

@@ -32,7 +32,7 @@ public class BoundedAreaConstructor extends AbstractBoundedArea implements Exten
     private List<Point> inbetweenPoints;
 
     public BoundedAreaConstructor(BoundedArea parent, BoundedAreaType boundedAreaType, String name) {
-        super(boundedAreaType, name);
+        super(parent, boundedAreaType, name);
         previousNeighbours = null;
         this.parent = parent;
         getPoints().add(new ArrayList<Point>());
