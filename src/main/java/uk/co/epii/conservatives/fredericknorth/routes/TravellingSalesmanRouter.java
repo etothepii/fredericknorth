@@ -7,12 +7,12 @@ import jsprit.core.problem.job.Job;
 import jsprit.core.problem.job.Service;
 import jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import jsprit.core.problem.solution.route.VehicleRoute;
-import jsprit.core.problem.solution.route.activity.TourActivity;
 import jsprit.core.util.Coordinate;
 import jsprit.core.util.Solutions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
+import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.spencerperceval.tuple.Duple;
 
 import java.awt.*;
@@ -35,19 +35,35 @@ public class TravellingSalesmanRouter extends AbstractRouter {
   private Map<Point, Duple<List<IndivisbleChunk>, Double>> colocatedChunks;
   private Map<Point, String> pointsToNodes;
   private Map<String, Point> nodesToPoints;
+  private int targetSize;
 
   @Override
   public List<Route> createRoutes(RoutableArea routing, Collection<IndivisbleChunk> chunks, int targetSize) {
     reset(routing);
+    this.targetSize = targetSize;
     groupByLocation(chunks);
-    removeOverLarge(targetSize);
-    Vehicle vehicle = buildVehicle(targetSize);
+    removeOverLarge();
     List<Service> services = createServices();
-    VehicleRoutingProblem problem = createProblem(Arrays.asList(vehicle), services);
-    VehicleRoutingProblemSolution solution = solve(problem);
+    List<Vehicle> vehicles = buildVehicles();
+    VehicleRoutingProblem problem = createProblem(vehicles, services);
+    VehicleRoutingProblemSolution solution = solve(problem, 2048);
     extractRoutes(solution);
+    LOG.debug("Cars Used: {}/{}", solution.getRoutes().size(), vehicles.size());
     removeCommonEndings();
     return routes;
+  }
+
+  private List<Vehicle> buildVehicles() {
+    double totalDwellings = 0;
+    for (Duple<List<IndivisbleChunk>, Double> duple : colocatedChunks.values()) {
+      totalDwellings += duple.getSecond();
+    }
+    int vehicles = (int)Math.ceil(totalDwellings / targetSize);
+    List<Vehicle> vehiclesList = new ArrayList<Vehicle>(vehicles);
+    for (int i = 0; i < vehicles; i++) {
+      vehiclesList.add(buildVehicle(targetSize * 2, false));
+    }
+    return vehiclesList;
   }
 
   private void extractRoutes(VehicleRoutingProblemSolution solution) {
@@ -63,8 +79,9 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     }
   }
 
-  private VehicleRoutingProblemSolution solve(VehicleRoutingProblem problem) {
+  private VehicleRoutingProblemSolution solve(VehicleRoutingProblem problem, int iterations) {
     VehicleRoutingAlgorithm algorithm = new SchrimpfFactory().createAlgorithm(problem);
+    algorithm.setMaxIterations(iterations);
     Collection<VehicleRoutingProblemSolution> solutions = algorithm.searchSolutions();
     return Solutions.bestOf(solutions);
   }
@@ -82,16 +99,52 @@ public class TravellingSalesmanRouter extends AbstractRouter {
       Point point = entry.getKey();
       Service.Builder builder = Service.Builder.newInstance(pointsToNodes.get(point));
       builder.addSizeDimension(WEIGHT_INDEX, entry.getValue().getSecond().intValue());
+      builder.setServiceTime(calculateServiceTime(entry.getValue().getFirst()));
       builder.setCoord(Coordinate.newInstance(point.x, point.y));
       services.add(builder.build());
     }
     return services;
   }
 
-  private Vehicle buildVehicle(int targetSize) {
+  private double calculateServiceTime(List<IndivisbleChunk> chunks) {
+    StringBuilder postcodes = new StringBuilder();
+    Set<String> postcodesSet = new HashSet<String>();
+    Vehicle vehicle = buildVehicle(targetSize, true);
+    List<Service> services = new ArrayList<>();
+    for (IndivisbleChunk chunk : chunks) {
+      for (DwellingGroup dwellingGroup : chunk.getDwellingGroups()) {
+        for (String postcode : dwellingGroup.getPostcodes()) {
+          if (postcodesSet.add(postcode)) {
+            postcodes.append(postcode);
+            postcodes.append(" ");
+          }
+        }
+        Service.Builder builder = Service.Builder.newInstance("Building " + (services.size() + 1));
+        builder.addSizeDimension(WEIGHT_INDEX, dwellingGroup.size());
+        builder.setServiceTime(dwellingGroup.size());
+        builder.setCoord(Coordinate.newInstance(dwellingGroup.getPoint().x, dwellingGroup.getPoint().y));
+        services.add(builder.build());
+      }
+    }
+    VehicleRoutingProblem problem = createProblem(Arrays.asList(vehicle), services);
+    VehicleRoutingProblemSolution solution = solve(problem, 16);
+    if (solution.getRoutes().size() != 1) {
+      throw new RuntimeException("Multiple routes created to deliver one chunk");
+    }
+    VehicleRoute vehicleRoute = solution.getRoutes().iterator().next();
+    double time = vehicleRoute.getEnd().getArrTime() - vehicleRoute.getStart().getArrTime();
+    LOG.debug("Delivered {} in {}", postcodes, time);
+    return time;
+  }
+
+  private Vehicle buildVehicle(int targetSize, boolean withinChunk) {
     VehicleTypeImpl.Builder vehicleTypeBuilder =
             VehicleTypeImpl.Builder.newInstance("vehicleType");
     vehicleTypeBuilder.addCapacityDimension(WEIGHT_INDEX, targetSize);
+    vehicleTypeBuilder.setFixedCost(0);
+    vehicleTypeBuilder.setCostPerDistance(0);
+    vehicleTypeBuilder.setCostPerTime(0);
+    vehicleTypeBuilder.setMaxVelocity(withinChunk ? 1 : 2);
     VehicleType vehicleType = vehicleTypeBuilder.build();
     VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
     Point2D cog = PolygonExtensions.getCentreOfGravity(routing.getBoundedArea().getAreas());
@@ -100,7 +153,7 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     return vehicleBuilder.build();
   }
 
-  private void removeOverLarge(int targetSize) {
+  private void removeOverLarge() {
     for (Point point : new ArrayList<Point>(colocatedChunks.keySet())) {
       Duple<List<IndivisbleChunk>, Double> duple = colocatedChunks.get(point);
       if (duple.getSecond() > targetSize) {
