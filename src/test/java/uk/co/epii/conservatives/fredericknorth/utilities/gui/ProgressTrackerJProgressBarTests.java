@@ -26,6 +26,34 @@ public class ProgressTrackerJProgressBarTests {
         assertEquals(0, progressTracker.getValue());
     }
 
+  @Test
+  public void incrementsWithChildrenOfSize1() {
+    ProgressTrackerJProgressBar progressBar = new ProgressTrackerJProgressBar(10);
+    progressBar.startSubsection(1);
+    progressBar.increment();
+    assertEquals(10, progressBar.getMaximum());
+    assertEquals(1, progressBar.getValue());
+  }
+
+  @Test
+  public void incrementsWithChildrenOfVaryingSizes() {
+    int[][] values = new int[][] {new int[] {2,3,0,1,6},new int[] {0,9,4},new int[] {7,1,0,3}, new int[] {},new int[] {0}};
+    ProgressTrackerJProgressBar progressBar = new ProgressTrackerJProgressBar(values.length);
+    for (int[] value : values) {
+      progressBar.startSubsection(value.length + 1);
+      for (int v : value) {
+        progressBar.startSubsection(v + 1);
+        for (int j = 0; j < v; j++) {
+          progressBar.increment();
+        }
+        progressBar.increment();
+      }
+      progressBar.increment();
+    }
+    assertEquals(1, progressBar.getMaximum());
+    assertEquals(0, progressBar.getValue());
+  }
+
     @Test
     public void canIncrementToTwentyLotsOfSeventeen() {
         ProgressTracker progressTracker = new ProgressTrackerJProgressBar(20);
