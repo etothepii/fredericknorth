@@ -62,6 +62,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final Executor executor;
     private final XMLSerializer xmlSerializer;
     private final SelectedBoundedAreaChangedListener selectedBoundedAreaChangedListener;
+    private final Object sync = new Object();
 
     private MapViewGenerator mapViewGenerator;
     private boolean dwellingGroupsBeingUpdated = false;
@@ -611,14 +612,25 @@ public class RouteBuilderPanelModel implements Activateable {
         }
     }
 
-    public void autoGenerate(int targetSize, boolean unroutedOnly) {
-        BoundedArea boundedArea = boundedAreaSelectionModel.getSelected();
+    public void autoGenerate(final int targetSize, final boolean unroutedOnly) {
+        final BoundedArea boundedArea = boundedAreaSelectionModel.getSelected();
         if (boundedArea == null) {
             return;
         }
-        RoutableArea routableArea = getRoutableArea(boundedArea);
-        routableArea.autoGenerate(targetSize, unroutedOnly);
-        routesModel.update();
+        synchronized (sync) {
+          disable();
+          executor.execute(new Runnable() {
+            @Override
+            public void run() {
+              synchronized (sync) {
+                RoutableArea routableArea = getRoutableArea(boundedArea);
+                routableArea.autoGenerate(progressTracker, targetSize, unroutedOnly);
+                routesModel.update();
+                enable();
+              }
+            }
+          });
+        }
     }
 
     public void setProgressTracker(ProgressTracker progressTracker) {

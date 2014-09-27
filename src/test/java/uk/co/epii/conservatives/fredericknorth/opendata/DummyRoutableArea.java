@@ -7,6 +7,7 @@ import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
 import uk.co.epii.conservatives.fredericknorth.routes.Route;
 import uk.co.epii.conservatives.fredericknorth.routes.Router;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.io.File;
@@ -180,7 +181,7 @@ public class DummyRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void autoGenerate(int targetSize, boolean unroutedOnly) {
+    public void autoGenerate(ProgressTracker progressTracker, int targetSize, boolean unroutedOnly) {
     }
 
 }

@@ -1,12 +1,14 @@
 package uk.co.epii.conservatives.fredericknorth.routes;
-
-import org.apache.log4j.Logger;
+;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializerImpl;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -16,7 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.List;
+import java.util.List;;
 
 /**
  * User: James Robinson
@@ -25,7 +27,7 @@ import java.util.List;
  */
 public class DefaultRoutableArea implements RoutableArea {
 
-  private static final Logger LOG = Logger.getLogger(DefaultRoutableArea.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultRoutableArea.class);
 
     private final BoundedArea boundedArea;
     private final HashSet<Route> routes;
@@ -112,16 +114,20 @@ public class DefaultRoutableArea implements RoutableArea {
     }
 
     @Override
-    public void autoGenerate(int targetSize, boolean unroutedOnly) {
+    public void autoGenerate(ProgressTracker progressTracker, int targetSize, boolean unroutedOnly) {
         if (!unroutedOnly) {
             for (Route route : routes) {
                 removeRoute(route, this);
             }
         }
+        progressTracker.startSubsection(children.size() + 1);
+        LOG.debug("Progress {}: {}/{}", new Object[] {getName(), progressTracker.getValue(), progressTracker.getMaximum()});
         for (RoutableArea child : children.values()) {
-            child.autoGenerate(targetSize, unroutedOnly);
+            child.autoGenerate(progressTracker, targetSize, unroutedOnly);
         }
         routeUnrouted(targetSize);
+        progressTracker.increment();
+        LOG.debug("Progress {}: {}/{}", new Object[] {getName(), progressTracker.getValue(), progressTracker.getMaximum()});
     }
 
   private void routeUnrouted(int targetSize) {

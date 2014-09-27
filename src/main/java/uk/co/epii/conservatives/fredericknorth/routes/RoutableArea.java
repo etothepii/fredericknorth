@@ -6,6 +6,7 @@ import uk.co.epii.conservatives.fredericknorth.boundaryline.BoundedArea;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.conservatives.fredericknorth.utilities.ProgressTracker;
 
 import java.awt.*;
 import java.io.File;
@@ -25,7 +26,7 @@ public interface RoutableArea {
     public Collection<? extends DwellingGroup> getUnroutedDwellingGroups();
     public Collection<? extends DwellingGroup> getDwellingGroups();
     public Element toXml(Document document);
-    public void autoGenerate(int targetSize, boolean unroutedOnly);
+    public void autoGenerate(ProgressTracker progressTracker, int targetSize, boolean unroutedOnly);
     public Route createRoute(String name);
     public int getRouteCount();
     public void removeAll();
