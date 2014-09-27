@@ -35,6 +35,7 @@ public class TravellingSalesmanRouter extends AbstractRouter {
   private Map<Point, Duple<List<IndivisbleChunk>, Double>> colocatedChunks;
   private Map<Point, String> pointsToNodes;
   private Map<String, Point> nodesToPoints;
+  private Rectangle bounds;
   private int targetSize;
 
   @Override
@@ -61,7 +62,7 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     int vehicles = (int)Math.ceil(totalDwellings / targetSize);
     List<Vehicle> vehiclesList = new ArrayList<Vehicle>(vehicles);
     for (int i = 0; i < vehicles; i++) {
-      vehiclesList.add(buildVehicle(targetSize * 2, false));
+      vehiclesList.add(buildVehicle(targetSize * 3 / 2, false, getRandomPointWithinBounds()));
     }
     return vehiclesList;
   }
@@ -90,6 +91,7 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
     vrpBuilder.addAllVehicles(vehicles);
     vrpBuilder.addAllJobs(services);
+    vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
     return vrpBuilder.build();
   }
 
@@ -109,7 +111,7 @@ public class TravellingSalesmanRouter extends AbstractRouter {
   private double calculateServiceTime(List<IndivisbleChunk> chunks) {
     StringBuilder postcodes = new StringBuilder();
     Set<String> postcodesSet = new HashSet<String>();
-    Vehicle vehicle = buildVehicle(targetSize, true);
+    Vehicle vehicle = buildVehicle(targetSize, true, chunks.get(0).getMedian());
     List<Service> services = new ArrayList<>();
     for (IndivisbleChunk chunk : chunks) {
       for (DwellingGroup dwellingGroup : chunk.getDwellingGroups()) {
@@ -137,18 +139,22 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     return time;
   }
 
-  private Vehicle buildVehicle(int targetSize, boolean withinChunk) {
+  private Point getRandomPointWithinBounds() {
+    return new Point (
+            (int)(Math.random() * bounds.width + bounds.x), (int)(Math.random() * bounds.height + bounds.y));
+  }
+
+  private Vehicle buildVehicle(int targetSize, boolean withinChunk, Point depot) {
     VehicleTypeImpl.Builder vehicleTypeBuilder =
             VehicleTypeImpl.Builder.newInstance("vehicleType");
     vehicleTypeBuilder.addCapacityDimension(WEIGHT_INDEX, targetSize);
     vehicleTypeBuilder.setFixedCost(0);
-    vehicleTypeBuilder.setCostPerDistance(0);
+    vehicleTypeBuilder.setCostPerDistance(100);
     vehicleTypeBuilder.setCostPerTime(0);
     vehicleTypeBuilder.setMaxVelocity(withinChunk ? 1 : 2);
     VehicleType vehicleType = vehicleTypeBuilder.build();
-    VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-    Point2D cog = PolygonExtensions.getCentreOfGravity(routing.getBoundedArea().getAreas());
-    vehicleBuilder.setStartLocationCoordinate(Coordinate.newInstance((int)cog.getX(), (int)cog.getY()));
+    VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance(UUID.randomUUID().toString());
+    vehicleBuilder.setStartLocationCoordinate(Coordinate.newInstance(depot.x, depot.y));
     vehicleBuilder.setType(vehicleType);
     return vehicleBuilder.build();
   }
@@ -166,6 +172,7 @@ public class TravellingSalesmanRouter extends AbstractRouter {
   @Override
   protected void reset(RoutableArea routing) {
     super.reset(routing);
+    bounds = PolygonExtensions.getBounds(routing.getBoundedArea().getAreas());
     colocatedChunks = new HashMap<Point, Duple<List<IndivisbleChunk>, Double>>();
     pointsToNodes = new HashMap<Point, String>();
     nodesToPoints = new HashMap<String, Point>();
