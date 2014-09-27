@@ -88,6 +88,12 @@ public class RouteBuilderPanel extends JPanel {
                 applicationContext.getProperty(RouteMapFilesFilterKey));
         routedAndUnroutedToolTipFrame = new RoutedAndUnroutedToolTipFrame(
                 routeBuilderPanelModel.getRoutedAndUnroutedToolTipModel(), dwellingCountColumnWidth);
+        SwingUtilities.getWindowAncestor(this).addWindowListener(new WindowAdapter() {
+          @Override
+          public void windowLostFocus(WindowEvent e) {
+            routedAndUnroutedToolTipFrame.setVisible(false);
+          }
+        });
         workingDirectory = createWorkingDirectory(applicationContext);
         mapImageObserver = createMapImageObserver();
         routeBuilderPanelModel.getMapPanelModel().setMapImageObserver(mapImageObserver);
@@ -240,7 +246,9 @@ public class RouteBuilderPanel extends JPanel {
         JTable dwellingGroupTable = new JTable(dwellingGroupModel);
         dwellingGroupTable.setSelectionModel(dwellingGroupModel.getListSelectionModel());
         dwellingGroupTable.setRowSorter(dwellingGroupModel.getRowSorter());
-        dwellingGroupTable.getColumnModel().getColumn(0).setCellRenderer(new DwellingGroupNameCellRendeder());
+        dwellingGroupTable.getColumnModel().getColumn(0).setCellRenderer(new DwellingGroupNameCellRendeder(
+                dwellingGroupTable.getColumnModel().getColumn(0).getCellRenderer()
+        ));
         return dwellingGroupTable;
     }
 

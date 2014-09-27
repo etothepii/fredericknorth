@@ -32,7 +32,9 @@ class RoutedAndUnroutedToolTipFrame extends JFrame {
         dwellingGroupsTable.setSelectionModel(
                 routedAndUnroutedToolTipModel.getDwellingGroupModel().getListSelectionModel());
         dwellingGroupsTable.setRowSorter(routedAndUnroutedToolTipModel.getDwellingGroupModel().getRowSorter());
-        dwellingGroupsTable.getColumnModel().getColumn(0).setCellRenderer(new DwellingGroupNameCellRendeder());
+        dwellingGroupsTable.getColumnModel().getColumn(0).setCellRenderer(new DwellingGroupNameCellRendeder(
+                dwellingGroupsTable.getColumnModel().getColumn(0).getCellRenderer()
+        ));
         dwellingGroupsTable.setDoubleBuffered(false);
         setAlwaysOnTop(true);
         setUndecorated(true);

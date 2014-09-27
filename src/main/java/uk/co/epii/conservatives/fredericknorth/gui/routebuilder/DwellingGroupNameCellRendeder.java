@@ -14,16 +14,24 @@ import java.awt.*;
 public class DwellingGroupNameCellRendeder implements TableCellRenderer {
 
   private JLabel label = new JLabel();
+  private TableCellRenderer defaultRenderer;
+
+  public DwellingGroupNameCellRendeder(TableCellRenderer defaultRenderer) {
+    this.defaultRenderer = defaultRenderer;
+  }
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
                                                  boolean isSelected, boolean hasFocus, int row, int column) {
+    Component defualt = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     if (!(value instanceof DwellingGroup)) {
       throw new UnsupportedOperationException("value must be a DwellingGroup");
     }
     DwellingGroup dwellingGroup = (DwellingGroup)value;
     label.setText(dwellingGroup.getName());
     label.setToolTipText(dwellingGroup.getName());
+    label.setBackground(defualt.getBackground());
+    label.setForeground(defualt.getForeground());
     return label;
   }
 }
