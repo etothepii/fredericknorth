@@ -3,13 +3,13 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.RectangleExtensions;
-import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.BoundedAreaSelectionPanel;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.MeetingPoint;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.MeetingPointOverlayRenderer;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImage;
 import uk.co.epii.conservatives.fredericknorth.maps.MapImageObserver;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
+import uk.co.epii.conservatives.fredericknorth.routes.DistributionModel;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedEvent;
 import uk.co.epii.conservatives.fredericknorth.utilities.EnabledStateChangedListener;
@@ -73,7 +73,7 @@ public class RouteBuilderPanel extends JPanel {
     private final DistributionWindow distributionWindow;
 
     public RouteBuilderPanel(RouteBuilderPanelModel RouteBuilderPanelModel, ApplicationContext applicationContext) throws HeadlessException {
-        distributionWindow = new DistributionWindow(SwingUtilities.getWindowAncestor(this), new DistributionModel());
+        distributionWindow = new DistributionWindow(SwingUtilities.getWindowAncestor(this), new DistributionModelImpl());
         progressTracker = new ProgressTrackerJProgressBar(1);
         routeBuilderPanelModel = RouteBuilderPanelModel;
         routeBuilderPanelModel.setProgressTracker(progressTracker);

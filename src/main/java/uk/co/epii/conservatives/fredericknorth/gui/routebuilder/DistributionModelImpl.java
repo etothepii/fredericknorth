@@ -1,13 +1,16 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
+import uk.co.epii.conservatives.fredericknorth.routes.DistributionModel;
+
 import java.util.Date;
 
 /**
  * User: James Robinson
- * Date: 25/09/2014
- * Time: 22:10
+ * Date: 28/09/2014
+ * Time: 20:38
  */
-public class DistributionModel {
+
+public class DistributionModelImpl implements DistributionModel {
 
   private String title;
   private String description;

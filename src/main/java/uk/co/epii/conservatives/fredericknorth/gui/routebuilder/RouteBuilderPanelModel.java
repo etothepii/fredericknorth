@@ -9,30 +9,24 @@ import uk.co.epii.conservatives.fredericknorth.geometry.SquareSearchPolygonSifte
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.PolygonExtensions;
 import uk.co.epii.conservatives.fredericknorth.gui.Activateable;
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.*;
-import uk.co.epii.conservatives.fredericknorth.maps.Location;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroupFactory;
-import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingDatabaseImpl;
 import uk.co.epii.conservatives.fredericknorth.pdf.RenderedRoute;
 import uk.co.epii.conservatives.fredericknorth.routes.DefaultRoutableArea;
+import uk.co.epii.conservatives.fredericknorth.routes.DistributionModel;
 import uk.co.epii.conservatives.fredericknorth.routes.RoutableArea;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutePublisher;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
 import uk.co.epii.conservatives.fredericknorth.utilities.*;
 import uk.co.epii.conservatives.fredericknorth.maps.gui.*;
 import uk.co.epii.conservatives.fredericknorth.maps.MapViewGenerator;
 import uk.co.epii.conservatives.fredericknorth.opendata.DwellingGroup;
 import uk.co.epii.conservatives.fredericknorth.pdf.PDFRenderer;
-import uk.co.epii.politics.williamcavendishbentinck.DatabaseSession;
-import uk.co.epii.politics.williamcavendishbentinck.tables.Leaflet;
-import uk.co.epii.politics.williamcavendishbentinck.tables.LeafletMap;
-import uk.co.epii.politics.williamcavendishbentinck.tables.Route;
-import uk.co.epii.politics.williamcavendishbentinck.tables.RouteMember;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
-import java.sql.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -75,6 +69,7 @@ public class RouteBuilderPanelModel implements Activateable {
     private final ArrayList<EnabledStateChangedListener<RouteBuilderPanelModel>> enabledStateChangedListeners =
             new ArrayList<EnabledStateChangedListener<RouteBuilderPanelModel>>();
     private boolean active = false;
+    private RoutePublisher routePublisher;
 
     public RouteBuilderPanelModel(ApplicationContext applicationContext, BoundedAreaSelectionModel boundedAreaSelectionModel) {
         this(applicationContext, boundedAreaSelectionModel, new HashMap<BoundedArea, RoutableArea>());
@@ -512,7 +507,8 @@ public class RouteBuilderPanelModel implements Activateable {
                         Collection<RenderedRoute> renderedRoutes =
                                 pdfRenderer.buildRoutesGuide(getRoutableArea(boundedAreaSelectionModel.getSelected()),
                                         selectedFile, progressTracker);
-                        uploadRenderedRoutes(progressTracker, distributionModel, renderedRoutes);
+                        routePublisher.setProgressTracker(progressTracker);
+                        routePublisher.publish(distributionModel, renderedRoutes);
                         enable();
                     }
                 }
@@ -520,85 +516,6 @@ public class RouteBuilderPanelModel implements Activateable {
             disable();
         }
     }
-
-  private void uploadRenderedRoutes(ProgressTracker progressTracker, DistributionModel distributionModel, Collection<RenderedRoute> renderedRoutes) {
-    if (distributionModel == null) {
-      progressTracker.increment();
-      return;
-    }
-    DatabaseSession databaseSession = applicationContext.getDefaultInstance(DatabaseSession.class);
-    Leaflet leaflet = new Leaflet(UUID.randomUUID().toString(),
-            new java.sql.Date(distributionModel.getDistributionStart().getTime()),
-            distributionModel.getTitle(),
-            distributionModel.getDescription());
-    databaseSession.upload(Arrays.asList(leaflet));
-    progressTracker.startSubsection(renderedRoutes.size());
-    for (RenderedRoute renderedRoute : renderedRoutes) {
-      uploadRenderedRoute(databaseSession, leaflet, renderedRoute);
-      progressTracker.increment();
-    }
-  }
-
-  private void uploadRenderedRoute(DatabaseSession databaseSession, Leaflet leaflet, RenderedRoute renderedRoute) {
-    Route route = getRouteFromDatabase(databaseSession, renderedRoute.getRoute());
-    LeafletMap leafletMap = new LeafletMap(
-            renderedRoute.getUUID().toString(), leaflet.getId(), route.getId(), null, null);
-    databaseSession.upload(Arrays.asList(leafletMap));
-  }
-
-  private Route getRouteFromDatabase(DatabaseSession databaseSession, uk.co.epii.conservatives.fredericknorth.routes.Route route) {
-    List<Route> routes = databaseSession.getByUuid(Route.class, route.getUuid());
-    if (routes.size() > 0) {
-      return routes.get(0);
-    }
-    uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea parent =
-            getBoundedArea(databaseSession, route.getRoutableArea().getBoundedArea());
-    Route databaseRoute = new Route(route.getUuid().toString(), route.getName(), parent.getId(), getOwner(), getOwnerGroup(),
-            getDeliveredBy(), null);
-    databaseSession.upload(Arrays.asList(databaseRoute));
-    List<RouteMember> routeMembers = new ArrayList<RouteMember>(route.getDwellingCount());
-    for (DwellingGroup dwellingGroup : route.getDwellingGroups()) {
-      for (Location location : dwellingGroup.getDwellings()) {
-        if (location instanceof DwellingDatabaseImpl) {
-          DwellingDatabaseImpl dwelling = (DwellingDatabaseImpl)location;
-          routeMembers.add(new RouteMember(0, databaseRoute.getId(), dwelling.getDeliveryPointAddress().getUprn()));
-        }
-      }
-    }
-    databaseSession.upload(routeMembers);
-    return databaseRoute;
-  }
-
-  private Integer getDeliveredBy() {
-    return null;
-  }
-
-  private uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea getBoundedArea(
-          DatabaseSession databaseSession, BoundedArea boundedArea) {
-    if (boundedArea == null) {
-      return null;
-    }
-    List<uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea> boundedAreas = databaseSession.getByUuid(
-            uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea.class, boundedArea.getUuid());
-    if (boundedAreas.size() > 0) {
-      return boundedAreas.get(0);
-    }
-    uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea parent =
-            getBoundedArea(databaseSession, boundedArea.getParent());
-    uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea databaseBoundedArea =
-            new uk.co.epii.politics.williamcavendishbentinck.tables.BoundedArea(boundedArea.getUuid().toString(),
-                    parent.getId(), getOwner(), getOwnerGroup(), boundedArea.getName(), null);
-    databaseSession.upload(Arrays.asList(databaseBoundedArea));
-    return databaseBoundedArea;
-  }
-
-  private Integer getOwnerGroup() {
-    return null;
-  }
-
-  private Integer getOwner() {
-    return null;
-  }
 
   public void invertSelectionInRoutedAndUnrouted() {
         routedAndUnroutedToolTipModel.invertSelection();
@@ -655,4 +572,12 @@ public class RouteBuilderPanelModel implements Activateable {
     public boolean getActive() {
         return active;
     }
+
+  public RoutePublisher getRoutePublisher() {
+    return routePublisher;
+  }
+
+  public void setRoutePublisher(RoutePublisher routePublisher) {
+    this.routePublisher = routePublisher;
+  }
 }

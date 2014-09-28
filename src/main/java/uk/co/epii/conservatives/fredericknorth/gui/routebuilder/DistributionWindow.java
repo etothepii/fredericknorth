@@ -1,5 +1,7 @@
 package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
+import uk.co.epii.conservatives.fredericknorth.routes.DistributionModel;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;

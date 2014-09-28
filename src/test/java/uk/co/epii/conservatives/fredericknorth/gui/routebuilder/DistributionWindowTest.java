@@ -2,10 +2,10 @@ package uk.co.epii.conservatives.fredericknorth.gui.routebuilder;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import uk.co.epii.conservatives.fredericknorth.routes.DistributionModel;
 
 import javax.swing.*;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import static junit.framework.Assert.assertEquals;
@@ -17,9 +17,10 @@ import static junit.framework.Assert.assertEquals;
  */
 public class DistributionWindowTest {
 
+  @Ignore
   @Test
   public void displaysBehavesCorrectlyOnNoTest() {
-    DistributionModel distributionModel = new DistributionModel();
+    DistributionModel distributionModel = new DistributionModelImpl();
     final DistributionWindow distributionWindow = new DistributionWindow(null, distributionModel);
     distributionWindow.pack();
     distributionWindow.setLocationRelativeTo(null);
@@ -45,9 +46,10 @@ public class DistributionWindowTest {
     assertEquals(null, distributionWindow.getDistributionModel());
   }
 
+  @Ignore
   @Test
   public void displaysBehavesCorrectlyOnYesTest() {
-    DistributionModel distributionModel = new DistributionModel();
+    DistributionModel distributionModel = new DistributionModelImpl();
     final DistributionWindow distributionWindow = new DistributionWindow(null, distributionModel);
     distributionWindow.pack();
     distributionWindow.setLocationRelativeTo(null);

@@ -6,7 +6,10 @@ import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.DefaultBo
 import uk.co.epii.conservatives.fredericknorth.gui.routableareabuilder.RoutableAreaBuilderPanelModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderMapPanelModel;
 import uk.co.epii.conservatives.fredericknorth.gui.routebuilder.RouteBuilderPanelModel;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutePublisher;
+import uk.co.epii.conservatives.fredericknorth.routes.RoutePublisherImpl;
 import uk.co.epii.conservatives.fredericknorth.utilities.ApplicationContext;
+import uk.co.epii.politics.williamcavendishbentinck.DatabaseSession;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -32,6 +35,9 @@ public class MainWindowModel implements ChangeListener {
         boundedAreaSelectionModel = new DefaultBoundedAreaSelectionModel(applicationContext);
         routableAreaBuilderPanelModel = new RoutableAreaBuilderPanelModel(applicationContext, boundedAreaSelectionModel) ;
         routeBuilderPanelModel = new RouteBuilderPanelModel(applicationContext, boundedAreaSelectionModel);
+        RoutePublisherImpl routePublisher = new RoutePublisherImpl();
+        routePublisher.setDatabaseSession(applicationContext.getDefaultInstance(DatabaseSession.class));
+        routeBuilderPanelModel.setRoutePublisher(routePublisher);
         meetingPointSelectorPanelModel = new MeetingPointSelectorPanelModel(applicationContext);
         tabs = new HashMap<Integer, Activateable>();
         activeTab = -1;
