@@ -9,7 +9,7 @@ import java.util.UUID;
  * Date: 14/09/2014
  * Time: 21:59
  */
-class RenderedRouteImpl implements RenderedRoute {
+public class RenderedRouteImpl implements RenderedRoute {
 
   private Route route;
   private UUID uuid;
