@@ -225,15 +225,6 @@ public class RouteBuilderPanel extends JPanel {
         };
     }
 
-    public void addedToWindow() {
-      SwingUtilities.getWindowAncestor(this).addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowLostFocus(WindowEvent e) {
-          routedAndUnroutedToolTipFrame.setVisible(false);
-        }
-      });
-    }
-
     private File createWorkingDirectory(ApplicationContext applicationContext) {
         String workingDirectoryString = System.getProperty("user.home");
         workingDirectoryString +=

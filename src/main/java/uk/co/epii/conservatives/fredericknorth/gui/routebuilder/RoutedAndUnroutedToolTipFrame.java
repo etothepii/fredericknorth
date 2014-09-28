@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * User: James Robinson
@@ -55,8 +57,12 @@ class RoutedAndUnroutedToolTipFrame extends JFrame {
                 }
             }
         });
-
-
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+              setVisible(false);
+            }
+        });
     }
 
     public MouseWheelListener[] getScrollerListeners() {

@@ -44,7 +44,6 @@ public class MainWindow extends JFrame {
         mainWindowModel.setTab(1, mainWindowModel.getRouteBuilderPanelModel());
         mainWindowModel.setTab(2, mainWindowModel.getMeetingPointSelectorPanelModel());
         mainWindowModel.stateChanged(new ChangeEvent(tabbedPane));
-        routeBuilderPanel.addedToWindow();
     }
 
 
