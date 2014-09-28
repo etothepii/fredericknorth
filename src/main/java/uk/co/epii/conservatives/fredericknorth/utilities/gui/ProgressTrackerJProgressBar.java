@@ -94,7 +94,7 @@ public class ProgressTrackerJProgressBar extends JPanel implements ProgressTrack
 
   private void incrementSubsection(int n) {
         if (_subsectionCounts.isEmpty() || _subsectionSizes.isEmpty()) {
-            LOG.warn("No Active Subsection");
+            LOG.error("No Active Subsection");
             addSubsection(100);
         }
         _subsectionCounts.set(0, _subsectionCounts.get(0) + n);
