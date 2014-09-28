@@ -46,10 +46,12 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     removeOverLarge();
     List<Service> services = createServices();
     List<Vehicle> vehicles = buildVehicles();
-    VehicleRoutingProblem problem = createProblem(vehicles, services);
-    VehicleRoutingProblemSolution solution = solve(problem, 2048);
-    extractRoutes(solution);
-    LOG.debug("Cars Used: {}/{}", solution.getRoutes().size(), vehicles.size());
+    if (!vehicles.isEmpty()) {
+      VehicleRoutingProblem problem = createProblem(vehicles, services);
+      VehicleRoutingProblemSolution solution = solve(problem, 2048);
+      extractRoutes(solution);
+      LOG.debug("Cars Used: {}/{}", solution.getRoutes().size(), vehicles.size());
+    }
     removeCommonEndings();
     return routes;
   }
@@ -59,10 +61,16 @@ public class TravellingSalesmanRouter extends AbstractRouter {
     for (Duple<List<IndivisbleChunk>, Double> duple : colocatedChunks.values()) {
       totalDwellings += duple.getSecond();
     }
+    if (totalDwellings == 0d) {
+      return new ArrayList<Vehicle>();
+    }
     int vehicles = (int)Math.ceil(totalDwellings / targetSize);
+    if (vehicles == 0) {
+      vehicles = 1;
+    }
     List<Vehicle> vehiclesList = new ArrayList<Vehicle>(vehicles);
     for (int i = 0; i < vehicles; i++) {
-      vehiclesList.add(buildVehicle(targetSize * 3 / 2, false, getRandomPointWithinBounds()));
+      vehiclesList.add(buildVehicle(targetSize, false, getRandomPointWithinBounds()));
     }
     return vehiclesList;
   }
