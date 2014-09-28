@@ -409,6 +409,8 @@ public class RouteBuilderPanel extends JPanel {
                   return;
                 }
                 exportTo = fileChooser.getSelectedFile();
+                distributionWindow.pack();
+                distributionWindow.setLocationRelativeTo(SwingUtilities.getWindowAncestor(mapPanel));
                 distributionWindow.setVisible(true);
                 DistributionModel distributionModel = distributionWindow.getDistributionModel();
                 routeBuilderPanelModel.export(exportTo, distributionModel);
