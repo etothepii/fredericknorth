@@ -17,6 +17,7 @@ public class DwellingGroupNameCellRendeder implements TableCellRenderer {
   private TableCellRenderer defaultRenderer;
 
   public DwellingGroupNameCellRendeder(TableCellRenderer defaultRenderer) {
+    label.setOpaque(true);
     this.defaultRenderer = defaultRenderer;
   }
 
