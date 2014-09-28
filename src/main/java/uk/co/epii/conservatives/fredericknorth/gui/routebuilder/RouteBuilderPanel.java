@@ -88,12 +88,6 @@ public class RouteBuilderPanel extends JPanel {
                 applicationContext.getProperty(RouteMapFilesFilterKey));
         routedAndUnroutedToolTipFrame = new RoutedAndUnroutedToolTipFrame(
                 routeBuilderPanelModel.getRoutedAndUnroutedToolTipModel(), dwellingCountColumnWidth);
-        SwingUtilities.getWindowAncestor(this).addWindowListener(new WindowAdapter() {
-          @Override
-          public void windowLostFocus(WindowEvent e) {
-            routedAndUnroutedToolTipFrame.setVisible(false);
-          }
-        });
         workingDirectory = createWorkingDirectory(applicationContext);
         mapImageObserver = createMapImageObserver();
         routeBuilderPanelModel.getMapPanelModel().setMapImageObserver(mapImageObserver);
@@ -231,6 +225,15 @@ public class RouteBuilderPanel extends JPanel {
         };
     }
 
+    public void addedToWindow() {
+      SwingUtilities.getWindowAncestor(this).addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowLostFocus(WindowEvent e) {
+          routedAndUnroutedToolTipFrame.setVisible(false);
+        }
+      });
+    }
+
     private File createWorkingDirectory(ApplicationContext applicationContext) {
         String workingDirectoryString = System.getProperty("user.home");
         workingDirectoryString +=
@@ -247,7 +250,7 @@ public class RouteBuilderPanel extends JPanel {
         dwellingGroupTable.setSelectionModel(dwellingGroupModel.getListSelectionModel());
         dwellingGroupTable.setRowSorter(dwellingGroupModel.getRowSorter());
         dwellingGroupTable.getColumnModel().getColumn(0).setCellRenderer(new DwellingGroupNameCellRendeder(
-                dwellingGroupTable.getColumnModel().getColumn(0).getCellRenderer()
+                dwellingGroupTable.getDefaultRenderer(Object.class)
         ));
         return dwellingGroupTable;
     }
