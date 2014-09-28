@@ -17,7 +17,6 @@ import java.awt.*;
  */
 public class MainWindow extends JFrame {
 
-    private final MainWindowModel mainWindowModel;
     private final MeetingPointSelectorPanel meetingPointSelectorPanel;
     private final BoundedAreaSelectionPanel boundedAreaSelectionPanel;
     private final JTabbedPane tabbedPane;
@@ -25,7 +24,6 @@ public class MainWindow extends JFrame {
     private final RouteBuilderPanel routeBuilderPanel;
 
     public MainWindow(ApplicationContext applicationContext, MainWindowModel mainWindowModel) {
-        this.mainWindowModel = mainWindowModel;
         boundedAreaSelectionPanel = new BoundedAreaSelectionPanel(mainWindowModel.getBoundedAreaSelectionModel());
         tabbedPane = new JTabbedPane();
         routableAreaBuilderPanel = new RoutableAreaBuilderPanel(applicationContext, mainWindowModel.getRoutableAreaBuilderPanelModel());
