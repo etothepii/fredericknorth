@@ -5,6 +5,9 @@ import org.junit.Test;
 
 import javax.swing.*;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 import static junit.framework.Assert.assertEquals;
 
 /**
@@ -20,10 +23,22 @@ public class DistributionWindowTest {
     final DistributionWindow distributionWindow = new DistributionWindow(null, distributionModel);
     distributionWindow.pack();
     distributionWindow.setLocationRelativeTo(null);
-    SwingUtilities.invokeLater(new Runnable() {
+    Executors.newSingleThreadExecutor().execute(new Runnable() {
       @Override
       public void run() {
-        distributionWindow.no();
+        while (!distributionWindow.isVisible()) {
+          try {
+            Thread.sleep(10L);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            distributionWindow.no();
+          }
+        });
       }
     });
     distributionWindow.setVisible(true);
@@ -36,10 +51,22 @@ public class DistributionWindowTest {
     final DistributionWindow distributionWindow = new DistributionWindow(null, distributionModel);
     distributionWindow.pack();
     distributionWindow.setLocationRelativeTo(null);
-    SwingUtilities.invokeLater(new Runnable() {
+    Executors.newSingleThreadExecutor().execute(new Runnable() {
       @Override
       public void run() {
-        distributionWindow.yes();
+        while (!distributionWindow.isVisible()) {
+          try {
+            Thread.sleep(10L);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            distributionWindow.yes();
+          }
+        });
       }
     });
     distributionWindow.setVisible(true);
