@@ -1,6 +1,5 @@
 package uk.co.epii.conservatives.fredericknorth.boundaryline;
 
-import com.sun.tools.javac.jvm.ByteCodes;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.co.epii.conservatives.fredericknorth.serialization.XMLSerializer;
