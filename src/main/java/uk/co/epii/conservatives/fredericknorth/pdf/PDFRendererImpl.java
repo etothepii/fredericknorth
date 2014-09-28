@@ -121,7 +121,7 @@ class PDFRendererImpl implements PDFRenderer {
                     o2Int = null;
                 }
                 if (o1Int == null && o2Int == null) {
-                    return o1.compareTo(o2);
+                    return 0;
                 }
                 if (o1Int == null) {
                     return -1;
