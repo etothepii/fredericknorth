@@ -1,6 +1,5 @@
 package uk.co.epii.conservatives.fredericknorth.maps;
 
-import com.sun.istack.internal.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.geometry.extensions.DimensionExtensions;
@@ -82,7 +81,6 @@ class MapViewGeneratorImpl implements MapViewGenerator {
     }
 
     @Override
-    @NotNull
     public boolean setGeoCenter(Point geoCenter, ProgressTracker progressTracker, MapImageObserver imageObserver) {
         return setGeoCenter(geoCenter, true, progressTracker, imageObserver);
     }
