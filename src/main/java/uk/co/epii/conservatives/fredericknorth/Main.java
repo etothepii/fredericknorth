@@ -18,7 +18,11 @@ import uk.co.epii.politics.williamcavendishbentinck.DatabaseSession;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 import java.io.File;
+import java.util.concurrent.Executors;
 
 /**
  * An awesome fredericknorth
@@ -80,13 +84,23 @@ public class Main
         progress("Starting ...");
         progressTracker.setIndeterminate();
         MainWindowModel mainWindowModel = new MainWindowModel(applicationContext);
-        MainWindow mainWindow = new MainWindow(applicationContext, mainWindowModel);
+        final MainWindow mainWindow = new MainWindow(applicationContext, mainWindowModel);
         mainWindow.setLocationRelativeTo(null);
         mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        mainWindow.setVisible(true);
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        progressTracker.setVisible(false);
-        progressTracker.dispose();
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              Thread.sleep(2000L);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
+            mainWindow.setVisible(true);
+            progressTracker.setVisible(false);
+            progressTracker.dispose();
+          }
+        });
     }
 
     static File findDataFolder() {
