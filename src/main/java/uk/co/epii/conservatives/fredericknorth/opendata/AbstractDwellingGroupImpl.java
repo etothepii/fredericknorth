@@ -1,6 +1,9 @@
 package uk.co.epii.conservatives.fredericknorth.opendata;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.co.epii.conservatives.fredericknorth.maps.Location;
+import uk.co.epii.conservatives.fredericknorth.opendata.db.DwellingDatabaseImpl;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -12,6 +15,8 @@ import java.util.regex.Pattern;
  * Time: 00:13
  */
 public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractDwellingGroupImpl.class);
 
   private static final int MAX_IDENTIFIER_SUMMARY_LENGTH = 20;
   protected String commonName;
@@ -100,6 +105,15 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
                 numericIdentifierSummary.add(Integer.parseInt(dwelling.getName()));
             }
             catch (NumberFormatException nfe) {
+                if (dwelling.getName() == null) {
+                  if (dwelling instanceof DwellingDatabaseImpl) {
+                    LOG.error("Dwelling with null name UPRN: " +
+                            ((DwellingDatabaseImpl)dwelling).getDeliveryPointAddress().getUprn());
+                  }
+                  else {
+                    LOG.error("Dwelling with null name");
+                  }
+                }
                 nonNumericsIdentifierSummary.add(dwelling.getName());
             }
         }
@@ -123,6 +137,10 @@ public abstract class AbstractDwellingGroupImpl implements DwellingGroup {
         }
 
         public void add(String identifier) {
+            if (identifier == null) {
+                unmatched.add("");
+                return;
+            }
             count++;
             Matcher midMatcher = flatMidMatcher.matcher(identifier);
             Matcher preMatcher = flatPreMatcher.matcher(identifier);
