@@ -376,7 +376,8 @@ public class RouteBuilderPanelModel implements Activateable {
         }
         else {
             Rectangle bounds = PolygonExtensions.getBounds(boundedArea.getAreas());
-            Collection<? extends DwellingGroup> dwellingGroups = dwellingGroupFactory.getDwellingGroups(bounds);
+            progressTracker.startSubsection(2);
+            Collection<? extends DwellingGroup> dwellingGroups = fromDatabase(progressTracker, bounds);
             if (!dwellingGroups.isEmpty()) {
                 progressTracker.startSubsection(dwellingGroups.size());
                 PolygonSifter polygonSifter = new SquareSearchPolygonSifterImpl(boundedArea.getAreas(), dwellingGroups.size());
@@ -405,7 +406,23 @@ public class RouteBuilderPanelModel implements Activateable {
         return routableArea;
     }
 
-    private void clearOtherDwellingGroup(DwellingGroupModel otherDwellingGroup) {
+  private Collection<? extends DwellingGroup> fromDatabase(ProgressTracker progressTracker, Rectangle bounds) {
+    if (bounds.width < 100 || bounds.height < 100) {
+      progressTracker.increment("Downloaded from database");
+      return dwellingGroupFactory.getDwellingGroups(bounds);
+    }
+    int percent = 0;
+    progressTracker.startSubsection(100);
+    ArrayList<DwellingGroup> dwellingGroups = new ArrayList<>();
+    for (Rectangle rectangle : new RectangleIterator(bounds, 100)) {
+      dwellingGroups.addAll(dwellingGroupFactory.getDwellingGroups(rectangle));
+      percent++;
+      progressTracker.increment(String.format("Loading Dwellings From Database %s%%", percent));
+    }
+    return dwellingGroups;
+  }
+
+  private void clearOtherDwellingGroup(DwellingGroupModel otherDwellingGroup) {
         if (dwellingGroupsBeingUpdated) return;
         dwellingGroupsBeingUpdated = true;
         otherDwellingGroup.getListSelectionModel().clearSelection();
@@ -552,7 +569,7 @@ public class RouteBuilderPanelModel implements Activateable {
 
     public void setProgressTracker(ProgressTracker progressTracker) {
         this.progressTracker = progressTracker;
-        this.mapPanelModel.setProgressTracker(progressTracker);
+        this.mapPanelModel.setProgressTracker(new NullProgressTracker());
     }
 
     @Override
